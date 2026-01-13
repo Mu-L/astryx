@@ -20,11 +20,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'ghost'],
-    },
-    size: {
-      control: 'select',
-      options: ['sm', 'md', 'lg'],
+      options: ['primary', 'secondary', 'ghost', 'destructive'],
     },
     loading: {
       control: 'boolean',
@@ -59,23 +55,16 @@ export const Ghost: Story = {
   },
 };
 
-export const Small: Story = {
+export const Destructive: Story = {
   args: {
-    children: 'Small Button',
-    size: 'sm',
-  },
-};
-
-export const Large: Story = {
-  args: {
-    children: 'Large Button',
-    size: 'lg',
+    children: 'Delete',
+    variant: 'destructive',
   },
 };
 
 export const Loading: Story = {
   args: {
-    children: 'Submit',
+    children: 'Saving...',
     loading: true,
   },
 };
