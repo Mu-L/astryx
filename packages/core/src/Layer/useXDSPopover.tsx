@@ -279,7 +279,6 @@ export function useXDSPopover(
   const layer = useXDSLayer({
     mode: 'context',
     lightDismiss: hasLightDismiss,
-    xstyle,
     onShow,
     onHide,
   });
@@ -371,7 +370,7 @@ export function useXDSPopover(
             </button>
           )}
         </div>,
-        props,
+        {...props, xstyle: xstyle ?? props?.xstyle},
       );
     },
     [
@@ -381,6 +380,7 @@ export function useXDSPopover(
       isCloseButtonFocused,
       contentRef,
       dialogLabel,
+      xstyle,
     ],
   );
 
