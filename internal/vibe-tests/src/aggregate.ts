@@ -848,7 +848,6 @@ function loadResults(resultsDir: string): (TestResult & {target?: string})[] {
       const promptId = file.replace('.tsx', '');
       const resultPath = path.join(individualResultsDir, file);
       const taskPath = path.join(tasksDir, `${promptId}.json`);
-      const metaPath = path.join(individualResultsDir, `${promptId}.meta.json`);
 
       // Read the generated code
       const code = fs.readFileSync(resultPath, 'utf-8');
@@ -866,14 +865,20 @@ function loadResults(resultsDir: string): (TestResult & {target?: string})[] {
         task = JSON.parse(fs.readFileSync(taskPath, 'utf-8'));
       }
 
-      // Load docs read metadata if available
+      // Load docs read from corresponding .json result file
       let docsRead: string[] | undefined;
-      if (fs.existsSync(metaPath)) {
+      const jsonResultPath = path.join(
+        individualResultsDir,
+        `${promptId}.json`,
+      );
+      if (fs.existsSync(jsonResultPath)) {
         try {
-          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
-          docsRead = meta.docsRead;
+          const jsonResult = JSON.parse(
+            fs.readFileSync(jsonResultPath, 'utf-8'),
+          );
+          docsRead = jsonResult.docsRead;
         } catch {
-          console.warn(`Warning: Could not parse ${metaPath}`);
+          // Ignore parse errors, docsRead will remain undefined
         }
       }
 
