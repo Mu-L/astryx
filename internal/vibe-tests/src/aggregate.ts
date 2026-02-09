@@ -17,6 +17,8 @@ import type {
   EscapeHatchType,
   JobBreakdown,
   InputTokenBreakdown,
+  QualityAssessment,
+  QualityScore,
 } from './types.js';
 import {writeJson, getResultsDir} from './utils.js';
 
@@ -91,8 +93,13 @@ function estimateInputTokens(
 
 /**
  * Analyze code to break down tokens by job type
+ * @param code The generated code to analyze
+ * @param target The target design system ('xds' | 'baseline')
  */
-function analyzeJobBreakdown(code: string): JobBreakdown {
+function analyzeJobBreakdown(
+  code: string,
+  target: string = 'xds',
+): JobBreakdown {
   const jobs = {
     componentRouting: 0,
     componentConfig: 0,
@@ -111,23 +118,51 @@ function analyzeJobBreakdown(code: string): JobBreakdown {
 
     // Imports
     if (stripped.startsWith('import')) {
-      if (line.includes('XDS') || line.includes('@xds')) {
-        jobs.componentRouting += chars;
+      if (target === 'xds') {
+        // XDS: imports from @xds/core are component routing
+        if (line.includes('XDS') || line.includes('@xds')) {
+          jobs.componentRouting += chars;
+        } else {
+          jobs.boilerplate += chars;
+        }
       } else {
-        jobs.boilerplate += chars;
+        // baseline: imports from @/components/ui are component routing
+        if (
+          line.includes('@/components/ui') ||
+          line.includes('components/ui')
+        ) {
+          jobs.componentRouting += chars;
+        } else if (
+          line.includes('@/lib/utils') ||
+          line.includes('class-variance-authority') ||
+          line.includes('clsx')
+        ) {
+          // cn() utility imports - part of styling system
+          jobs.componentConfig += chars;
+        } else {
+          jobs.boilerplate += chars;
+        }
       }
       continue;
     }
 
-    // StyleX styles block
-    if (line.includes('stylex.create')) {
-      inStyles = true;
-    }
-    if (inStyles) {
-      jobs.supplementalStyling += chars;
-      if (stripped === '});') {
-        inStyles = false;
+    // StyleX styles block - XDS only, this is supplemental styling
+    if (target === 'xds') {
+      if (line.includes('stylex.create')) {
+        inStyles = true;
       }
+      if (inStyles) {
+        jobs.supplementalStyling += chars;
+        if (stripped === '});') {
+          inStyles = false;
+        }
+        continue;
+      }
+    }
+
+    // For baseline: inline style objects are supplemental (escape hatch)
+    if (target === 'baseline' && line.includes('style={{')) {
+      jobs.supplementalStyling += chars;
       continue;
     }
 
@@ -146,34 +181,101 @@ function analyzeJobBreakdown(code: string): JobBreakdown {
       continue;
     }
 
-    // JSX with XDS components and props
-    const propPatterns = [
-      'label=',
-      'value=',
-      'onChange=',
-      'variant=',
-      'disabled=',
-      'loading=',
-      'onClick=',
-      'placeholder=',
-      'isRequired',
-      'header=',
-      'content=',
-      'theme=',
-    ];
-    if (
-      line.includes('<XDS') ||
-      line.includes('</XDS') ||
-      (stripped && propPatterns.some(p => line.includes(p)))
-    ) {
-      jobs.componentConfig += chars;
-      continue;
+    // JSX with components and props
+    if (target === 'xds') {
+      // XDS component patterns
+      const propPatterns = [
+        'label=',
+        'value=',
+        'onChange=',
+        'variant=',
+        'disabled=',
+        'loading=',
+        'onClick=',
+        'placeholder=',
+        'isRequired',
+        'header=',
+        'content=',
+        'theme=',
+      ];
+      if (
+        line.includes('<XDS') ||
+        line.includes('</XDS') ||
+        (stripped && propPatterns.some(p => line.includes(p)))
+      ) {
+        jobs.componentConfig += chars;
+        continue;
+      }
+    } else {
+      // baseline component patterns
+      // In baseline, className with Tailwind IS styling (not component config)
+      // Only component props count as config
+      const baselineComponents = [
+        '<Button',
+        '</Button>',
+        '<Card',
+        '</Card>',
+        '<Input',
+        '</Input>',
+        '<Table',
+        '</Table>',
+        '<Dialog',
+        '</Dialog>',
+        '<Popover',
+        '</Popover>',
+        '<Select',
+        '</Select>',
+        '<Checkbox',
+        '</Checkbox>',
+        '<Badge',
+        '</Badge>',
+        '<Avatar',
+        '</Avatar>',
+        '<Tabs',
+        '</Tabs>',
+        '<Command',
+        '</Command>',
+        '<DropdownMenu',
+        '</DropdownMenu>',
+      ];
+      const baselinePropPatterns = [
+        'variant=',
+        'size=',
+        'disabled=',
+        'onClick=',
+        'onChange=',
+        'onValueChange=',
+        'onCheckedChange=',
+        'placeholder=',
+        'asChild',
+        'defaultValue=',
+        'value=',
+        // Note: className is NOT included - that's styling, not config
+      ];
+      if (
+        baselineComponents.some(c => line.includes(c)) ||
+        (stripped && baselinePropPatterns.some(p => line.includes(p)))
+      ) {
+        jobs.componentConfig += chars;
+        continue;
+      }
+
+      // For baseline: className with Tailwind fills gaps that component props don't cover
+      // This is analogous to StyleX in XDS - supplemental styling
+      if (line.includes('className=')) {
+        jobs.supplementalStyling += chars;
+        continue;
+      }
     }
 
     // JSX structure (html elements)
-    if (/<\/?[a-z]/.test(line) && !line.includes('XDS')) {
-      jobs.contentAuthoring += chars;
-      continue;
+    if (/<\/?[a-z]/.test(line)) {
+      if (target === 'xds' && line.includes('XDS')) {
+        // Already handled above
+      } else {
+        jobs.contentAuthoring += chars;
+        continue;
+      }
     }
 
     // State, handlers, logic
@@ -236,6 +338,7 @@ const ANTI_PATTERN_HATCHES: EscapeHatchType[] = [
   'hardcoded_color',
   'hardcoded_spacing',
   'inline_style', // Should use StyleX instead
+  'a11y_click_handler', // Accessibility issue: use button instead
 ];
 
 interface TierCounts {
@@ -315,6 +418,26 @@ interface AggregateResult {
     };
     grandTotal: number;
   };
+  // Quality assessment results (from quality agent)
+  quality?: {
+    assessed: number;
+    byScore: Record<QualityScore, number>;
+    accessibility: {
+      byScore: Record<QualityScore, number>;
+      totalIssues: number;
+      criticalIssues: number;
+    };
+    designSystem: {
+      byScore: Record<QualityScore, number>;
+      totalIssues: number;
+      criticalIssues: number;
+    };
+    codeQuality: {
+      byScore: Record<QualityScore, number>;
+      totalIssues: number;
+      criticalIssues: number;
+    };
+  };
 }
 
 /** Normalize escape hatch to object format (handles string or object) */
@@ -333,6 +456,20 @@ function normalizeEscapeHatch(h: string | EscapeHatch): EscapeHatch {
 
 /** Calculate the tier for a single result */
 function calculateTier(evaluation: Evaluation): ResultTier {
+  // If the evaluation explicitly marks this as a failure, respect that
+  // This is important for degradation tests where subagents evaluate in-context
+  if (evaluation.success === false) {
+    // Check if there's a failure mode indicating severity
+    if (
+      evaluation.failureMode === 'complete_context_loss' ||
+      evaluation.failureMode === 'hallucination'
+    ) {
+      return 'red';
+    }
+    // Context drift or other failures are yellow (degraded but not critical)
+    return 'yellow';
+  }
+
   const normalizedHatches = evaluation.escapeHatches.map(normalizeEscapeHatch);
 
   const criticalHatches = normalizedHatches.filter(
@@ -465,95 +602,168 @@ function extractComponentsFromCode(code: string): string[] {
 
 /**
  * Detect escape hatches in code
+ * @param code The generated code to analyze
+ * @param target The target design system ('xds' | 'baseline')
  */
-function detectEscapeHatches(code: string): EscapeHatch[] {
+function detectEscapeHatches(
+  code: string,
+  target: string = 'xds',
+): EscapeHatch[] {
   const hatches: EscapeHatch[] = [];
 
-  // Check for hardcoded colors (hex, rgb, hsl, or named colors in style context)
-  const hardcodedColorRegex =
-    /(?:color|background|border|fill|stroke)\s*:\s*['"]?(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|hsl\([^)]+\)|rgba\([^)]+\)|hsla\([^)]+\))['"]?/gi;
-  let match;
-  while ((match = hardcodedColorRegex.exec(code)) !== null) {
-    hatches.push({
-      type: 'hardcoded_color',
-      severity: 'acceptable',
-      detail: 'Hardcoded color value instead of CSS variable',
-      codeSnippet: match[0],
-    });
-  }
-
-  // Check for hardcoded spacing (px values in padding, margin, gap)
-  const hardcodedSpacingRegex =
-    /(?:padding|margin|gap|top|bottom|left|right|width|height)\s*:\s*['"]?\d+px['"]?/gi;
-  while ((match = hardcodedSpacingRegex.exec(code)) !== null) {
-    // Skip if it's inside a var() or uses spacing tokens
-    if (!match[0].includes('var(')) {
+  // Check for hardcoded colors (hex, rgb, hsl in StyleX style definitions)
+  // Only flag colors in stylex.create() blocks, not in data objects
+  // Dynamic data colors (like user-defined label colors) are acceptable
+  if (target === 'xds') {
+    // Match colors specifically in style property contexts (after colon with property name)
+    // Skip if the color is a variable reference (like label.color) or data property
+    const hardcodedColorRegex =
+      /(?:backgroundColor|borderColor|color|fill|stroke)\s*:\s*['"]?(#[0-9a-fA-F]{3,8}|rgb\([^)]+\)|hsl\([^)]+\)|rgba\([^)]+\)|hsla\([^)]+\))['"]?/gi;
+    let match;
+    while ((match = hardcodedColorRegex.exec(code)) !== null) {
+      // Skip if it looks like it's in a data array (preceded by id, name, etc.)
+      const context = code.slice(Math.max(0, match.index - 50), match.index);
+      if (
+        context.includes('name:') ||
+        context.includes('id:') ||
+        context.includes('label:')
+      ) {
+        continue; // Skip data objects
+      }
       hatches.push({
-        type: 'hardcoded_spacing',
+        type: 'hardcoded_color',
         severity: 'acceptable',
-        detail: 'Hardcoded spacing value instead of spacing token',
+        detail: 'Hardcoded color value instead of CSS variable',
         codeSnippet: match[0],
       });
     }
   }
 
-  // Check for inline style props (not StyleX)
-  const inlineStyleRegex = /style\s*=\s*\{\{/g;
+  // Check for hardcoded spacing (px values in padding, margin, gap)
+  // Skip for baseline since Tailwind classes handle this differently
+  // Note: width/height are dimension constraints, not spacing - they're acceptable
+  if (target === 'xds') {
+    // Only match true spacing properties, not dimensions
+    const hardcodedSpacingRegex =
+      /(?:padding|margin|gap|paddingTop|paddingBottom|paddingLeft|paddingRight|paddingBlock|paddingInline|marginTop|marginBottom|marginLeft|marginRight|marginBlock|marginInline|rowGap|columnGap)\s*:\s*['"]?\d+px['"]?/gi;
+    let match;
+    while ((match = hardcodedSpacingRegex.exec(code)) !== null) {
+      // Skip if it's inside a var() or uses spacing tokens
+      if (!match[0].includes('var(')) {
+        hatches.push({
+          type: 'hardcoded_spacing',
+          severity: 'acceptable',
+          detail: 'Hardcoded spacing value instead of spacing token',
+          codeSnippet: match[0],
+        });
+      }
+    }
+  }
+
+  // Check for inline style props (not StyleX/Tailwind)
+  // Skip inline styles that only use variable references (dynamic data values)
+  const inlineStyleRegex = /style\s*=\s*\{\{([^}]+)\}\}/g;
+  let match;
   while ((match = inlineStyleRegex.exec(code)) !== null) {
+    const styleContent = match[1];
+    // Check if the style only contains variable references (no literals)
+    // Pattern like "backgroundColor: item.color" or "color: data.value" is OK
+    const hasOnlyVariableRefs = /^\s*\w+:\s*[\w.]+\s*$/.test(styleContent);
+    if (hasOnlyVariableRefs) {
+      // Skip - this is a legitimate dynamic data value
+      continue;
+    }
     hatches.push({
       type: 'inline_style',
       severity: 'acceptable',
-      detail: 'Inline style object instead of StyleX',
+      detail:
+        target === 'xds'
+          ? 'Inline style object instead of StyleX'
+          : 'Inline style object instead of Tailwind',
       codeSnippet: match[0],
     });
   }
 
-  // Check for wrapper divs (plain divs that could use XDS layout)
+  // Check for wrapper divs (plain divs that could use layout components)
   const wrapperDivRegex = /<div\s+(?:className|style)/g;
   while ((match = wrapperDivRegex.exec(code)) !== null) {
     hatches.push({
       type: 'wrapper_div',
       severity: 'acceptable',
-      detail: 'Wrapper div that could potentially use XDS layout components',
+      detail:
+        target === 'xds'
+          ? 'Wrapper div that could potentially use XDS layout components'
+          : 'Wrapper div (common in Tailwind patterns)',
       codeSnippet: match[0],
     });
   }
 
-  // Check for hallucinated props (common mistakes)
-  // Only flag clearly invalid patterns, not valid but uncommon props
-  const hallucinatedProps = [
-    {pattern: /variant\s*=\s*["']outline["']/g, prop: 'variant="outline"'},
-    {pattern: /size\s*=\s*["'](?:xs|xxl|xxxl)["']/g, prop: 'invalid size prop'},
-  ];
-  for (const {pattern, prop} of hallucinatedProps) {
-    if (pattern.test(code)) {
-      hatches.push({
-        type: 'hallucination',
-        severity: 'critical',
-        detail: `Potentially hallucinated prop: ${prop}`,
-        codeSnippet: prop,
-      });
+  // Check for accessibility issues: onClick on non-interactive elements
+  // Elements like <span>, <div>, <p>, <td> with onClick should use <button> instead
+  const a11yClickRegex =
+    /<(span|div|p|td|tr|li|label|img|svg)\b[^>]*\bonClick\b/gi;
+  while ((match = a11yClickRegex.exec(code)) !== null) {
+    // Skip if it has role="button" or tabIndex (attempts at a11y fix)
+    const elementContext = code.slice(match.index, match.index + 200);
+    if (
+      elementContext.includes('role="button"') ||
+      elementContext.includes("role='button'") ||
+      elementContext.includes('tabIndex')
+    ) {
+      continue; // Has some a11y attributes, less severe
     }
+    hatches.push({
+      type: 'a11y_click_handler',
+      severity: 'acceptable', // Still acceptable but flagged as anti-pattern
+      detail: `onClick on <${match[1]}> should use Button component for accessibility`,
+      codeSnippet: match[0].slice(0, 60),
+    });
   }
 
-  // Check for StyleX with valid CSS variables (this is acceptable - supplemental_css)
-  const stylexBlockRegex = /stylex\.create\(\{[\s\S]*?\}\)/g;
-  while ((match = stylexBlockRegex.exec(code)) !== null) {
-    // Only flag if it has significant styling (not just layout)
-    const block = match[0];
-    if (
-      block.includes('backgroundColor') ||
-      block.includes('borderColor') ||
-      block.includes('color:')
-    ) {
-      // Check if using CSS variables
-      if (block.includes('var(--')) {
+  // Check for hallucinated props - target-specific
+  if (target === 'xds') {
+    // XDS-specific hallucination checks
+    const hallucinatedProps = [
+      {pattern: /variant\s*=\s*["']outline["']/g, prop: 'variant="outline"'},
+      {
+        pattern: /size\s*=\s*["'](?:xs|xxl|xxxl)["']/g,
+        prop: 'invalid size prop',
+      },
+    ];
+    for (const {pattern, prop} of hallucinatedProps) {
+      if (pattern.test(code)) {
         hatches.push({
-          type: 'supplemental_css',
-          severity: 'acceptable',
-          detail: 'StyleX styling using CSS variables',
-          codeSnippet: block.slice(0, 100) + '...',
+          type: 'hallucination',
+          severity: 'critical',
+          detail: `Potentially hallucinated prop: ${prop}`,
+          codeSnippet: prop,
         });
+      }
+    }
+  }
+  // baseline has different valid patterns, so no hallucination checks for now
+
+  // Check for StyleX with valid CSS variables (this is acceptable - supplemental_css)
+  // Only relevant for XDS
+  if (target === 'xds') {
+    const stylexBlockRegex = /stylex\.create\(\{[\s\S]*?\}\)/g;
+    while ((match = stylexBlockRegex.exec(code)) !== null) {
+      // Only flag if it has significant styling (not just layout)
+      const block = match[0];
+      if (
+        block.includes('backgroundColor') ||
+        block.includes('borderColor') ||
+        block.includes('color:')
+      ) {
+        // Check if using CSS variables
+        if (block.includes('var(--')) {
+          hatches.push({
+            type: 'supplemental_css',
+            severity: 'acceptable',
+            detail: 'StyleX styling using CSS variables',
+            codeSnippet: block.slice(0, 100) + '...',
+          });
+        }
       }
     }
   }
@@ -565,11 +775,11 @@ function detectEscapeHatches(code: string): EscapeHatch[] {
  * Load results from individual result files (.tsx code files)
  * Evaluates code externally instead of relying on self-evaluation
  */
-function loadResults(resultsDir: string): TestResult[] {
+function loadResults(resultsDir: string): (TestResult & {target?: string})[] {
   const individualResultsDir = path.join(resultsDir, 'results');
   const tasksDir = path.join(resultsDir, 'tasks');
   const manifestPath = path.join(resultsDir, 'manifest.json');
-  const results: TestResult[] = [];
+  const results: (TestResult & {target?: string})[] = [];
 
   if (!fs.existsSync(individualResultsDir)) {
     throw new Error(`No results directory found at ${individualResultsDir}`);
@@ -620,7 +830,10 @@ function loadResults(resultsDir: string): TestResult[] {
   }
 
   // Load manifest for iteration info
-  let manifest: {iterationId: string; config: {persona: string}} | null = null;
+  let manifest: {
+    iterationId: string;
+    config: {persona: string; target?: string};
+  } | null = null;
   if (fs.existsSync(manifestPath)) {
     try {
       manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
@@ -647,6 +860,7 @@ function loadResults(resultsDir: string): TestResult[] {
         prompt: string;
         expectedComponents: string[];
         persona: string;
+        target?: string;
       } | null = null;
       if (fs.existsSync(taskPath)) {
         task = JSON.parse(fs.readFileSync(taskPath, 'utf-8'));
@@ -665,7 +879,7 @@ function loadResults(resultsDir: string): TestResult[] {
 
       // External evaluation: extract components and detect escape hatches
       const componentsUsed = extractComponentsFromCode(code);
-      const escapeHatches = detectEscapeHatches(code);
+      const escapeHatches = detectEscapeHatches(code, task?.target || 'xds');
 
       // Determine success based on critical escape hatches
       const hasCritical = escapeHatches.some(h => h.severity === 'critical');
@@ -682,7 +896,7 @@ function loadResults(resultsDir: string): TestResult[] {
         }
       }
 
-      const result: TestResult = {
+      const result: TestResult & {target?: string} = {
         id: `${manifest?.iterationId || 'unknown'}-${promptId}`,
         timestamp: new Date().toISOString(),
         systemVersion: 'claude-code-interactive',
@@ -706,6 +920,7 @@ function loadResults(resultsDir: string): TestResult[] {
         inputTokens: 0,
         outputTokens: 0,
         docsRead,
+        target: task?.target || manifest?.config?.target || 'xds',
       };
 
       results.push(result);
@@ -715,6 +930,38 @@ function loadResults(resultsDir: string): TestResult[] {
   }
 
   return results;
+}
+
+/**
+ * Load quality assessments from .quality.json files
+ */
+function loadQualityAssessments(
+  resultsDir: string,
+): Map<string, QualityAssessment> {
+  const individualResultsDir = path.join(resultsDir, 'results');
+  const assessments = new Map<string, QualityAssessment>();
+
+  if (!fs.existsSync(individualResultsDir)) {
+    return assessments;
+  }
+
+  const files = fs
+    .readdirSync(individualResultsDir)
+    .filter(f => f.endsWith('.quality.json'));
+
+  for (const file of files) {
+    try {
+      const promptId = file.replace('.quality.json', '');
+      const assessmentPath = path.join(individualResultsDir, file);
+      const content = fs.readFileSync(assessmentPath, 'utf-8');
+      const assessment = JSON.parse(content) as QualityAssessment;
+      assessments.set(promptId, assessment);
+    } catch (e) {
+      console.warn(`Warning: Failed to parse quality assessment ${file}: ${e}`);
+    }
+  }
+
+  return assessments;
 }
 
 function aggregate(iterationId: string): AggregateResult {
@@ -955,7 +1202,10 @@ function aggregate(iterationId: string): AggregateResult {
   };
 
   for (const result of results) {
-    const breakdown = analyzeJobBreakdown(result.response);
+    const breakdown = analyzeJobBreakdown(
+      result.response,
+      result.target || 'xds',
+    );
 
     // Accumulate output totals
     totalJobs.componentRouting += breakdown.componentRouting;
@@ -1063,6 +1313,94 @@ function aggregate(iterationId: string): AggregateResult {
     grandTotal,
   };
 
+  // Load and aggregate quality assessments
+  const qualityAssessments = loadQualityAssessments(resultsDir);
+  let quality:
+    | {
+        assessed: number;
+        byScore: Record<QualityScore, number>;
+        accessibility: {
+          byScore: Record<QualityScore, number>;
+          totalIssues: number;
+          criticalIssues: number;
+        };
+        designSystem: {
+          byScore: Record<QualityScore, number>;
+          totalIssues: number;
+          criticalIssues: number;
+        };
+        codeQuality: {
+          byScore: Record<QualityScore, number>;
+          totalIssues: number;
+          criticalIssues: number;
+        };
+      }
+    | undefined;
+
+  if (qualityAssessments.size > 0) {
+    const byScore: Record<QualityScore, number> = {
+      good: 0,
+      'needs-work': 0,
+      poor: 0,
+    };
+    const accessibility = {
+      byScore: {good: 0, 'needs-work': 0, poor: 0} as Record<
+        QualityScore,
+        number
+      >,
+      totalIssues: 0,
+      criticalIssues: 0,
+    };
+    const designSystem = {
+      byScore: {good: 0, 'needs-work': 0, poor: 0} as Record<
+        QualityScore,
+        number
+      >,
+      totalIssues: 0,
+      criticalIssues: 0,
+    };
+    const codeQuality = {
+      byScore: {good: 0, 'needs-work': 0, poor: 0} as Record<
+        QualityScore,
+        number
+      >,
+      totalIssues: 0,
+      criticalIssues: 0,
+    };
+
+    for (const assessment of qualityAssessments.values()) {
+      byScore[assessment.overallScore]++;
+
+      accessibility.byScore[assessment.accessibility.score]++;
+      accessibility.totalIssues += assessment.accessibility.issues.length;
+      accessibility.criticalIssues += assessment.accessibility.issues.filter(
+        i => i.severity === 'critical',
+      ).length;
+
+      designSystem.byScore[assessment.designSystemAdherence.score]++;
+      designSystem.totalIssues +=
+        assessment.designSystemAdherence.issues.length;
+      designSystem.criticalIssues +=
+        assessment.designSystemAdherence.issues.filter(
+          i => i.severity === 'critical',
+        ).length;
+
+      codeQuality.byScore[assessment.codeQuality.score]++;
+      codeQuality.totalIssues += assessment.codeQuality.issues.length;
+      codeQuality.criticalIssues += assessment.codeQuality.issues.filter(
+        i => i.severity === 'critical',
+      ).length;
+    }
+
+    quality = {
+      assessed: qualityAssessments.size,
+      byScore,
+      accessibility,
+      designSystem,
+      codeQuality,
+    };
+  }
+
   return {
     iterationId,
     totalTests: results.length,
@@ -1086,6 +1424,7 @@ function aggregate(iterationId: string): AggregateResult {
     totalOutputTokens,
     jobStats,
     tokenUsage,
+    quality,
   };
 }
 
@@ -1099,7 +1438,7 @@ function printReport(agg: AggregateResult): void {
   // Tiered breakdown
   console.log(`\n🏆 Quality Tiers:`);
   console.log(
-    `  🥇 Gold (pure XDS):     ${agg.tiers.gold} (${agg.tierRate.gold}%)`,
+    `  🥇 Gold (pure DS):       ${agg.tiers.gold} (${agg.tierRate.gold}%)`,
   );
   console.log(
     `  🟢 Green (acceptable):  ${agg.tiers.green} (${agg.tierRate.green}%)`,
@@ -1147,7 +1486,7 @@ function printReport(agg: AggregateResult): void {
     console.log(`  │ INPUT TOKENS (estimated from doc reading)       │`);
     console.log(`  ├─────────────────────────────────────────────────┤`);
     console.log(
-      `  │   AGENTS.md:        ${String(tu.input.total.agentsMd).padStart(6)} tokens             │`,
+      `  │   Agent docs:        ${String(tu.input.total.agentsMd).padStart(6)} tokens             │`,
     );
     console.log(
       `  │   Design docs:      ${String(tu.input.total.designDocs).padStart(6)} tokens             │`,
@@ -1169,7 +1508,7 @@ function printReport(agg: AggregateResult): void {
       const p = agg.jobStats.percentages;
       const outputTokens = Math.round(tu.output.total.total / 4);
       console.log(
-        `  │   Component routing:     ${String(p.componentRouting).padStart(3)}%  (~${Math.round(tu.output.total.componentRouting / 4)} tokens) │`,
+        `  │   Library imports:       ${String(p.componentRouting).padStart(3)}%  (~${Math.round(tu.output.total.componentRouting / 4)} tokens) │`,
       );
       console.log(
         `  │   Component config:      ${String(p.componentConfig).padStart(3)}%  (~${Math.round(tu.output.total.componentConfig / 4)} tokens) │`,
@@ -1201,7 +1540,7 @@ function printReport(agg: AggregateResult): void {
     console.log(`\n🔧 Job Breakdown (output token distribution):`);
     const p = agg.jobStats.percentages;
     console.log(
-      `  Component routing:     ${String(p.componentRouting).padStart(3)}%`,
+      `  Library imports:       ${String(p.componentRouting).padStart(3)}%`,
     );
     console.log(
       `  Component config:      ${String(p.componentConfig).padStart(3)}%`,
@@ -1262,6 +1601,26 @@ function printReport(agg: AggregateResult): void {
     }
   }
 
+  // Quality assessment results (if present)
+  if (agg.quality) {
+    const q = agg.quality;
+    console.log(`\n🔬 Quality Assessment (${q.assessed} assessed):`);
+    console.log(`  Overall Scores:`);
+    console.log(
+      `    ✓ Good: ${q.byScore.good}  ⚠ Needs Work: ${q.byScore['needs-work']}  ✗ Poor: ${q.byScore.poor}`,
+    );
+    console.log(`  By Category:`);
+    console.log(
+      `    Accessibility:  ${q.accessibility.totalIssues} issues (${q.accessibility.criticalIssues} critical)`,
+    );
+    console.log(
+      `    Design System:  ${q.designSystem.totalIssues} issues (${q.designSystem.criticalIssues} critical)`,
+    );
+    console.log(
+      `    Code Quality:   ${q.codeQuality.totalIssues} issues (${q.codeQuality.criticalIssues} critical)`,
+    );
+  }
+
   if (Object.keys(agg.acceptableEscapeHatches).length > 0) {
     console.log(`\n✓ Acceptable Escape Hatches:`);
     for (const [type, count] of Object.entries(agg.acceptableEscapeHatches)) {
@@ -1301,7 +1660,7 @@ function printReport(agg: AggregateResult): void {
 function generateHtmlReport(
   iterationId: string,
   agg: AggregateResult,
-  results: TestResult[],
+  results: (TestResult & {target?: string})[],
 ): string {
   const escapeHtml = (str: string | undefined) =>
     (str || '')
@@ -1566,7 +1925,7 @@ function generateHtmlReport(
         : '-';
 
       // Calculate per-test token breakdown
-      const jobBreakdown = analyzeJobBreakdown(r.response);
+      const jobBreakdown = analyzeJobBreakdown(r.response, r.target || 'xds');
       const inputBreakdown = estimateInputTokens(r.docsRead);
       const outputTokens = Math.round(jobBreakdown.total / 4);
       const totalTokens = inputBreakdown.total + outputTokens;
@@ -1617,12 +1976,12 @@ function generateHtmlReport(
     const jobRows = agg.jobStats
       ? `
       <tr>
-        <td><strong>Component Routing</strong><br><span class="job-desc">Import statements for XDS components</span></td>
+        <td><strong>Library Imports</strong><br><span class="job-desc">Import statements for design system components</span></td>
         <td>${agg.jobStats.percentages.componentRouting}%</td>
         <td>~${Math.round(tu.output.total.componentRouting / 4)}</td>
       </tr>
       <tr>
-        <td><strong>Component Config</strong><br><span class="job-desc">Props and attributes on XDS components</span></td>
+        <td><strong>Component Config</strong><br><span class="job-desc">Props and attributes on components</span></td>
         <td>${agg.jobStats.percentages.componentConfig}%</td>
         <td>~${Math.round(tu.output.total.componentConfig / 4)}</td>
       </tr>
@@ -1652,7 +2011,7 @@ function generateHtmlReport(
     // Input token descriptions
     const inputRows = `
       <tr>
-        <td><strong>AGENTS.md</strong><br><span class="job-desc">Component catalog and XDS guidance</span></td>
+        <td><strong>Agent Docs</strong><br><span class="job-desc">Component catalog and design system guidance</span></td>
         <td>${tu.input.total.agentsMd}</td>
       </tr>
       <tr>
@@ -1698,6 +2057,74 @@ function generateHtmlReport(
       <span style="font-size: 1.2em; font-weight: bold;">Total: ${tu.grandTotal.toLocaleString()} tokens</span>
       <span style="color: #666; margin-left: 12px;">(${tu.input.total.total} input + ${outputTokens} output)</span>
     </div>
+  </div>
+    `;
+  }
+
+  // Generate quality assessment HTML if present
+  let qualityHtml = '';
+  if (agg.quality) {
+    const q = agg.quality;
+    const scoreBar = (good: number, needsWork: number, poor: number) => {
+      const total = good + needsWork + poor;
+      if (total === 0) return '';
+      return `
+        <div class="score-bar">
+          <span class="score good" style="width: ${(good / total) * 100}%"></span>
+          <span class="score needs-work" style="width: ${(needsWork / total) * 100}%"></span>
+          <span class="score poor" style="width: ${(poor / total) * 100}%"></span>
+        </div>
+      `;
+    };
+
+    qualityHtml = `
+  <div class="card">
+    <h2>🔬 Quality Assessment</h2>
+    <p style="color: #666; font-size: 0.9em;">${q.assessed} of ${agg.totalTests} tests assessed by quality agent.</p>
+
+    <div class="quality-grid">
+      <div class="quality-stat">
+        <div class="quality-label">Overall</div>
+        ${scoreBar(q.byScore.good, q.byScore['needs-work'], q.byScore.poor)}
+        <div class="quality-counts">
+          <span class="score-label good">✓ ${q.byScore.good} Good</span>
+          <span class="score-label needs-work">⚠ ${q.byScore['needs-work']} Needs Work</span>
+          <span class="score-label poor">✗ ${q.byScore.poor} Poor</span>
+        </div>
+      </div>
+    </div>
+
+    <table style="margin-top: 16px;">
+      <thead>
+        <tr><th>Category</th><th>Good</th><th>Needs Work</th><th>Poor</th><th>Issues</th><th>Critical</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>♿ Accessibility</td>
+          <td style="color: #16a34a;">${q.accessibility.byScore.good}</td>
+          <td style="color: #ca8a04;">${q.accessibility.byScore['needs-work']}</td>
+          <td style="color: #dc2626;">${q.accessibility.byScore.poor}</td>
+          <td>${q.accessibility.totalIssues}</td>
+          <td style="color: ${q.accessibility.criticalIssues > 0 ? '#dc2626' : '#666'};">${q.accessibility.criticalIssues}</td>
+        </tr>
+        <tr>
+          <td>🎨 Design System</td>
+          <td style="color: #16a34a;">${q.designSystem.byScore.good}</td>
+          <td style="color: #ca8a04;">${q.designSystem.byScore['needs-work']}</td>
+          <td style="color: #dc2626;">${q.designSystem.byScore.poor}</td>
+          <td>${q.designSystem.totalIssues}</td>
+          <td style="color: ${q.designSystem.criticalIssues > 0 ? '#dc2626' : '#666'};">${q.designSystem.criticalIssues}</td>
+        </tr>
+        <tr>
+          <td>🔧 Code Quality</td>
+          <td style="color: #16a34a;">${q.codeQuality.byScore.good}</td>
+          <td style="color: #ca8a04;">${q.codeQuality.byScore['needs-work']}</td>
+          <td style="color: #dc2626;">${q.codeQuality.byScore.poor}</td>
+          <td>${q.codeQuality.totalIssues}</td>
+          <td style="color: ${q.codeQuality.criticalIssues > 0 ? '#dc2626' : '#666'};">${q.codeQuality.criticalIssues}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
     `;
   }
@@ -1785,6 +2212,19 @@ function generateHtmlReport(
     .badge.effort-significant { background: #fee2e2; color: #dc2626; }
     .docs-cell { max-width: 200px; }
     .job-desc { font-size: 0.8em; color: #666; font-weight: normal; }
+    .quality-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+    .quality-stat { flex: 1; min-width: 200px; }
+    .quality-label { font-weight: 600; margin-bottom: 8px; }
+    .score-bar { display: flex; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; background: #e5e7eb; }
+    .score-bar .score { height: 100%; }
+    .score-bar .score.good { background: #22c55e; }
+    .score-bar .score.needs-work { background: #eab308; }
+    .score-bar .score.poor { background: #ef4444; }
+    .quality-counts { margin-top: 8px; font-size: 0.85em; }
+    .score-label { margin-right: 12px; }
+    .score-label.good { color: #16a34a; }
+    .score-label.needs-work { color: #ca8a04; }
+    .score-label.poor { color: #dc2626; }
     tr.tier-gold { background: #fffbeb; }
     tr.tier-green { background: #f0fdf4; }
     tr.tier-yellow { background: #fefce8; }
@@ -1842,7 +2282,7 @@ function generateHtmlReport(
       </div>
     </div>
     <p style="text-align: center; color: #666; margin-top: 12px; font-size: 0.85em;">
-      Gold = Pure XDS | Green = Acceptable escape hatches | Yellow = Anti-patterns (break theming) | Red = Critical failures
+      Gold = Pure design system | Green = Acceptable escape hatches | Yellow = Anti-patterns (break theming) | Red = Critical failures
     </p>
   </div>
 
@@ -1876,6 +2316,8 @@ function generateHtmlReport(
   </div>
 
   ${tokenUsageHtml}
+
+  ${qualityHtml}
 
   ${degradationGraphHtml}
 

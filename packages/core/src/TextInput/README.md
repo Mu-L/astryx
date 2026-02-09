@@ -36,8 +36,13 @@ import { XDSTextInput } from '@xds/core/TextInput';
 // Required field
 <XDSTextInput label="Username" isRequired value={username} onChange={setUsername} />
 
-// Description with optional indicator
-<XDSTextInput label="Bio" description="Tell us about yourself" isOptional value={bio} onChange={setBio} />
+// With validation status (error, warning, or success)
+<XDSTextInput
+  label="Email"
+  value={email}
+  onChange={setEmail}
+  status={{ type: 'error', message: 'Invalid email address' }}
+/>
 ```
 
 ## Props
@@ -54,6 +59,7 @@ import { XDSTextInput } from '@xds/core/TextInput';
 | `isRequired`    | `boolean`                                                   | No       | Whether the field is required (mutually exclusive with isOptional) |
 | `placeholder`   | `string`                                                    | No       | Placeholder text                                                   |
 | `labelTooltip`  | `string`                                                    | No       | Tooltip text to display in an info icon at the end of the label    |
+| `status`        | `{type: 'error'\|'warning'\|'success', message?: string}`   | No       | Validation status with optional message (sets aria-invalid for error) |
 
 ## Files
 
