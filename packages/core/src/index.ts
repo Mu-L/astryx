@@ -27,6 +27,7 @@ export * from './Text';
 export * from './TextInput';
 export * from './TextArea';
 export * from './TimeInput';
+export * from './NumberInput';
 export * from './Table';
 
 // Layout utilities and components (includes XDSHStack, XDSVStack)
