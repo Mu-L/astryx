@@ -26,6 +26,7 @@ export interface XDSTableRowProps extends Omit<
   'className' | 'style'
 > {
   children: ReactNode;
+  xstyle?: StyleXStyles[];
 }
 
 const stripedRowStyles = stylex.create({
@@ -86,12 +87,12 @@ const lastBodyRowStyles = stylex.create({
  * ```
  */
 export const XDSTableRow = forwardRef<HTMLTableRowElement, XDSTableRowProps>(
-  ({children, ...props}, ref) => {
+  ({children, xstyle, ...props}, ref) => {
     const ctx = useContext(XDSTableContext);
 
     if (!ctx) {
       return (
-        <tr ref={ref} {...props}>
+        <tr ref={ref} {...props} {...stylex.props(xstyle)}>
           {children}
         </tr>
       );
@@ -109,7 +110,12 @@ export const XDSTableRow = forwardRef<HTMLTableRowElement, XDSTableRowProps>(
     }
 
     if (ctx.dividers === 'rows' || ctx.dividers === 'grid') {
-      rowStyles.push(lastBodyRowStyles.row);
+      // Note: last-body-row border removal is handled by XDSTableCell
+      // to avoid affecting the header row in <thead>.
+    }
+
+    if (xstyle) {
+      rowStyles.push(...xstyle);
     }
 
     return (

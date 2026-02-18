@@ -26,6 +26,7 @@ export interface XDSTableCellProps extends Omit<
   'className' | 'style'
 > {
   children?: ReactNode;
+  xstyle?: StyleXStyles | StyleXStyles[];
 }
 
 const densityStyles = stylex.create({
@@ -33,16 +34,19 @@ const densityStyles = stylex.create({
     paddingBlock: spacingVars['--spacing-1'],
     paddingInline: spacingVars['--spacing-2'],
     fontSize: textSizeVars['--text-xsm'],
+    boxSizing: 'border-box',
   },
   balanced: {
     paddingBlock: spacingVars['--spacing-2'],
     paddingInline: spacingVars['--spacing-3'],
     fontSize: textSizeVars['--text-sm'],
+    boxSizing: 'border-box',
   },
   spacious: {
     paddingBlock: spacingVars['--spacing-3'],
     paddingInline: spacingVars['--spacing-4'],
     fontSize: textSizeVars['--text-base'],
+    boxSizing: 'border-box',
   },
 });
 
@@ -80,12 +84,12 @@ const dividerColumnStyles = stylex.create({
  * ```
  */
 export const XDSTableCell = forwardRef<HTMLTableCellElement, XDSTableCellProps>(
-  ({children, ...props}, ref) => {
+  ({children, xstyle, ...props}, ref) => {
     const ctx = useContext(XDSTableContext);
 
     if (!ctx) {
       return (
-        <td ref={ref} {...props}>
+        <td ref={ref} {...props} {...stylex.props(xstyle)}>
           {children}
         </td>
       );
@@ -99,6 +103,14 @@ export const XDSTableCell = forwardRef<HTMLTableCellElement, XDSTableCellProps>(
 
     if (ctx.dividers === 'columns' || ctx.dividers === 'grid') {
       cellStyles.push(dividerColumnStyles.cell);
+    }
+
+    if (xstyle) {
+      if (Array.isArray(xstyle)) {
+        cellStyles.push(...xstyle);
+      } else {
+        cellStyles.push(xstyle);
+      }
     }
 
     return (
