@@ -37,6 +37,7 @@ import {XDSTooltip} from '../Layer/XDSTooltip';
 import {XDSSpinner} from '../Spinner';
 import type {XDSIconProps} from '../Icon/XDSIcon';
 import type {XDSBadgeProps} from '../Badge/XDSBadge';
+import {edgeCompensation} from '../Layout/edgeCompensation.stylex';
 
 /**
  * Base button styles
@@ -280,6 +281,21 @@ const loadingStyles = stylex.create({
 });
 
 /**
+ * Edge compensation: publish the component's own inline padding so the
+ * compensation formula can read it. This is separate from the base padding
+ * styles so themes can override button padding independently and
+ * compensation stays in sync.
+ */
+const edgeCompStyles = stylex.create({
+  paddingInline2: {
+    '--component-padding-inline': spacingVars['--spacing-2'],
+  },
+  paddingInline3: {
+    '--component-padding-inline': spacingVars['--spacing-3'],
+  },
+});
+
+/**
  * A versatile button component with multiple variants.
  *
  * Styles use XDS theme tokens via StyleX.
@@ -342,6 +358,18 @@ export const XDSButton = forwardRef<HTMLButtonElement, XDSButtonProps>(
       props.onClick?.(e);
     };
 
+    // Ghost buttons opt into edge compensation — they self-adjust margins
+    // when placed at container edges (e.g., TopNav endContent).
+    // The component publishes its own inline padding via --component-padding-inline
+    // so the compensation formula stays theme-safe.
+    const isFlat = variant === 'ghost';
+    const edgeCompStyle = isFlat ? edgeCompensation.self : null;
+    const edgePaddingSignal = isFlat
+      ? isIconOnly
+        ? edgeCompStyles.paddingInline2
+        : edgeCompStyles.paddingInline3
+      : null;
+
     const button = (
       <button
         ref={ref}
@@ -356,6 +384,8 @@ export const XDSButton = forwardRef<HTMLButtonElement, XDSButtonProps>(
           isIconOnly && styles.iconOnly,
           buttonDisabled && styles.disabled,
           isLoadingState && loadingStyles.loading,
+          edgePaddingSignal,
+          edgeCompStyle,
         )}
         {...props}
         onClick={handleClick}>
