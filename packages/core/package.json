@@ -136,6 +136,12 @@
       "import": "./dist/Field/index.mjs",
       "require": "./dist/Field/index.js"
     },
+    "./FormLayout": {
+      "source": "./src/FormLayout/index.ts",
+      "types": "./dist/FormLayout/index.d.ts",
+      "import": "./dist/FormLayout/index.mjs",
+      "require": "./dist/FormLayout/index.js"
+    },
     "./Grid": {
       "source": "./src/Grid/index.ts",
       "types": "./dist/Grid/index.d.ts",
@@ -178,6 +184,12 @@
       "import": "./dist/MobileNav/index.mjs",
       "require": "./dist/MobileNav/index.js"
     },
+    "./MoreMenu": {
+      "source": "./src/MoreMenu/index.ts",
+      "types": "./dist/MoreMenu/index.d.ts",
+      "import": "./dist/MoreMenu/index.mjs",
+      "require": "./dist/MoreMenu/index.js"
+    },
     "./NavIcon": {
       "source": "./src/NavIcon/index.ts",
       "types": "./dist/NavIcon/index.d.ts",
@@ -189,6 +201,12 @@
       "types": "./dist/NumberInput/index.d.ts",
       "import": "./dist/NumberInput/index.mjs",
       "require": "./dist/NumberInput/index.js"
+    },
+    "./Pagination": {
+      "source": "./src/Pagination/index.ts",
+      "types": "./dist/Pagination/index.d.ts",
+      "import": "./dist/Pagination/index.mjs",
+      "require": "./dist/Pagination/index.js"
     },
     "./ProgressBar": {
       "source": "./src/ProgressBar/index.ts",
