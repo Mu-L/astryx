@@ -18,16 +18,12 @@ export const docs = {
       code: '<XDSHeading level={1}>Page Title</XDSHeading>',
     },
     {
-      label: 'Editorial heading',
-      code: '<XDSHeading level={1} variant="editorial">Article Title</XDSHeading>',
-    },
-    {
       label: 'Truncated text with tooltip',
       code: '<XDSText type="body" maxLines={2}>Very long text that will be clamped after two lines and show a tooltip on hover.</XDSText>',
     },
     {
       label: 'Font wrapper for native HTML',
-      code: `<XDSFontWrapper variant="editorial">
+      code: `<XDSFontWrapper>
   <article dangerouslySetInnerHTML={{__html: markdownContent}} />
 </XDSFontWrapper>`,
     },
@@ -44,7 +40,7 @@ export const docs = {
   ],
   theming: {
     targets: [
-      {className: 'xds-heading', visualProps: ['level', 'variant']},
+      {className: 'xds-heading', visualProps: ['level']},
       {className: 'xds-text', visualProps: ['type']},
     ],
   },
@@ -189,15 +185,11 @@ export const docs = {
     {
       name: 'XDSHeading',
       description:
-        'Semantic heading component that renders h1–h6 elements with themed styling, optional editorial scale, and line-clamp truncation.',
+        'Semantic heading component that renders h1–h6 elements with themed styling, themed sizing via type scale tokens, and line-clamp truncation.',
       examples: [
         {
           label: 'Basic',
           code: '<XDSHeading level={1}>Page Title</XDSHeading>',
-        },
-        {
-          label: 'Editorial scale',
-          code: '<XDSHeading level={1} variant="editorial">Article Title</XDSHeading>',
         },
         {
           label: 'Accessibility level override',
@@ -231,13 +223,6 @@ export const docs = {
           type: '1 | 2 | 3 | 4 | 5 | 6',
           description:
             'Accessibility level override. When set and different from `level`, applies `aria-level` so the document outline differs from the visual style.',
-        },
-        {
-          name: 'variant',
-          type: "'default' | 'editorial'",
-          description:
-            "Visual variant. 'default' uses a dense scale for internal tools (h1: 20px); 'editorial' uses a larger scale for content-heavy pages (h1: 32px).",
-          default: "'default'",
         },
         {
           name: 'color',
@@ -302,23 +287,7 @@ export const docs = {
       description:
         'Wrapper that applies XDS typography styles to native HTML elements within its scope. Useful for user-generated content, markdown output, and other scenarios where XDSText and XDSHeading cannot be used directly.',
       examples: [
-        {
-          label: 'Default variant',
-          code: `<XDSFontWrapper>
-  <h1>Page Title</h1>
-  <p>Body text with <strong>bold</strong> and <em>italic</em>.</p>
-  <ul>
-    <li>List item 1</li>
-    <li>List item 2</li>
-  </ul>
-</XDSFontWrapper>`,
-        },
-        {
-          label: 'Editorial variant',
-          code: `<XDSFontWrapper variant="editorial">
-  <article dangerouslySetInnerHTML={{__html: markdownContent}} />
-</XDSFontWrapper>`,
-        },
+
       ],
       props: [
         {
@@ -326,13 +295,6 @@ export const docs = {
           type: 'ReactNode',
           description: 'Content to style with XDS typography.',
           required: true,
-        },
-        {
-          name: 'variant',
-          type: "'default' | 'editorial'",
-          description:
-            "Heading scale variant. 'default' uses a dense scale for internal tools; 'editorial' uses a larger scale for content-heavy pages.",
-          default: "'default'",
         },
       ],
     },
@@ -383,7 +345,7 @@ export const docsZh = {
     },
     {
       label: '编辑风格标题',
-      code: '<XDSHeading level={1} variant="editorial">Article Title</XDSHeading>',
+      code: '<XDSHeading level={1}>Page Title</XDSHeading>',
     },
     {
       label: '带工具提示的截断文本',
@@ -391,7 +353,7 @@ export const docsZh = {
     },
     {
       label: '原生 HTML 字体包装器',
-      code: `<XDSFontWrapper variant="editorial">
+      code: `<XDSFontWrapper>
   <article dangerouslySetInnerHTML={{__html: markdownContent}} />
 </XDSFontWrapper>`,
     },
@@ -408,7 +370,7 @@ export const docsZh = {
   ],
   theming: {
     targets: [
-      {className: 'xds-heading', visualProps: ['level', 'variant']},
+      {className: 'xds-heading', visualProps: ['level']},
       {className: 'xds-text', visualProps: ['type']},
     ],
   },
@@ -561,7 +523,7 @@ export const docsZh = {
         },
         {
           label: '编辑风格比例',
-          code: '<XDSHeading level={1} variant="editorial">Article Title</XDSHeading>',
+          code: '<XDSHeading level={1}>Page Title</XDSHeading>',
         },
         {
           label: '无障碍级别覆盖',
@@ -595,13 +557,6 @@ export const docsZh = {
           type: '1 | 2 | 3 | 4 | 5 | 6',
           description:
             '无障碍级别覆盖。当设置且与 `level` 不同时，应用 `aria-level` 使文档大纲与视觉样式不同。',
-        },
-        {
-          name: 'variant',
-          type: "'default' | 'editorial'",
-          description:
-            "视觉变体。'default' 使用紧凑比例用于内部工具（h1: 20px）；'editorial' 使用更大比例用于内容密集页面（h1: 32px）。",
-          default: "'default'",
         },
         {
           name: 'color',
@@ -679,7 +634,7 @@ export const docsZh = {
         },
         {
           label: '编辑风格变体',
-          code: `<XDSFontWrapper variant="editorial">
+          code: `<XDSFontWrapper>
   <article dangerouslySetInnerHTML={{__html: markdownContent}} />
 </XDSFontWrapper>`,
         },
@@ -690,13 +645,6 @@ export const docsZh = {
           type: 'ReactNode',
           description: '要应用 XDS 排版样式的内容。',
           required: true,
-        },
-        {
-          name: 'variant',
-          type: "'default' | 'editorial'",
-          description:
-            "标题比例变体。'default' 使用紧凑比例用于内部工具；'editorial' 使用更大比例用于内容密集页面。",
-          default: "'default'",
         },
       ],
     },
@@ -770,12 +718,12 @@ export const docsDense = {
     },
     {
       name: 'XDSHeading',
-      description: 'Semantic h1\u20136 w/ themed styling, optional editorial scale, line-clamp truncation.',
+      description: 'Semantic h1\u20136 w/ themed styling, themed sizing via type scale tokens, line-clamp truncation.',
       propDescriptions: {
         level: 'Visual heading level; determines HTML element + styling from theme.',
         children: 'Heading content.',
         accessibilityLevel: 'aria-level override when different from level for document outline.',
-        variant: "Visual variant; 'default'=dense scale (h1:20px), 'editorial'=larger (h1:32px).",
+        
         color: 'Text color.',
         display: "Display type; overridden to 'block' when maxLines>0 or hasCapsize.",
         maxLines: 'Max lines before truncation; 0=none. Shows tooltip if truncated.',
@@ -792,7 +740,7 @@ export const docsDense = {
       description: 'Wrapper applying XDS typography to native HTML scope; for UGC, markdown, cases where XDSText/XDSHeading cannot be used directly.',
       propDescriptions: {
         children: 'Content to style w/ XDS typography.',
-        variant: "Heading scale; 'default'=dense for tools, 'editorial'=larger for content pages.",
+        
       },
     },
     {
