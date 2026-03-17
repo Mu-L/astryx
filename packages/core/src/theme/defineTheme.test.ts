@@ -229,3 +229,141 @@ describe('generateThemeCSS with components', () => {
     expect(css).toContain('border-width: 1px');
   });
 });
+
+describe('typeScale', () => {
+  it('generates typography token overrides when typeScale is provided', () => {
+    const theme = defineTheme({
+      name: 'dense',
+      typeScale: {base: 12, ratio: 1.125},
+    });
+    expect(theme.tokens['--heading-4-size']).toBe('12px');
+    expect(theme.tokens['--text-body-size']).toBe('12px');
+  });
+
+  it('generates all 33 type scale tokens', () => {
+    const theme = defineTheme({
+      name: 'custom',
+      typeScale: {base: 14, ratio: 1.2},
+    });
+    // 6 heading levels × 3 props + 5 text types × 3 props = 33
+    const typeScaleKeys = Object.keys(theme.tokens).filter(
+      k => k.startsWith('--heading-') || k.startsWith('--text-'),
+    );
+    expect(typeScaleKeys).toHaveLength(33);
+  });
+
+  it('explicit tokens override typeScale-generated values', () => {
+    const theme = defineTheme({
+      name: 'override-test',
+      typeScale: {base: 14, ratio: 1.2},
+      tokens: {
+        '--heading-1-size': '40px',
+      },
+    });
+    // Explicit token should win over typeScale
+    expect(theme.tokens['--heading-1-size']).toBe('40px');
+    // Non-overridden typeScale token should still be present
+    expect(theme.tokens['--heading-4-size']).toBe('14px');
+  });
+
+  it('works without typeScale (backwards compatible)', () => {
+    const theme = defineTheme({name: 'no-scale'});
+    // No type scale tokens should be present
+    expect(theme.tokens['--heading-1-size']).toBeUndefined();
+  });
+
+  it('combines typeScale with other token overrides', () => {
+    const theme = defineTheme({
+      name: 'combo',
+      typeScale: {base: 16, ratio: 1.25},
+      tokens: {
+        '--color-accent': '#FF0000',
+      },
+    });
+    expect(theme.tokens['--color-accent']).toBe('#FF0000');
+    expect(theme.tokens['--heading-4-size']).toBe('16px');
+  });
+});
+
+describe('typeScale component auto-generation', () => {
+  it('auto-generates heading component overrides when typeScale is provided', () => {
+    const theme = defineTheme({
+      name: 'auto',
+      typeScale: {base: 14, ratio: 1.2},
+    });
+    expect(theme.components?.heading?.['level:1']).toBeDefined();
+    expect(theme.components?.heading?.['level:1']?.fontSize).toBe(
+      'var(--heading-1-size)',
+    );
+  });
+
+  it('auto-generates text component overrides when typeScale is provided', () => {
+    const theme = defineTheme({
+      name: 'auto',
+      typeScale: {base: 14, ratio: 1.2},
+    });
+    expect(theme.components?.text?.['type:body']).toBeDefined();
+    expect(theme.components?.text?.['type:body']?.fontSize).toBe(
+      'var(--text-body-size)',
+    );
+  });
+
+  it('does not include color in auto-generated rules', () => {
+    const theme = defineTheme({
+      name: 'auto',
+      typeScale: {base: 14, ratio: 1.2},
+    });
+    expect(theme.components?.heading?.['level:1']?.color).toBeUndefined();
+    expect(theme.components?.text?.['type:supporting']?.color).toBeUndefined();
+  });
+
+  it('explicit components deep-merge on top of auto-generated', () => {
+    const theme = defineTheme({
+      name: 'custom',
+      typeScale: {base: 14, ratio: 1.2},
+      components: {
+        heading: {
+          'level:1': {letterSpacing: '-0.02em'},
+        },
+        button: {
+          base: {borderRadius: '999px'},
+        },
+      },
+    });
+    // Auto-generated heading props still present
+    expect(theme.components?.heading?.['level:1']?.fontSize).toBe(
+      'var(--heading-1-size)',
+    );
+    // Explicit override merged on top
+    expect(theme.components?.heading?.['level:1']?.letterSpacing).toBe(
+      '-0.02em',
+    );
+    // Non-typography component preserved
+    expect(theme.components?.button?.base?.borderRadius).toBe('999px');
+  });
+
+  it('does not generate components when typeScale is absent', () => {
+    const theme = defineTheme({name: 'bare'});
+    expect(theme.components).toBeUndefined();
+  });
+
+  it('explicit heading overrides win over auto-generated', () => {
+    const theme = defineTheme({
+      name: 'override',
+      typeScale: {base: 14, ratio: 1.2},
+      components: {
+        heading: {
+          'level:1': {fontFamily: '"Playfair Display", serif'},
+        },
+      },
+    });
+    // Explicit fontFamily wins
+    expect(theme.components?.heading?.['level:1']?.fontFamily).toBe(
+      '"Playfair Display", serif',
+    );
+    // Auto-generated fontSize still present
+    expect(theme.components?.heading?.['level:1']?.fontSize).toBe(
+      'var(--heading-1-size)',
+    );
+  });
+});

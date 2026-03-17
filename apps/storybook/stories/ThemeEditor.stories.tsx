@@ -13,13 +13,16 @@ import {XDSTabList} from '@xds/core/TabList';
 import {XDSDialog} from '@xds/core/Dialog';
 import {XDSToken} from '@xds/core/Token';
 import {XDSSlider} from '@xds/core/Slider';
+import {XDSSelector} from '@xds/core/Selector';
+import {XDSNumberInput} from '@xds/core/NumberInput';
 import {XDSProgressBar} from '@xds/core/ProgressBar';
 import {XDSCheckboxInput} from '@xds/core/CheckboxInput';
 import {XDSRadioList, XDSRadioListItem} from '@xds/core/RadioList';
 import {XDSTable} from '@xds/core/Table';
 import type {XDSTableColumn} from '@xds/core/Table';
 import {XDSDivider} from '@xds/core/Divider';
-import {XDSTheme, defineTheme} from '@xds/core/theme';
+import {XDSTheme, defineTheme, expandTypeScale} from '@xds/core/theme';
+import {XDSFontWrapper} from '@xds/core/Text';
 import {
   colorDefaults,
   spacingDefaults,
@@ -28,11 +31,12 @@ import {
   textSizeDefaults,
   lineHeightDefaults,
   fontWeightDefaults,
+  typeScaleDefaults,
   sizeDefaults,
   elevationDefaults,
   transitionDefaults,
 } from '@xds/core/theme';
-import {defaultIconRegistry} from '@xds/theme-default/icons';
+import {defaultIconRegistry} from '@xds/theme-default';
 
 // =============================================================================
 // Token Groups for the Editor
@@ -217,48 +221,60 @@ const COLOR_CATEGORIES = {
 const TYPOGRAPHY_CATEGORIES = {
   'Font Families': ['--font-body', '--font-heading', '--font-code'],
   'Heading 1': {
-    description: 'Primary page title',
-    tokens: ['--text-2xl', '--font-weight-semibold', '--leading-tight'],
+    description: 'Primary page title (24px default)',
+    tokens: ['--heading-1-size', '--heading-1-weight', '--heading-1-leading'],
   },
   'Heading 2': {
-    description: 'Section title',
-    tokens: ['--text-xl', '--font-weight-semibold', '--leading-snug'],
+    description: 'Section title (20px default)',
+    tokens: ['--heading-2-size', '--heading-2-weight', '--heading-2-leading'],
   },
   'Heading 3': {
-    description: 'Subsection title',
-    tokens: ['--text-lg', '--font-weight-semibold', '--leading-tight'],
+    description: 'Subsection title (17px default)',
+    tokens: ['--heading-3-size', '--heading-3-weight', '--heading-3-leading'],
   },
   'Heading 4': {
-    description: 'Card/component title',
-    tokens: ['--text-base', '--font-weight-semibold', '--leading-base'],
+    description: 'Card/component title (14px — base anchor)',
+    tokens: ['--heading-4-size', '--heading-4-weight', '--heading-4-leading'],
   },
   'Heading 5': {
-    description: 'Minor heading',
-    tokens: ['--text-base', '--font-weight-semibold', '--leading-base'],
+    description: 'Minor heading (12px default)',
+    tokens: ['--heading-5-size', '--heading-5-weight', '--heading-5-leading'],
   },
   'Heading 6': {
-    description: 'Smallest heading',
-    tokens: ['--text-xsm', '--font-weight-semibold', '--leading-snug'],
+    description: 'Smallest heading (10px default)',
+    tokens: ['--heading-6-size', '--heading-6-weight', '--heading-6-leading'],
   },
   'Body Text': {
     description: 'Default paragraph text',
-    tokens: ['--text-base', '--font-weight-normal', '--leading-base'],
+    tokens: ['--text-body-size', '--text-body-weight', '--text-body-leading'],
   },
   'Large Text': {
     description: 'Intro/lead paragraphs',
-    tokens: ['--text-lg', '--font-weight-normal', '--leading-normal'],
+    tokens: [
+      '--text-large-size',
+      '--text-large-weight',
+      '--text-large-leading',
+    ],
   },
   'Label Text': {
     description: 'Form labels, UI labels',
-    tokens: ['--text-base', '--font-weight-medium', '--leading-base'],
+    tokens: [
+      '--text-label-size',
+      '--text-label-weight',
+      '--text-label-leading',
+    ],
   },
   'Supporting Text': {
     description: 'Captions, helper text',
-    tokens: ['--text-xsm', '--font-weight-normal', '--leading-snug'],
+    tokens: [
+      '--text-supporting-size',
+      '--text-supporting-weight',
+      '--text-supporting-leading',
+    ],
   },
   'Code Text': {
     description: 'Inline code, code blocks',
-    tokens: ['--text-base', '--font-weight-normal', '--leading-base'],
+    tokens: ['--text-code-size', '--text-code-weight', '--text-code-leading'],
   },
   'All Text Sizes': [
     '--text-4xs',
@@ -1208,16 +1224,31 @@ function generateThemeCode(
   themeName: string,
   tokens: Record<string, string>,
   defaults: Record<string, string>,
+  typeScaleBase?: number,
+  typeScaleRatio?: number,
 ): string {
   const changedTokens: Record<string, string> = {};
 
+  // Check if type scale is non-default
+  const hasCustomTypeScale =
+    typeScaleBase !== undefined &&
+    typeScaleRatio !== undefined &&
+    (typeScaleBase !== 14 || typeScaleRatio !== 1.2);
+
+  // If type scale is custom, exclude the generated type scale tokens from explicit tokens
+  const typeScaleTokenKeys = new Set(Object.keys(typeScaleDefaults));
+
   for (const [key, value] of Object.entries(tokens)) {
     if (value !== defaults[key]) {
+      // Skip type scale tokens if they'll be generated by typeScale config
+      if (hasCustomTypeScale && typeScaleTokenKeys.has(key)) continue;
       changedTokens[key] = value;
     }
   }
 
-  if (Object.keys(changedTokens).length === 0) {
+  const hasTokenOverrides = Object.keys(changedTokens).length > 0;
+
+  if (!hasTokenOverrides && !hasCustomTypeScale) {
     return `import { defineTheme } from '@xds/core/theme';
 
 export const ${themeName}Theme = defineTheme({
@@ -1226,23 +1257,34 @@ export const ${themeName}Theme = defineTheme({
 });`;
   }
 
-  const tokenEntries = Object.entries(changedTokens)
-    .map(([key, value]) => {
-      const parsed = parseLightDark(value);
-      if (parsed) {
-        return `    '${key}': ['${parsed.light}', '${parsed.dark}'],`;
-      }
-      return `    '${key}': '${value}',`;
-    })
-    .join('\n');
+  const parts: string[] = [];
+
+  if (hasCustomTypeScale) {
+    parts.push(
+      `  typeScale: { base: ${typeScaleBase}, ratio: ${typeScaleRatio} },`,
+    );
+  }
+
+  if (hasTokenOverrides) {
+    const tokenEntries = Object.entries(changedTokens)
+      .map(([key, value]) => {
+        const parsed = parseLightDark(value);
+        if (parsed) {
+          return `    '${key}': ['${parsed.light}', '${parsed.dark}'],`;
+        }
+        return `    '${key}': '${value}',`;
+      })
+      .join('\n');
+    parts.push(`  tokens: {\n${tokenEntries}\n  },`);
+  } else {
+    parts.push(`  tokens: {},`);
+  }
 
   return `import { defineTheme } from '@xds/core/theme';
 
 export const ${themeName}Theme = defineTheme({
   name: '${themeName}',
-  tokens: {
-${tokenEntries}
-  },
+${parts.join('\n')}
 });`;
 }
 
@@ -1256,8 +1298,9 @@ function ThemeEditorComponent() {
     React.useState<string>('Core Semantic');
   const [activeTypographyCategory, setActiveTypographyCategory] =
     React.useState<string>('Heading 1');
+  const [themeName] = React.useState('custom');
+
   const [mode, setMode] = React.useState<'light' | 'dark'>('light');
-  const [themeName, setThemeName] = React.useState('custom');
   const [showCode, setShowCode] = React.useState(false);
 
   // Collect all defaults
@@ -1270,12 +1313,17 @@ function ThemeEditorComponent() {
       ...textSizeDefaults,
       ...lineHeightDefaults,
       ...fontWeightDefaults,
+      ...typeScaleDefaults,
       ...sizeDefaults,
       ...elevationDefaults,
       ...transitionDefaults,
     }),
     [],
   );
+
+  // Type scale state — base and ratio for the interactive type scale editor
+  const [typeScaleBase, setTypeScaleBase] = React.useState(14);
+  const [typeScaleRatio, setTypeScaleRatio] = React.useState(1.2);
 
   const [tokens, setTokens] =
     React.useState<Record<string, string>>(allDefaults);
@@ -1289,18 +1337,35 @@ function ThemeEditorComponent() {
 
   const handleReset = React.useCallback(() => {
     setTokens(allDefaults);
+    setTypeScaleBase(14);
+    setTypeScaleRatio(1.2);
   }, [allDefaults]);
 
-  // Create a theme from current tokens
+  // Create a theme from current tokens.
+  // Uses defaultTheme's component overrides so that type scale tokens
+  // (--heading-1-size, --text-body-size, etc.) are consumed by the
+  // heading/text CSS rules in the preview.
+  //
+  // Type scale tokens are ALWAYS included (even at default values) because
+  // the component overrides reference var(--heading-1-size) etc., and those
+  // unhashed CSS custom properties only exist when the theme explicitly sets them.
+  const typeScaleKeys = React.useMemo(
+    () => new Set(Object.keys(typeScaleDefaults)),
+    [],
+  );
+
   const currentTheme = React.useMemo(() => {
     const tokenOverrides: Record<string, string> = {};
     for (const [key, value] of Object.entries(tokens)) {
-      if (value !== allDefaults[key]) {
+      // Always include type scale tokens — the component CSS rules reference
+      // var(--heading-1-size) etc. which only exist when the theme sets them.
+      if (typeScaleKeys.has(key) || value !== allDefaults[key]) {
         tokenOverrides[key] = value;
       }
     }
     return defineTheme({
       name: themeName,
+      typeScale: {base: typeScaleBase, ratio: typeScaleRatio},
       tokens: tokenOverrides as Partial<Record<string, string>>,
       icons: defaultIconRegistry,
     });
@@ -1318,26 +1383,16 @@ function ThemeEditorComponent() {
       return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
           {/* Color category selector */}
-          <div style={{marginBottom: '8px'}}>
-            <select
-              value={activeColorCategory}
-              onChange={e => setActiveColorCategory(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                fontSize: '14px',
-                border: '1px solid var(--color-divider-emphasized)',
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text-primary)',
-              }}>
-              {Object.keys(COLOR_CATEGORIES).map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
+          <XDSSelector
+            label="Color Category"
+            isLabelHidden
+            options={Object.keys(COLOR_CATEGORIES).map(category => ({
+              value: category,
+              label: category,
+            }))}
+            value={activeColorCategory}
+            onChange={v => setActiveColorCategory(v)}
+          />
 
           {categoryTokens.map(tokenName => (
             <ColorSwatch
@@ -1383,6 +1438,181 @@ function ThemeEditorComponent() {
     }
 
     if (activeGroup === 'typography') {
+      // Type scale controls
+      const applyTypeScale = (base: number, ratio: number) => {
+        setTypeScaleBase(base);
+        setTypeScaleRatio(ratio);
+        setTokens(prev => ({...prev, ...expandTypeScale({base, ratio})}));
+      };
+
+      // Named ratio options from musical/mathematical intervals
+      const RATIO_OPTIONS = [
+        {value: 1.067, label: '1.067 — Minor Second'},
+        {value: 1.125, label: '1.125 — Major Second'},
+        {value: 1.2, label: '1.200 — Minor Third'},
+        {value: 1.25, label: '1.250 — Major Third'},
+        {value: 1.333, label: '1.333 — Perfect Fourth'},
+        {value: 1.414, label: '1.414 — Augmented Fourth'},
+        {value: 1.5, label: '1.500 — Perfect Fifth'},
+        {value: 1.618, label: '1.618 — Golden Ratio'},
+      ];
+      const isCustomRatio = !RATIO_OPTIONS.some(
+        o => Math.abs(o.value - typeScaleRatio) < 0.001,
+      );
+
+      const typeScaleSection = (
+        <div
+          style={{
+            padding: '12px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--color-wash)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            marginBottom: '16px',
+          }}>
+          <XDSText type="label" color="secondary">
+            Type Scale
+          </XDSText>
+          <XDSSlider
+            label="Base Size"
+            min={10}
+            max={24}
+            step={1}
+            value={typeScaleBase}
+            onChange={v => applyTypeScale(v, typeScaleRatio)}
+            formatValue={v => `${v}px`}
+            valueDisplay="text"
+          />
+          <XDSSelector
+            label="Scale Ratio"
+            options={[
+              ...RATIO_OPTIONS.map(opt => ({
+                value: String(opt.value),
+                label: opt.label,
+              })),
+              {
+                value: 'custom',
+                label: isCustomRatio
+                  ? `Custom — ${typeScaleRatio.toFixed(3)}`
+                  : 'Custom…',
+              },
+            ]}
+            value={isCustomRatio ? 'custom' : String(typeScaleRatio)}
+            onChange={v => {
+              if (v === 'custom') return;
+              applyTypeScale(typeScaleBase, Number(v));
+            }}
+          />
+          {isCustomRatio && (
+            <XDSSlider
+              label="Custom Ratio"
+              isLabelHidden
+              min={1050}
+              max={1700}
+              step={1}
+              value={Math.round(typeScaleRatio * 1000)}
+              onChange={v => applyTypeScale(typeScaleBase, v / 1000)}
+              formatValue={v => (v / 1000).toFixed(3)}
+              valueDisplay="text"
+            />
+          )}
+          <div>
+            <XDSText
+              type="supporting"
+              display="block"
+              style={{marginBottom: '4px'}}>
+              Recommended values
+            </XDSText>
+            <div style={{display: 'flex', gap: '4px', flexWrap: 'wrap'}}>
+              <XDSButton
+                label="Functional"
+                variant={
+                  typeScaleBase === 12 && typeScaleRatio === 1.125
+                    ? 'primary'
+                    : 'ghost'
+                }
+                size="sm"
+                onClick={() => applyTypeScale(12, 1.125)}
+              />
+              <XDSButton
+                label="Default"
+                variant={
+                  typeScaleBase === 14 && typeScaleRatio === 1.2
+                    ? 'primary'
+                    : 'ghost'
+                }
+                size="sm"
+                onClick={() => applyTypeScale(14, 1.2)}
+              />
+              <XDSButton
+                label="Editorial"
+                variant={
+                  typeScaleBase === 16 && typeScaleRatio === 1.25
+                    ? 'primary'
+                    : 'ghost'
+                }
+                size="sm"
+                onClick={() => applyTypeScale(16, 1.25)}
+              />
+            </div>
+          </div>
+          {/* Compact heading preview */}
+          <div
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1px solid var(--color-divider)',
+              backgroundColor: 'var(--color-surface)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+            }}>
+            {[1, 2, 3, 4, 5, 6].map(level => {
+              const size = tokens[`--heading-${level}-size`] || '';
+              return (
+                <div
+                  key={level}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: '8px',
+                  }}>
+                  <XDSText
+                    type="code"
+                    color="secondary"
+                    style={{width: '18px', flexShrink: 0}}>
+                    h{level}
+                  </XDSText>
+                  <span
+                    style={{
+                      fontSize: size,
+                      fontWeight: 600,
+                      lineHeight: 1.3,
+                      color: 'var(--color-text-primary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                    Heading
+                  </span>
+                  <XDSText
+                    type="code"
+                    color="secondary"
+                    style={{marginLeft: 'auto', flexShrink: 0}}>
+                    {size}
+                  </XDSText>
+                </div>
+              );
+            })}
+          </div>
+          <XDSText type="code" color="secondary">
+            size = {typeScaleBase} × {typeScaleRatio.toFixed(3)}^step · h4 =
+            anchor
+          </XDSText>
+        </div>
+      );
+
       const categoryValue = TYPOGRAPHY_CATEGORIES[
         activeTypographyCategory as keyof typeof TYPOGRAPHY_CATEGORIES
       ] as TypographyCategoryValue | undefined;
@@ -1404,64 +1634,53 @@ function ThemeEditorComponent() {
 
       return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+          {typeScaleSection}
+
           {/* Typography category selector */}
-          <div style={{marginBottom: '8px'}}>
-            <select
-              value={activeTypographyCategory}
-              onChange={e => setActiveTypographyCategory(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                fontSize: '14px',
-                border: '1px solid var(--color-divider-emphasized)',
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text-primary)',
-              }}>
-              <optgroup label="Semantic Styles">
-                {Object.keys(TYPOGRAPHY_CATEGORIES)
-                  .filter(k => {
-                    const v = TYPOGRAPHY_CATEGORIES[
-                      k as keyof typeof TYPOGRAPHY_CATEGORIES
-                    ] as TypographyCategoryValue;
-                    return !Array.isArray(v);
-                  })
-                  .map(category => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="Raw Tokens">
-                {Object.keys(TYPOGRAPHY_CATEGORIES)
-                  .filter(k => {
-                    const v = TYPOGRAPHY_CATEGORIES[
-                      k as keyof typeof TYPOGRAPHY_CATEGORIES
-                    ] as TypographyCategoryValue;
-                    return Array.isArray(v);
-                  })
-                  .map(category => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
-          </div>
+          <XDSSelector
+            label="Typography Category"
+            isLabelHidden
+            options={[
+              {
+                type: 'section' as const,
+                title: 'Semantic Styles',
+                options: Object.keys(TYPOGRAPHY_CATEGORIES)
+                  .filter(
+                    k =>
+                      !Array.isArray(
+                        TYPOGRAPHY_CATEGORIES[
+                          k as keyof typeof TYPOGRAPHY_CATEGORIES
+                        ],
+                      ),
+                  )
+                  .map(category => ({value: category, label: category})),
+              },
+              {
+                type: 'section' as const,
+                title: 'Raw Tokens',
+                options: Object.keys(TYPOGRAPHY_CATEGORIES)
+                  .filter(k =>
+                    Array.isArray(
+                      TYPOGRAPHY_CATEGORIES[
+                        k as keyof typeof TYPOGRAPHY_CATEGORIES
+                      ],
+                    ),
+                  )
+                  .map(category => ({value: category, label: category})),
+              },
+            ]}
+            value={activeTypographyCategory}
+            onChange={v => setActiveTypographyCategory(v)}
+          />
 
           {/* Description for semantic styles */}
           {categoryDescription && (
-            <div
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--color-accent-deemphasized)',
-                fontSize: '12px',
-                color: 'var(--color-text-secondary)',
-                marginBottom: '4px',
-              }}>
+            <XDSText
+              type="supporting"
+              display="block"
+              style={{marginBottom: '4px'}}>
               {categoryDescription}
-            </div>
+            </XDSText>
           )}
 
           {/* Sample text preview for semantic styles */}
@@ -1559,7 +1778,9 @@ function ThemeEditorComponent() {
     <div
       style={{
         display: 'flex',
-        height: '100vh',
+        position: 'fixed',
+        inset: 0,
+        overflow: 'hidden',
         backgroundColor: 'var(--color-wash)',
       }}>
       {/* Left Panel - Token Editor */}
@@ -1571,62 +1792,10 @@ function ThemeEditorComponent() {
           flexDirection: 'column',
           backgroundColor: 'var(--color-surface)',
         }}>
-        {/* Header */}
-        <div
-          style={{
-            padding: '16px',
-            borderBottom: '1px solid var(--color-divider)',
-          }}>
-          <XDSHeading level={3}>Theme Editor</XDSHeading>
-          <XDSText type="supporting" style={{marginTop: '4px'}}>
-            Customize XDS design tokens
-          </XDSText>
-        </div>
-
-        {/* Theme name input */}
-        <div
-          style={{
-            padding: '12px 16px',
-            borderBottom: '1px solid var(--color-divider)',
-          }}>
-          <XDSTextInput
-            label="Theme Name"
-            value={themeName}
-            onChange={setThemeName}
-            size="sm"
-          />
-        </div>
-
-        {/* Mode toggle */}
-        <div
-          style={{
-            padding: '12px 16px',
-            borderBottom: '1px solid var(--color-divider)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-          <XDSText type="label">Edit Mode</XDSText>
-          <div style={{display: 'flex', gap: '8px'}}>
-            <XDSButton
-              label="Light"
-              variant={mode === 'light' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setMode('light')}
-            />
-            <XDSButton
-              label="Dark"
-              variant={mode === 'dark' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setMode('dark')}
-            />
-          </div>
-        </div>
-
         {/* Token group tabs */}
         <div
           style={{
-            padding: '12px 16px',
+            padding: '16px 16px 12px',
             borderBottom: '1px solid var(--color-divider)',
             display: 'flex',
             gap: '4px',
@@ -1692,16 +1861,27 @@ function ThemeEditorComponent() {
         {/* Preview header */}
         <div
           style={{
-            padding: '16px 24px',
+            padding: '12px 24px',
             borderBottom: '1px solid var(--color-divider)',
             backgroundColor: 'var(--color-surface)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
-          <div>
-            <XDSHeading level={4}>Live Preview</XDSHeading>
-            <XDSText type="supporting">See your changes in real-time</XDSText>
+          <XDSHeading level={4}>Live Preview</XDSHeading>
+          <div style={{display: 'flex', gap: '4px'}}>
+            <XDSButton
+              label="Light"
+              variant={mode === 'light' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('light')}
+            />
+            <XDSButton
+              label="Dark"
+              variant={mode === 'dark' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setMode('dark')}
+            />
           </div>
         </div>
 
@@ -1732,7 +1912,13 @@ function ThemeEditorComponent() {
                 margin: 0,
                 color: 'var(--color-text-primary)',
               }}>
-              {generateThemeCode(themeName, tokens, allDefaults)}
+              {generateThemeCode(
+                themeName,
+                tokens,
+                allDefaults,
+                typeScaleBase,
+                typeScaleRatio,
+              )}
             </pre>
           </div>
         )}
@@ -1742,15 +1928,12 @@ function ThemeEditorComponent() {
           style={{
             flex: 1,
             overflow: 'auto',
-            padding: '24px',
           }}>
           <XDSTheme theme={currentTheme} mode={mode}>
             <div
               style={{
                 backgroundColor: 'var(--color-surface)',
-                borderRadius: '12px',
                 padding: '24px',
-                minHeight: '100%',
               }}>
               <ComponentPreview />
             </div>
@@ -1782,7 +1965,8 @@ type Story = StoryObj;
 export const ThemeEditor: Story = {
   render: () => <ThemeEditorComponent />,
   parameters: {
-    // Disable the theme decorator for this story since we manage our own theme
-    xdsTheme: 'none',
+    // Use default theme for the editor chrome (left panel).
+    // The preview panel wraps its own <XDSTheme theme={currentTheme}>.
+    xdsTheme: 'default',
   },
 };

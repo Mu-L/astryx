@@ -16,6 +16,19 @@ import {neutralIconRegistry} from './icons';
 export const neutralTheme = defineTheme({
   name: 'neutral',
 
+  // Type scale: same as default (base=14, ratio=1.2).
+  // Neutral uses bold weights on h3/h4 for stronger subsection hierarchy.
+  typeScale: {
+    base: 14,
+    ratio: 1.2,
+    weights: {
+      heading: {
+        3: 'var(--font-weight-bold)',
+        4: 'var(--font-weight-bold)',
+      },
+    },
+  },
+
   tokens: {
     // =========================================================================
     // Colors — neutral grayscale palette using oklch
@@ -324,154 +337,8 @@ export const neutralTheme = defineTheme({
       },
     },
 
-    // =========================================================================
-    // Heading — Geist font, same dense scale
-    // =========================================================================
-    heading: {
-      'level:1': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-2xl)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.2',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'level:2': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-xl)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.333',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'level:3': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-lg)',
-        fontWeight: 'var(--font-weight-bold)',
-        lineHeight: '1.25',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'level:4': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-bold)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'level:5': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'level:6': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-xsm)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.333',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      // Editorial variant
-      'variant:editorial+level:1': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-4xl)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.5',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'variant:editorial+level:2': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-3xl)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.333',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'variant:editorial+level:3': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-2xl)',
-        fontWeight: 'var(--font-weight-bold)',
-        lineHeight: '1.4',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'variant:editorial+level:4': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-lg)',
-        fontWeight: 'var(--font-weight-bold)',
-        lineHeight: '1.5',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'variant:editorial+level:5': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'variant:editorial+level:6': {
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'var(--text-xsm)',
-        fontWeight: 'var(--font-weight-semibold)',
-        lineHeight: '1.333',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-    },
-
-    // =========================================================================
-    // Text — Geist body font
-    // =========================================================================
-    text: {
-      'type:body': {
-        fontFamily: 'var(--font-body)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-normal)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'type:large': {
-        fontFamily: 'var(--font-body)',
-        fontSize: 'var(--text-lg)',
-        fontWeight: 'var(--font-weight-normal)',
-        lineHeight: '1.5',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'type:label': {
-        fontFamily: 'var(--font-body)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-medium)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-      'type:supporting': {
-        fontFamily: 'var(--font-body)',
-        fontSize: 'var(--text-xsm)',
-        fontWeight: 'var(--font-weight-normal)',
-        lineHeight: '1.333',
-        color: 'var(--color-text-secondary)',
-        margin: '0',
-      },
-      'type:code': {
-        fontFamily: 'var(--font-code)',
-        fontSize: 'var(--text-base)',
-        fontWeight: 'var(--font-weight-normal)',
-        lineHeight: 'var(--leading-base)',
-        color: 'var(--color-text-primary)',
-        margin: '0',
-      },
-    },
+    // Heading and text component overrides are auto-generated by typeScale.
+    // h3/h4 bold weights come from typeScale.weights.heading above.
   },
 
   icons: neutralIconRegistry,
