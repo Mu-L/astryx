@@ -812,21 +812,33 @@ function DayCell({
         onClick={() => !isDisabled && onDayClick(date)}
         onMouseEnter={() => !isDisabled && onDayHover(date)}
         onMouseLeave={() => onDayHover(null)}
-        {...stylex.props(
-          dayCellStyles.day,
-          dayCellTheme.day,
-          isOutside && dayCellStyles.dayOutside,
-          isOutside && dayCellTheme.dayOutside,
-          isToday && !isSelected && !isInRange && dayCellStyles.dayToday,
-          isToday && !isSelected && !isInRange && dayCellTheme.dayToday,
-          isToday && !isSelected && isInRange && dayCellStyles.dayTodayInRange,
-          isToday && !isSelected && isInRange && dayCellTheme.dayTodayInRange,
-          (isSelected || isRangeStart || isRangeEnd) &&
-            dayCellStyles.daySelected,
-          (isSelected || isRangeStart || isRangeEnd) &&
-            dayCellTheme.daySelected,
-          isDisabled && dayCellStyles.dayDisabled,
-          isDisabled && dayCellTheme.dayDisabled,
+        {...mergeProps(
+          xdsClassName('calendar-day', {
+            selected:
+              isSelected || isRangeStart || isRangeEnd ? 'selected' : null,
+            today: isToday ? 'today' : null,
+            disabled: isDisabled ? 'disabled' : null,
+            'in-range': isInRange ? 'in-range' : null,
+          }),
+          stylex.props(
+            dayCellStyles.day,
+            dayCellTheme.day,
+            isOutside && dayCellStyles.dayOutside,
+            isOutside && dayCellTheme.dayOutside,
+            isToday && !isSelected && !isInRange && dayCellStyles.dayToday,
+            isToday && !isSelected && !isInRange && dayCellTheme.dayToday,
+            isToday &&
+              !isSelected &&
+              isInRange &&
+              dayCellStyles.dayTodayInRange,
+            isToday && !isSelected && isInRange && dayCellTheme.dayTodayInRange,
+            (isSelected || isRangeStart || isRangeEnd) &&
+              dayCellStyles.daySelected,
+            (isSelected || isRangeStart || isRangeEnd) &&
+              dayCellTheme.daySelected,
+            isDisabled && dayCellStyles.dayDisabled,
+            isDisabled && dayCellTheme.dayDisabled,
+          ),
         )}>
         {dayNumber}
       </button>

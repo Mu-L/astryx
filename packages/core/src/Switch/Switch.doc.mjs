@@ -188,7 +188,8 @@ export const docs = {
   ],
   theming: {
     targets: [
-      {className: 'xds-switch'},
+      {className: 'xds-switch', states: ['checked', 'disabled']},
+      {className: 'xds-switch-thumb', states: ['checked']},
       {className: 'xds-switch-field', visualProps: ['labelPosition', 'labelSpacing']},
     ],
   },
@@ -400,7 +401,8 @@ export const docsZh = {
   ],
   theming: {
     targets: [
-      {className: 'xds-switch'},
+      {className: 'xds-switch', states: ['checked', 'disabled']},
+      {className: 'xds-switch-thumb', states: ['checked']},
       {className: 'xds-switch-field', visualProps: ['labelPosition', 'labelSpacing']},
     ],
   },

@@ -88,6 +88,8 @@ export const docs = {
     targets: [
       {className: 'xds-radio-list', visualProps: ['orientation', 'size']},
       {className: 'xds-radio-list-item'},
+      {className: 'xds-radio', visualProps: ['size'], states: ['checked', 'disabled']},
+      {className: 'xds-radio-dot', visualProps: ['size']},
     ],
   },
   notes: [
@@ -340,6 +342,8 @@ export const docsZh = {
     targets: [
       {className: 'xds-radio-list', visualProps: ['orientation', 'size']},
       {className: 'xds-radio-list-item'},
+      {className: 'xds-radio', visualProps: ['size'], states: ['checked', 'disabled']},
+      {className: 'xds-radio-dot', visualProps: ['size']},
     ],
   },
   notes: [
