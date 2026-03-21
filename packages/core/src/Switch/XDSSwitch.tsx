@@ -351,7 +351,10 @@ export function XDSSwitch({
       <div
         aria-hidden="true"
         {...mergeProps(
-          xdsClassName('switch'),
+          xdsClassName('switch', {
+            checked: isOn ? 'checked' : null,
+            disabled: isDisabled ? 'disabled' : null,
+          }),
           stylex.props(
             styles.track,
             isOn ? styles.trackOn : styles.trackOff,
@@ -361,9 +364,9 @@ export function XDSSwitch({
           ),
         )}>
         <div
-          {...stylex.props(
-            styles.thumb,
-            isOn ? styles.thumbOn : styles.thumbOff,
+          {...mergeProps(
+            xdsClassName('switch-thumb', {checked: isOn ? 'checked' : null}),
+            stylex.props(styles.thumb, isOn ? styles.thumbOn : styles.thumbOff),
           )}>
           {isBusy && <XDSSpinner size="sm" />}
         </div>
