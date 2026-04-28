@@ -28,6 +28,7 @@ import type {
 import {
   colorStyles,
   defaultWeightByTypeStyles,
+  sizeByTypeStyles,
   weightStyles,
   displayStyles,
   truncationStyles,
@@ -243,6 +244,7 @@ export function XDSText({
           xdsClassName('text', {type, color: resolvedColor}),
           stylex.props(
             colorStyles[resolvedColor],
+            sizeByTypeStyles[type],
             defaultWeightByTypeStyles[type],
             weight && weightStyles[weight],
             // Display: use truncation styles when maxLines > 0
