@@ -40,7 +40,6 @@ import {
   DevicePhoneMobileIcon,
   EyeIcon,
   PlusCircleIcon,
-  ArrowLeftEndOnRectangleIcon,
   ShoppingBagIcon,
   ShoppingCartIcon,
   BanknotesIcon,
@@ -293,8 +292,7 @@ function defaultProps(type: BlockType): Record<string, unknown> {
 
 const editorStyles = stylex.create({
   shell: {
-    position: 'fixed',
-    inset: 0,
+    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: colorVars['--color-background-body'],
@@ -859,7 +857,7 @@ export default function EditorPage() {
                   <XDSButton
                     label={isPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
                     icon={
-                      <XDSIcon icon={ArrowLeftEndOnRectangleIcon} size="sm" />
+                      <XDSIcon icon={isPanelCollapsed ? ChevronDownIcon : ChevronUpIcon} size="sm" />
                     }
                     variant="ghost"
                     size="sm"
