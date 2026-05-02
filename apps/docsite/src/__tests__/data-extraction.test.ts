@@ -42,6 +42,24 @@ describe('packageRegistry', () => {
     const names = packages.map(p => p.name);
     expect(new Set(names).size).toBe(names.length);
   });
+
+  it('packages with READMEs have readme content', () => {
+    for (const pkg of packages) {
+      if (pkg.hasReadme) {
+        expect(pkg.readme).toBeTruthy();
+        expect(typeof pkg.readme).toBe('string');
+        expect(pkg.readme!.length).toBeGreaterThan(50);
+      } else {
+        expect(pkg.readme).toBeNull();
+      }
+    }
+  });
+
+  it('CLI package has a substantial README', () => {
+    const cli = packages.find(p => p.name === '@xds/cli');
+    expect(cli?.readme).toBeTruthy();
+    expect(cli!.readme!.length).toBeGreaterThan(1000);
+  });
 });
 
 // ── Component Registry ─────────────────────────────────────────────────
@@ -65,7 +83,7 @@ describe('componentRegistry', () => {
       expect(pkgName).toMatch(/^@xds\//);
       for (const comp of comps) {
         expect(comp.name).toBeTruthy();
-        expect(comp.displayName).toBeTruthy();
+        expect(comp.moduleName).toBeTruthy();
         expect(typeof comp.directory).toBe('string');
         expect(typeof comp.description).toBe('string');
         expect(Array.isArray(comp.keywords)).toBe(true);
@@ -136,18 +154,18 @@ describe('componentRegistry', () => {
     expect(button!.parentDoc).toBeNull();
   });
 
-  it('displayName has XDS prefix for components, not for hooks', () => {
+  it('moduleName has XDS prefix for components, not for hooks', () => {
     const core = components['@xds/core'];
     const button = core.find(c => c.name === 'Button');
-    expect(button?.displayName).toBe('XDSButton');
+    expect(button?.moduleName).toBe('XDSButton');
 
     const hookComp = core.find(c => c.name === 'useClickableContainer');
-    expect(hookComp?.displayName).toBe('useClickableContainer');
+    expect(hookComp?.moduleName).toBe('useClickableContainer');
 
     // Sub-component hooks also keep their name
     const tableHook = core.find(c => c.name === 'useXDSTableSelection');
     if (tableHook) {
-      expect(tableHook.displayName).toMatch(/^use/);
+      expect(tableHook.moduleName).toMatch(/^use/);
     }
   });
 
@@ -319,6 +337,16 @@ describe('docsRegistry', () => {
     expect(topics).toContain('tokens');
     expect(topics).toContain('spacing');
     expect(topics).toContain('color');
+  });
+
+  it('doc topics have category (guide or foundations)', () => {
+    for (const d of docTopics) {
+      expect(d.category === 'guide' || d.category === 'foundations').toBe(true);
+    }
+    const guide = docTopics.filter(d => d.category === 'guide');
+    const foundations = docTopics.filter(d => d.category === 'foundations');
+    expect(guide.length).toBeGreaterThanOrEqual(4);
+    expect(foundations.length).toBeGreaterThanOrEqual(7);
   });
 
   it('no duplicate topics', () => {

@@ -1,134 +1,90 @@
-import * as stylex from '@stylexjs/stylex';
+/**
+ * Page type: overview
+ * The home page — stats, package cards, quick links.
+ */
+
+import {XDSHeading, XDSText} from '@xds/core/Text';
+import {XDSVStack, XDSHStack} from '@xds/core/Layout';
+import {XDSCard} from '@xds/core/Card';
+import {XDSClickableCard} from '@xds/core/ClickableCard';
+import {XDSGrid} from '@xds/core/Grid';
+import {XDSSection} from '@xds/core/Section';
+import {XDSButton} from '@xds/core/Button';
+import {XDSBadge} from '@xds/core/Badge';
 import {packages} from '../generated/packageRegistry';
-import {components, componentCount} from '../generated/componentRegistry';
+import {componentCount} from '../generated/componentRegistry';
 import {blockCount, showcaseCount} from '../generated/blockRegistry';
 import {templateCount} from '../generated/templateRegistry';
-import {docsCount} from '../generated/docsRegistry';
 
-const styles = stylex.create({
-  main: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    padding: '2rem',
-  },
-  container: {
-    maxWidth: 640,
-    width: '100%',
-  },
-  heading: {
-    fontSize: '2.5rem',
-    fontWeight: 700,
-    marginBottom: '0.5rem',
-  },
-  subtitle: {
-    fontSize: '1.125rem',
-    opacity: 0.7,
-    marginBottom: '2rem',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-    gap: '1rem',
-    marginBottom: '2rem',
-  },
-  stat: {
-    padding: '1rem',
-    borderRadius: 8,
-    border: '1px solid var(--color-border)',
-    textAlign: 'center' as const,
-  },
-  statNumber: {
-    fontSize: '2rem',
-    fontWeight: 700,
-    lineHeight: 1,
-  },
-  statLabel: {
-    fontSize: '0.75rem',
-    opacity: 0.6,
-    marginTop: '0.25rem',
-  },
-  section: {
-    marginBottom: '1.5rem',
-  },
-  sectionHeading: {
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    opacity: 0.5,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    marginBottom: '0.5rem',
-  },
-  packageList: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '0.5rem',
-  },
-  chip: {
-    fontSize: '0.8125rem',
-    padding: '0.25rem 0.75rem',
-    borderRadius: 999,
-    border: '1px solid var(--color-border)',
-  },
-});
-
-const themeCount = packages.filter(p => p.name.includes('theme-')).length;
-const componentPackages = Object.keys(components);
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <main {...stylex.props(styles.main)}>
-      <div {...stylex.props(styles.container)}>
-        <h1 {...stylex.props(styles.heading)}>XDS</h1>
-        <p {...stylex.props(styles.subtitle)}>
-          Open-source design system for building internal tools and products.
-        </p>
+    <XDSSection maxWidth="lg" padding={6}>
+      <XDSVStack gap={8}>
+        <XDSVStack gap={3}>
+          <XDSHeading level={1}>XDS</XDSHeading>
+          <XDSText type="large" color="secondary">
+            Open-source design system for building internal tools and products.
+          </XDSText>
+          <XDSHStack gap={3}>
+            <XDSButton
+              label="Getting Started"
+              variant="primary"
+              href="/docs/getting-started"
+            />
+            <XDSButton
+              label="Components"
+              variant="secondary"
+              href="/packages/core"
+            />
+            <XDSButton label="Changelog" variant="ghost" href="/changelog" />
+          </XDSHStack>
+        </XDSVStack>
 
-        <div {...stylex.props(styles.grid)}>
-          <Stat n={componentCount} label="Components" />
-          <Stat n={blockCount} label="Blocks" />
-          <Stat n={showcaseCount} label="Showcases" />
-          <Stat n={templateCount} label="Templates" />
-          <Stat n={themeCount} label="Themes" />
-          <Stat n={docsCount} label="Doc Topics" />
-          <Stat n={packages.length} label="Packages" />
-          <Stat n={componentPackages.length} label="Component Pkgs" />
-        </div>
+        <XDSGrid columns={4} gap={4} minChildWidth={140}>
+          <StatCard n={componentCount} label="Components" />
+          <StatCard n={blockCount} label="Blocks" />
+          <StatCard n={showcaseCount} label="Showcases" />
+          <StatCard n={templateCount} label="Templates" />
+        </XDSGrid>
 
-        <div {...stylex.props(styles.section)}>
-          <div {...stylex.props(styles.sectionHeading)}>Packages</div>
-          <div {...stylex.props(styles.packageList)}>
+        <XDSVStack gap={4}>
+          <XDSHeading level={2}>Packages</XDSHeading>
+          <XDSGrid columns={2} gap={4} minChildWidth={280}>
             {packages.map(p => (
-              <span key={p.name} {...stylex.props(styles.chip)}>
-                {p.name} <span style={{opacity: 0.5}}>v{p.version}</span>
-              </span>
+              <XDSClickableCard
+                key={p.name}
+                label={p.name}
+                href={`/packages/${p.name.replace('@xds/', '')}`}
+                padding={5}>
+                <XDSVStack gap={2}>
+                  <XDSHStack gap={2} vAlign="center">
+                    <XDSText type="body" weight="bold">
+                      {p.name}
+                    </XDSText>
+                    <XDSBadge label={`v${p.version}`} variant="info" />
+                  </XDSHStack>
+                  <XDSText type="supporting" color="secondary">
+                    {p.description}
+                  </XDSText>
+                </XDSVStack>
+              </XDSClickableCard>
             ))}
-          </div>
-        </div>
-
-        <div {...stylex.props(styles.section)}>
-          <div {...stylex.props(styles.sectionHeading)}>
-            Components by Package
-          </div>
-          <div {...stylex.props(styles.packageList)}>
-            {componentPackages.map(pkg => (
-              <span key={pkg} {...stylex.props(styles.chip)}>
-                {pkg.replace('@xds/', '')} ({components[pkg].length})
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </main>
+          </XDSGrid>
+        </XDSVStack>
+      </XDSVStack>
+    </XDSSection>
   );
 }
 
-function Stat({n, label}: {n: number; label: string}) {
+function StatCard({n, label}: {n: number; label: string}) {
   return (
-    <div {...stylex.props(styles.stat)}>
-      <div {...stylex.props(styles.statNumber)}>{n}</div>
-      <div {...stylex.props(styles.statLabel)}>{label}</div>
-    </div>
+    <XDSCard padding={4}>
+      <XDSVStack gap={1} hAlign="center">
+        <XDSText type="display-2">{n}</XDSText>
+        <XDSText type="supporting" color="secondary">
+          {label}
+        </XDSText>
+      </XDSVStack>
+    </XDSCard>
   );
 }

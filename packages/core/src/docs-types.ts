@@ -284,33 +284,7 @@ interface BaseDoc {
    *  Components without a group appear flat in alphabetical order.
    *  Groups cluster related components that are always used together
    *  or are variants of each other. */
-  group?:
-    | 'Avatar'
-    | 'Breadcrumbs'
-    | 'Button'
-    | 'Card'
-    | 'Chat'
-    | 'Checkbox'
-    | 'Collapsible'
-    | 'CommandPalette'
-    | 'Dialog'
-    | 'DropdownMenu'
-    | 'Field'
-    | 'Layout'
-    | 'List'
-    | 'MetadataList'
-    | 'MobileNav'
-    | 'Radio'
-    | 'SegmentedControl'
-    | 'Selector'
-    | 'SideNav'
-    | 'Table'
-    | 'Tabs'
-    | 'Toast'
-    | 'TopNav'
-    | 'TreeList'
-    | 'Typeahead'
-    | 'Utilities';
+  group?: string;
   /** Theming configuration. Documents the stable CSS class names
    *  rendered by this component that themes can target via `@scope`
    *  selectors in `defineTheme`. */
@@ -502,10 +476,12 @@ export interface ReferenceSection {
 export interface ReferenceDoc {
   /** URL-safe identifier, used as the CLI topic name. e.g. 'tokens', 'principles' */
   name: string;
-  /** Human-readable title. e.g. 'XDS Design Tokens' */
+  /** Human-readable title. e.g. 'All Tokens' */
   title: string;
   /** One-line summary shown in topic listings. */
   description: string;
+  /** Navigation category: 'guide' or 'foundations'. */
+  category?: string;
   /** Ordered sections that make up the doc. */
   sections: ReferenceSection[];
   /** Token category for foundational docs that map to a token section.
@@ -671,6 +647,8 @@ export interface HookReturnDoc {
 export interface HookDoc {
   /** Hook name exactly as exported, e.g. 'useMediaQuery', 'useFocusTrap'. */
   name: string;
+  /** Optional group for sidebar/docs organization — same as ComponentDoc.group. */
+  group?: string;
   /** Search keywords for CLI discovery. */
   keywords?: string[];
   /** Hook parameters or options object fields. */
@@ -689,14 +667,7 @@ export interface HookDoc {
   /** Import path, e.g. '@xds/core/hooks' or '@xds/core/Toast'. */
   importPath?: string;
   /** Category for grouping in listings. */
-  category?:
-    | 'focus'
-    | 'layout'
-    | 'animation'
-    | 'interaction'
-    | 'data'
-    | 'media'
-    | 'streaming';
+  category?: string;
 }
 
 /**

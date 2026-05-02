@@ -131,6 +131,9 @@ function generatePackageRegistry() {
 
       const hasReadme = fs.existsSync(path.join(REPO_ROOT, dir, 'README.md'));
       const hasChangelog = fs.existsSync(path.join(REPO_ROOT, dir, 'CHANGELOG.md'));
+      const readme = hasReadme
+        ? fs.readFileSync(path.join(REPO_ROOT, dir, 'README.md'), 'utf-8')
+        : null;
       return {
         name: raw.name,
         displayName: raw.displayName || raw.name.replace('@xds/', '').replace('theme-', 'Theme: ').replace(/^\w/, c => c.toUpperCase()),
@@ -139,6 +142,7 @@ function generatePackageRegistry() {
         packagePath: dir,
         hasReadme,
         hasChangelog,
+        readme,
       };
     })
     .filter(Boolean)
@@ -154,6 +158,7 @@ export interface PackageMeta {
   packagePath: string;
   hasReadme: boolean;
   hasChangelog: boolean;
+  readme: string | null;
 }
 
 export const packages: PackageMeta[] = ${JSON.stringify(packages, null, 2)};
@@ -227,7 +232,7 @@ async function generateComponentRegistry() {
             if (!subName) continue;
             pendingSubComponents.push({
               name: subName,
-              displayName: sub.name || subName,
+              moduleName: sub.name || subName,
               directory: entry.name,
               group,
               description: sub.description || topDescription,
@@ -242,7 +247,7 @@ async function generateComponentRegistry() {
           standaloneNames.add(name);
           components.push({
             name,
-            displayName: name.startsWith('use') ? name : `XDS${name}`,
+            moduleName: name.startsWith('use') ? name : `XDS${name}`,
             directory: entry.name,
             group,
             description: topDescription,
@@ -274,8 +279,8 @@ async function generateComponentRegistry() {
 export interface ComponentEntry {
   /** Component name without XDS prefix (e.g. 'Button', 'TableRow', 'useClickableContainer') */
   name: string;
-  /** Full display name (e.g. 'XDSButton', 'XDSTableRow', 'useClickableContainer') */
-  displayName: string;
+  /** Actual exported module name (e.g. 'XDSButton', 'XDSTableRow', 'useClickableContainer') */
+  moduleName: string;
   /** Source directory containing this component (e.g. 'Button', 'hooks', 'Table') */
   directory: string;
   /** Sidebar group from docs.group (e.g. 'Actions', 'Chat', 'Table') */
@@ -452,16 +457,18 @@ async function generateDocsRegistry() {
 
     let title = '';
     let description = '';
+    let category = '';
     try {
       const mod = await import(`file://${docPath}`);
       title = mod.docs?.title || '';
       description = mod.docs?.description || '';
+      category = mod.docs?.category || '';
     } catch {
       const meta = readDocMeta(docPath);
       description = meta.description;
     }
 
-    docTopics.push({topic, title: title || topic, description});
+    docTopics.push({topic, title: title || topic, description, category: category || null});
   }
 
   docTopics.sort((a, b) => a.topic.localeCompare(b.topic));
@@ -475,6 +482,8 @@ export interface DocTopic {
   title: string;
   /** Short description */
   description: string;
+  /** Navigation category: 'guide' | 'foundations' | null */
+  category: string | null;
 }
 
 export const docTopics: DocTopic[] = ${JSON.stringify(docTopics, null, 2)};
