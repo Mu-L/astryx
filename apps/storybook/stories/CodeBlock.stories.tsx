@@ -29,6 +29,15 @@ const meta: Meta<typeof XDSCodeBlock> = {
       options: ['sm', 'md'],
       description: 'Text size',
     },
+    width: {
+      control: 'text',
+      description: 'Width of the code block (any CSS width value)',
+    },
+    container: {
+      control: 'select',
+      options: ['card', 'section'],
+      description: 'Container presentation style',
+    },
     hasLineNumbers: {control: 'boolean'},
     hasCopyButton: {control: 'boolean'},
     isWrapped: {control: 'boolean'},
@@ -276,5 +285,24 @@ It preserves whitespace and line breaks.
     language: 'plaintext',
     title: 'notes.txt',
     hasLineNumbers: true,
+  },
+};
+
+export const FullWidth: Story = {
+  args: {
+    code: tsExample,
+    language: 'typescript',
+    title: 'useUser.ts',
+    width: '100%',
+  },
+};
+
+export const ContainerSection: Story = {
+  args: {
+    code: tsExample,
+    language: 'typescript',
+    title: 'useUser.ts',
+    width: '100%',
+    container: 'section',
   },
 };
