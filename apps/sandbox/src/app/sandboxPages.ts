@@ -146,6 +146,12 @@ export const categories: SandboxCategory[] = [
           'Gothic dark-only theme — atmospheric blue-gray, distressed display heading, pastel categorical accents',
       },
       {
+        name: 'Butter Palette',
+        href: '/pages/butter-palette/',
+        description:
+          'Butter theme — golden buttery palette with blue accents, Sarina display, Outfit body & headings',
+      },
+      {
         name: 'Color Studio',
         href: '/pages/color-studio/',
         description:
