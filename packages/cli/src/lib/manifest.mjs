@@ -87,7 +87,7 @@ const EXAMPLES = {
   doctor: ['astryx doctor', 'astryx doctor --json'],
   init: ['astryx init'],
   'layout expand': [`astryx layout expand 'V[g6] > C{card-callout}*4' ./src/Page.tsx`],
-  'layout check': [`astryx layout check 'A > L > LC[p6]' --json`],
+  'layout check': [`astryx layout check 'A[cp6] > L > LC > S[p6]' --json`],
   'layout grammar': ['astryx layout grammar'],
 };
 
