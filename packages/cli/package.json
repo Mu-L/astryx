@@ -42,6 +42,10 @@
     "./config": {
       "types": "./src/types/config.d.ts",
       "import": "./src/config.mjs"
+    },
+    "./xle": {
+      "types": "./src/lib/xle/browser.d.ts",
+      "import": "./src/lib/xle/browser.mjs"
     }
   },
   "files": [
