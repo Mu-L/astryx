@@ -179,26 +179,44 @@ const $ = id => document.getElementById(id);
 const data = await fetch('/registry.json').then(r => r.json());
 const REG = data.registry, BLOCKS = data.blocks;
 
-const estTokens = s => (String(s).match(/\w+|[^\s\w]/g) || []).length;
+const heur = s => (String(s).match(/\w+|[^\s\w]/g) || []).length;
 const escapeHtml = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+// Canonical tokens come from the server (/tokens → gpt-tokenizer o200k_base,
+// heuristic fallback). Counts are cached per string; heuristic shows instantly.
+let ENCODER = 'est.';
+const tokCache = new Map();
+const tok = s => (tokCache.has(s) ? tokCache.get(s) : heur(s));
+async function refreshTokens(texts) {
+  try {
+    const r = await fetch('/tokens', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({texts})});
+    const j = await r.json();
+    ENCODER = j.encoder;
+    texts.forEach((t, i) => tokCache.set(t, j.counts[i]));
+    return true;
+  } catch { return false; }
+}
 
 function metricsHtml(inTok, inChars, outTok, outChars) {
   const ratio = inTok > 0 && outTok > 0 ? (outTok / inTok).toFixed(1) + '×' : '—';
   const cell = (label, val, sub) =>
     `<div class="metric"><div class="m-label">${label}</div><div class="m-val">${val}</div><div class="m-sub">${sub}</div></div>`;
-  return cell('XLE input', inTok + ' tok', inChars + ' chars') +
-    cell('Output TSX', outTok ? outTok + ' tok' : '—', outChars ? outChars + ' chars' : '—') +
+  return cell('XLE input · ' + ENCODER, inTok + ' tok', inChars + ' chars') +
+    cell('Output TSX · ' + ENCODER, outTok ? outTok + ' tok' : '—', outChars ? outChars + ' chars' : '—') +
     cell('Expansion', ratio, 'output ÷ input');
+}
+
+function paintMetrics(expr, code) {
+  $('metrics').innerHTML = metricsHtml(tok(expr), expr.length, code ? tok(code) : 0, code ? code.length : 0);
 }
 
 function render() {
   const expr = $('src').value;
-  const form = $('surface').value;
-  const r = checkExpression(expr, REG, {blocks: BLOCKS, form});
+  // Always auto-detect: a compact expression never "fails" under an Outline view.
+  const r = checkExpression(expr, REG, {blocks: BLOCKS, form: 'auto'});
   const status = $('status'), errors = $('errors');
   status.innerHTML = '';
   errors.innerHTML = '';
-  const inTok = estTokens(expr);
   if (r.ok && r.valid) {
     status.innerHTML = `<span class="pill ok">Valid · ${r.form}</span>` +
       (r.warnings.length ? `<span class="pill warn">${r.warnings.length} warning</span>` : '');
@@ -206,7 +224,8 @@ function render() {
     $('outline').textContent = r.outline;
     $('expand').disabled = false;
     const code = doExpand(); // live "rendered source"
-    $('metrics').innerHTML = metricsHtml(inTok, expr.length, estTokens(code), code.length);
+    paintMetrics(expr, code);
+    refreshTokens([expr, code]).then(ok => ok && paintMetrics(expr, code)); // canonical refine
   } else {
     status.innerHTML = `<span class="pill err">${r.errors.length} error${r.errors.length===1?'':'s'}</span>`;
     errors.innerHTML = r.errors.map(e =>
@@ -216,15 +235,26 @@ function render() {
     $('outline').textContent = '';
     $('code').textContent = '';
     $('expand').disabled = true;
-    $('metrics').innerHTML = metricsHtml(inTok, expr.length, 0, 0);
+    paintMetrics(expr, '');
+    refreshTokens([expr]).then(ok => ok && paintMetrics(expr, ''));
   }
 }
 
 function doExpand() {
-  const r = expandExpression($('src').value, REG, {blocks: BLOCKS, form: $('surface').value, name: 'PlaygroundLayout'});
+  const r = expandExpression($('src').value, REG, {blocks: BLOCKS, form: 'auto', name: 'PlaygroundLayout'});
   const code = r.ok ? r.code : r.errors.map(e => e.formatted).join('\n');
   $('code').textContent = code;
   return r.ok ? code : '';
+}
+
+// Switching surface converts the current expression to that dialect.
+function switchSurface() {
+  const v = $('surface').value;
+  if (v !== 'auto') {
+    const c = checkExpression($('src').value, REG, {blocks: BLOCKS, form: 'auto'});
+    if (c.ok && c.valid) $('src').value = v === 'compact' ? c.compact : c.outline;
+  }
+  render();
 }
 
 // Searchable, categorized example browser.
@@ -241,7 +271,7 @@ function renderBrowser(query) {
     html += `<div class="ex-cat">${escapeHtml(cat)}</div>`;
     for (const [e, i] of rows) {
       const active = e[1] === activeLabel ? ' active' : '';
-      html += `<button class="ex-item${active}" data-i="${i}"><span class="ex-col"><span class="ex-label">${escapeHtml(e[1])}</span><span class="ex-expr">${escapeHtml(e[2].replace(/\n/g, ' ⏎ '))}</span></span><span class="ex-tok">${estTokens(e[2])} tok</span></button>`;
+      html += `<button class="ex-item${active}" data-i="${i}"><span class="ex-col"><span class="ex-label">${escapeHtml(e[1])}</span><span class="ex-expr">${escapeHtml(e[2].replace(/\n/g, ' ⏎ '))}</span></span><span class="ex-tok">${tok(e[2])} tok</span></button>`;
     }
   }
   $('examples').innerHTML = html || '<div class="ex-cat">No matches</div>';
@@ -253,17 +283,20 @@ $('examples').addEventListener('click', e => {
   const ex = EXAMPLES[btn.dataset.i];
   activeLabel = ex[1];
   $('src').value = ex[2];
+  $('surface').value = 'auto'; // examples carry their own surface
   render();
   renderBrowser($('search').value);
 });
 $('search').addEventListener('input', e => renderBrowser(e.target.value));
 $('src').addEventListener('input', render);
-$('surface').addEventListener('change', render);
+$('surface').addEventListener('change', switchSurface);
 $('expand').addEventListener('click', doExpand);
 
 renderBrowser('');
 $('src').value = EXAMPLES[0][2];
 render();
+// Canonical per-example token counts (one batch call), then repaint the list.
+refreshTokens(EXAMPLES.map(e => e[2])).then(ok => ok && renderBrowser($('search').value));
 </script>
 </body>
 </html>

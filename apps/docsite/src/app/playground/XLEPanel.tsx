@@ -17,7 +17,7 @@
 
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {XDSVStack, XDSHStack} from '@xds/core/Stack';
 import {XDSText} from '@xds/core/Text';
@@ -32,12 +32,35 @@ import {XLE_EXAMPLES, XLE_CATEGORIES} from './xleExamples';
 
 type Surface = 'auto' | 'compact' | 'outline';
 
-/**
- * Rough token estimate: words + individual symbols. Not a real BPE count, but
- * a deterministic, intuitive proxy for comparing input vs output size.
- */
-function estTokens(src: string): number {
+/** Heuristic fallback used until the BPE tokenizer loads (or if it can't). */
+function heuristicTokens(src: string): number {
   return (src.match(/\w+|[^\s\w]/g) || []).length;
+}
+
+/**
+ * Loads gpt-tokenizer's o200k_base BPE encoder (the modern GPT-4o/5 vocab)
+ * lazily on the client, falling back to the heuristic until it's ready.
+ * Returns a {count, encoder} pair so the UI can show which is active.
+ */
+function useTokenCounter() {
+  const [bpe, setBpe] = useState<((s: string) => number) | null>(null);
+  useEffect(() => {
+    let alive = true;
+    import('gpt-tokenizer/encoding/o200k_base')
+      .then(m => {
+        if (alive) setBpe(() => (s: string) => m.countTokens(s));
+      })
+      .catch(() => {
+        /* keep heuristic */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return {
+    count: bpe ?? heuristicTokens,
+    encoder: bpe ? 'o200k_base' : 'est.',
+  };
 }
 
 const s = stylex.create({
@@ -200,13 +223,16 @@ function Metric({label, value, sub}: {label: string; value: string; sub?: string
 
 export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
   const [expr, setExpr] = useState(XLE_EXAMPLES[0].expr);
+  // 'surface' is the displayed dialect; parsing is always auto-detected, so a
+  // compact expression never "fails" just because Outline is selected.
   const [surface, setSurface] = useState<Surface>('auto');
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState(XLE_EXAMPLES[0].label);
+  const {count: countTokens, encoder} = useTokenCounter();
 
   const check = useMemo(
-    () => checkExpression(expr, xleData.registry, {blocks: xleData.blocks, form: surface}),
-    [expr, surface],
+    () => checkExpression(expr, xleData.registry, {blocks: xleData.blocks, form: 'auto'}),
+    [expr],
   );
 
   const valid = check.ok && check.valid;
@@ -216,16 +242,16 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
       valid
         ? expandExpression(expr, xleData.registry, {
             blocks: xleData.blocks,
-            form: surface,
+            form: 'auto',
             name: 'PlaygroundLayout',
           })
         : null,
-    [expr, surface, valid],
+    [expr, valid],
   );
 
-  const inTokens = estTokens(expr);
+  const inTokens = countTokens(expr);
   const outCode = expanded?.ok ? expanded.code : '';
-  const outTokens = estTokens(outCode);
+  const outTokens = outCode ? countTokens(outCode) : 0;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -238,12 +264,25 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
     );
   }, [query]);
 
+  // Switching the dialect converts the current expression to that surface
+  // (using the canonical printers) rather than forcing a mismatched parse.
+  const switchSurface = (next: Surface) => {
+    setSurface(next);
+    if (next === 'auto') return;
+    const c = checkExpression(expr, xleData.registry, {blocks: xleData.blocks, form: 'auto'});
+    if (c.ok && c.valid) {
+      const converted = next === 'compact' ? c.compact : c.outline;
+      if (converted) setExpr(converted);
+    }
+  };
+
   const pick = (label: string, exprText: string) => {
     setActiveLabel(label);
     setExpr(exprText);
+    setSurface('auto'); // examples carry their own surface; let auto-detect handle it
     const r = expandExpression(exprText, xleData.registry, {
       blocks: xleData.blocks,
-      form: surface,
+      form: 'auto',
       name: 'PlaygroundLayout',
     });
     if (r.ok) onApplyCode(r.code);
@@ -263,7 +302,7 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
         label="Surface"
         size="sm"
         value={surface}
-        onChange={v => setSurface(v as Surface)}>
+        onChange={v => v && switchSurface(v as Surface)}>
         <XDSSegmentedControlItem value="auto" label="Auto" />
         <XDSSegmentedControlItem value="compact" label="Compact (XLE)" />
         <XDSSegmentedControlItem value="outline" label="Outline (XLO)" />
@@ -300,11 +339,11 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
         )}
       </XDSHStack>
 
-      {/* Token economics */}
+      {/* Token economics (BPE via gpt-tokenizer o200k_base; 'est.' until loaded) */}
       <div {...stylex.props(s.metrics)}>
-        <Metric label="XLE input" value={`${inTokens} tok`} sub={`${expr.length} chars`} />
+        <Metric label={`XLE input · ${encoder}`} value={`${inTokens} tok`} sub={`${expr.length} chars`} />
         <Metric
-          label="Output TSX"
+          label={`Output TSX · ${encoder}`}
           value={`${outTokens} tok`}
           sub={outCode ? `${outCode.length} chars` : '—'}
         />
@@ -390,7 +429,7 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
                       <span {...stylex.props(s.rowLabel)}>{ex.label}</span>
                       <span {...stylex.props(s.rowExpr)}>{ex.expr.replace(/\n/g, ' ⏎ ')}</span>
                     </XDSVStack>
-                    <span {...stylex.props(s.rowTok)}>{estTokens(ex.expr)} tok</span>
+                    <span {...stylex.props(s.rowTok)}>{countTokens(ex.expr)} tok</span>
                   </button>
                 ))}
               </div>

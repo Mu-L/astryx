@@ -36,9 +36,29 @@ const PORT = portArg !== -1 ? Number(process.argv[portArg + 1]) : 4321;
 const {buildRegistry, serializeRegistry} = await import(join(CLI_SRC, 'lib/xle/registry.mjs'));
 const {discoverTemplates} = await import(join(CLI_SRC, 'api/template.mjs'));
 
+// Canonical token counter: gpt-tokenizer's o200k_base BPE (modern GPT-4o/5
+// vocab) when installed, else a words+symbols heuristic. Loaded once.
+let countTokens = (s) => (String(s).match(/\w+|[^\s\w]/g) || []).length;
+let tokenEncoder = 'est.';
+try {
+  const tok = await import('gpt-tokenizer/encoding/o200k_base');
+  countTokens = (s) => tok.countTokens(String(s));
+  tokenEncoder = 'o200k_base';
+} catch {
+  /* heuristic fallback */
+}
+
 function send(res, status, type, body) {
   res.writeHead(status, {'content-type': type, 'cache-control': 'no-store'});
   res.end(body);
+}
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+  });
 }
 
 const server = createServer(async (req, res) => {
@@ -60,6 +80,20 @@ const server = createServer(async (req, res) => {
         /* blocks optional */
       }
       return send(res, 200, 'application/json', JSON.stringify({registry: serializeRegistry(registry), blocks}));
+    }
+
+    if (path === '/tokens' && req.method === 'POST') {
+      const body = await readBody(req);
+      let texts = [];
+      try {
+        texts = JSON.parse(body).texts || [];
+      } catch {
+        /* empty */
+      }
+      return send(res, 200, 'application/json', JSON.stringify({
+        encoder: tokenEncoder,
+        counts: texts.map(t => countTokens(t)),
+      }));
     }
 
     if (path.startsWith('/xle/')) {
