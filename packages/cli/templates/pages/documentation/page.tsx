@@ -6,6 +6,7 @@ import * as stylex from '@stylexjs/stylex';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {Button} from '@astryxdesign/core/Button';
 import {Card} from '@astryxdesign/core/Card';
+import {ClickableCard} from '@astryxdesign/core/ClickableCard';
 import {HStack, VStack, StackItem} from '@astryxdesign/core/Stack';
 import {Layout, LayoutContent} from '@astryxdesign/core/Layout';
 import {Grid} from '@astryxdesign/core/Grid';
@@ -14,18 +15,6 @@ import {radiusVars} from '@astryxdesign/core/theme/tokens.stylex';
 const styles = stylex.create({
   previewCard: {
     borderRadius: radiusVars['--radius-container'],
-  },
-  itemButton: {
-    appearance: 'none',
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    color: 'inherit',
-    cursor: 'pointer',
-    display: 'block',
-    font: 'inherit',
-    padding: 0,
-    textAlign: 'start',
-    width: '100%',
   },
 });
 
@@ -246,12 +235,12 @@ export default function DocumentationOverviewPage() {
                 <Heading level={2}>{category.label}</Heading>
                 <Grid columns={{minWidth: 260}} gap={6}>
                   {category.items.map(item => (
-                    <button
+                    <ClickableCard
                       key={item.key}
-                      type="button"
-                      aria-label={`Open ${item.name}`}
+                      label={`Open ${item.name}`}
                       onClick={() => {}}
-                      {...stylex.props(styles.itemButton)}>
+                      variant="transparent"
+                      padding={0}>
                       <VStack gap={3}>
                         <Card
                           variant="muted"
@@ -268,7 +257,7 @@ export default function DocumentationOverviewPage() {
                           </Text>
                         </VStack>
                       </VStack>
-                    </button>
+                    </ClickableCard>
                   ))}
                 </Grid>
               </VStack>

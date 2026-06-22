@@ -16,7 +16,8 @@ import {CodeBlock} from '@astryxdesign/core/CodeBlock';
 import {TabList, Tab} from '@astryxdesign/core/TabList';
 import {Selector} from '@astryxdesign/core/Selector';
 import {HStack, VStack, StackItem} from '@astryxdesign/core/Stack';
-import {Layout, LayoutContent} from '@astryxdesign/core/Layout';
+import {Layout, LayoutContent, LayoutPanel} from '@astryxdesign/core/Layout';
+import {useMediaQuery} from '@astryxdesign/core/hooks';
 import {Dialog, DialogHeader} from '@astryxdesign/core/Dialog';
 import {Divider} from '@astryxdesign/core/Divider';
 import {Tooltip} from '@astryxdesign/core/Tooltip';
@@ -33,36 +34,11 @@ import {
 
 const styles = stylex.create({
   tabListFlush: {marginInlineStart: '-12px'},
-  docGrid: {
-    display: 'grid',
-    gridTemplateColumns: {
-      default: 'minmax(0, 1fr) 220px',
-      '@media (max-width: 768px)': 'minmax(0, 1fr)',
-    },
-    gap: 32,
-    maxWidth: 960,
-    marginInline: 'auto',
-  },
-  docBody: {
-    minWidth: 0,
-  },
-  outlineAside: {
-    paddingBlockStart: 120,
-    display: {
-      default: 'block',
-      '@media (max-width: 768px)': 'none',
-    },
-  },
-  outlineSticky: {
+  outlinePanel: {
     position: 'sticky',
     top: 24,
     alignSelf: 'start',
-  },
-  mobileOutlineSelector: {
-    display: {
-      default: 'none',
-      '@media (max-width: 768px)': 'block',
-    },
+    paddingBlockStart: 120,
   },
 });
 
@@ -647,6 +623,7 @@ function ComponentDetailView({activeNav}: {activeNav: string}) {
   const {activeId, contentRef, scrollToId} = usePageOutline(
     COMPONENT_OUTLINE_ITEMS,
   );
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const EXAMPLE_PREVIEWS: Record<string, React.ReactNode[]> = {
     button: [
@@ -703,171 +680,174 @@ function ComponentDetailView({activeNav}: {activeNav: string}) {
   return (
     <Layout
       height="auto"
+      contentWidth={960}
+      end={
+        isMobile ? undefined : (
+          <LayoutPanel
+            isScrollable={false}
+            label="On this page"
+            role="complementary"
+            xstyle={styles.outlinePanel}>
+            <Outline
+              items={COMPONENT_OUTLINE_ITEMS}
+              activeId={activeId}
+              onActiveIdChange={scrollToId}
+            />
+          </LayoutPanel>
+        )
+      }
       content={
         <LayoutContent ref={contentRef} isScrollable={false} padding={8}>
-          <section {...stylex.props(styles.docGrid)}>
-            <article {...stylex.props(styles.docBody)}>
-              <VStack gap={8}>
-                <VStack gap={2}>
-                  <Text type="display-1">{getComponentName(activeNav)}</Text>
-                  <Text type="supporting" color="secondary">
-                    March 30, 2026 · Updated 5:40 p.m. PST
-                  </Text>
-                  <div {...stylex.props(styles.mobileOutlineSelector)}>
-                    <Selector
-                      label="On this page"
-                      isLabelHidden
-                      options={COMPONENT_OUTLINE_OPTIONS}
-                      value={activeId}
-                      onChange={scrollToId}
-                      width="100%"
-                    />
-                  </div>
-                </VStack>
-
-                <Card variant="muted" padding={0}>
-                  <Center height={360}>
-                    {COMPONENT_PREVIEWS[activeNav] ?? (
-                      <Text type="supporting" color="secondary">
-                        Preview coming soon
-                      </Text>
-                    )}
-                  </Center>
-                </Card>
-
-                <VStack gap={4}>
-                  <Heading id="usage" level={2}>
-                    Usage
-                  </Heading>
-                  <Text type="large" weight="normal">
-                    {docs.usage}
-                  </Text>
-                  <Heading id="best-practices" level={3}>
-                    Best practices
-                  </Heading>
-                  <Table
-                    data={docs.bestPractices as Record<string, unknown>[]}
-                    dividers="none"
-                    columns={[
-                      {
-                        key: 'type',
-                        header: 'Guidance',
-                        width: pixel(125),
-                        renderCell: (item: Record<string, unknown>) => (
-                          <Badge
-                            label={item.type === 'do' ? 'Do' : 'Dont'}
-                            variant={item.type === 'do' ? 'success' : 'error'}
-                          />
-                        ),
-                      },
-                      {
-                        key: 'text',
-                        header: 'Practices',
-                        renderCell: (item: Record<string, unknown>) => (
-                          <Text type="body" textWrap="wrap">
-                            {item.text as string}
-                          </Text>
-                        ),
-                      },
-                    ]}
-                    density="spacious"
-                  />
-                </VStack>
-
-                <Divider />
-
-                <VStack gap={4}>
-                  <Heading id="examples" level={2}>
-                    Examples
-                  </Heading>
-                  <Text type="large" weight="normal">
-                    Explore common configurations, variations, and states for
-                    this component.
-                  </Text>
-                </VStack>
-                <VStack gap={8}>
-                  {docs.examples.map((example, i) => {
-                    const tabKey = `${activeNav}-${i}`;
-                    const activeTab = exampleTabs[tabKey] ?? 'description';
-                    return (
-                      <Card key={i} padding={0}>
-                        <Section padding={3} variant="transparent">
-                          <HStack gap={3} vAlign="center">
-                            <StackItem size="fill">
-                              <Text type="body" weight="medium">
-                                {example.title}
-                              </Text>
-                            </StackItem>
-                            <HStack gap={1} vAlign="center">
-                              <Button
-                                label="Open in Craft"
-                                variant="ghost"
-                                size="sm"
-                                icon={<Icon icon={ArrowTopRightOnSquareIcon} />}
-                              />
-                              <Button
-                                label="Send to CLI"
-                                variant="ghost"
-                                size="sm"
-                              />
-                              <IconButton
-                                label="Fullscreen"
-                                variant="ghost"
-                                size="sm"
-                                icon={<Icon icon={ArrowsPointingOutIcon} />}
-                              />
-                            </HStack>
-                          </HStack>
-                        </Section>
-                        <Center height={280}>
-                          {previews[i] ?? (
-                            <Text type="supporting" color="secondary">
-                              Preview coming soon
-                            </Text>
-                          )}
-                        </Center>
-                        <Section variant="muted" padding={3} dividers={['top']}>
-                          <VStack gap={3}>
-                            <TabList
-                              value={activeTab}
-                              onChange={value =>
-                                setExampleTabs(prev => ({
-                                  ...prev,
-                                  [tabKey]: value,
-                                }))
-                              }
-                              size="sm"
-                              xstyle={styles.tabListFlush}>
-                              <Tab value="description" label="Description" />
-                              <Tab value="code" label="Code" />
-                            </TabList>
-                            {activeTab === 'description' ? (
-                              <Text type="body">{example.description}</Text>
-                            ) : (
-                              <CodeBlock
-                                code={example.code}
-                                language="tsx"
-                                width="100%"
-                              />
-                            )}
-                          </VStack>
-                        </Section>
-                      </Card>
-                    );
-                  })}
-                </VStack>
-              </VStack>
-            </article>
-            <aside {...stylex.props(styles.outlineAside)}>
-              <div {...stylex.props(styles.outlineSticky)}>
-                <Outline
-                  items={COMPONENT_OUTLINE_ITEMS}
-                  activeId={activeId}
-                  onActiveIdChange={scrollToId}
+          <VStack gap={8}>
+            <VStack gap={2}>
+              <Text type="display-1">{getComponentName(activeNav)}</Text>
+              <Text type="supporting" color="secondary">
+                March 30, 2026 · Updated 5:40 p.m. PST
+              </Text>
+              {isMobile && (
+                <Selector
+                  label="On this page"
+                  isLabelHidden
+                  options={COMPONENT_OUTLINE_OPTIONS}
+                  value={activeId}
+                  onChange={scrollToId}
+                  width="100%"
                 />
-              </div>
-            </aside>
-          </section>
+              )}
+            </VStack>
+
+            <Card variant="muted" padding={0}>
+              <Center height={360}>
+                {COMPONENT_PREVIEWS[activeNav] ?? (
+                  <Text type="supporting" color="secondary">
+                    Preview coming soon
+                  </Text>
+                )}
+              </Center>
+            </Card>
+
+            <VStack gap={4}>
+              <Heading id="usage" level={2}>
+                Usage
+              </Heading>
+              <Text type="large" weight="normal">
+                {docs.usage}
+              </Text>
+              <Heading id="best-practices" level={3}>
+                Best practices
+              </Heading>
+              <Table
+                data={docs.bestPractices as Record<string, unknown>[]}
+                dividers="none"
+                columns={[
+                  {
+                    key: 'type',
+                    header: 'Guidance',
+                    width: pixel(125),
+                    renderCell: (item: Record<string, unknown>) => (
+                      <Badge
+                        label={item.type === 'do' ? 'Do' : 'Dont'}
+                        variant={item.type === 'do' ? 'success' : 'error'}
+                      />
+                    ),
+                  },
+                  {
+                    key: 'text',
+                    header: 'Practices',
+                    renderCell: (item: Record<string, unknown>) => (
+                      <Text type="body" textWrap="wrap">
+                        {item.text as string}
+                      </Text>
+                    ),
+                  },
+                ]}
+                density="spacious"
+              />
+            </VStack>
+
+            <Divider />
+
+            <VStack gap={4}>
+              <Heading id="examples" level={2}>
+                Examples
+              </Heading>
+              <Text type="large" weight="normal">
+                Explore common configurations, variations, and states for this
+                component.
+              </Text>
+            </VStack>
+            <VStack gap={8}>
+              {docs.examples.map((example, i) => {
+                const tabKey = `${activeNav}-${i}`;
+                const activeTab = exampleTabs[tabKey] ?? 'description';
+                return (
+                  <Card key={i} padding={0}>
+                    <Section padding={3} variant="transparent">
+                      <HStack gap={3} vAlign="center">
+                        <StackItem size="fill">
+                          <Text type="body" weight="medium">
+                            {example.title}
+                          </Text>
+                        </StackItem>
+                        <HStack gap={1} vAlign="center">
+                          <Button
+                            label="Open in Craft"
+                            variant="ghost"
+                            size="sm"
+                            icon={<Icon icon={ArrowTopRightOnSquareIcon} />}
+                          />
+                          <Button
+                            label="Send to CLI"
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <IconButton
+                            label="Fullscreen"
+                            variant="ghost"
+                            size="sm"
+                            icon={<Icon icon={ArrowsPointingOutIcon} />}
+                          />
+                        </HStack>
+                      </HStack>
+                    </Section>
+                    <Center height={280}>
+                      {previews[i] ?? (
+                        <Text type="supporting" color="secondary">
+                          Preview coming soon
+                        </Text>
+                      )}
+                    </Center>
+                    <Section variant="muted" padding={3} dividers={['top']}>
+                      <VStack gap={3}>
+                        <TabList
+                          value={activeTab}
+                          onChange={value =>
+                            setExampleTabs(prev => ({
+                              ...prev,
+                              [tabKey]: value,
+                            }))
+                          }
+                          size="sm"
+                          xstyle={styles.tabListFlush}>
+                          <Tab value="description" label="Description" />
+                          <Tab value="code" label="Code" />
+                        </TabList>
+                        {activeTab === 'description' ? (
+                          <Text type="body">{example.description}</Text>
+                        ) : (
+                          <CodeBlock
+                            code={example.code}
+                            language="tsx"
+                            width="100%"
+                          />
+                        )}
+                      </VStack>
+                    </Section>
+                  </Card>
+                );
+              })}
+            </VStack>
+          </VStack>
         </LayoutContent>
       }
     />

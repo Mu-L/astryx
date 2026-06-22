@@ -45,14 +45,6 @@ const styles = stylex.create({
   metadataCompact: {
     gap: `${spacingVars['--spacing-1']} ${spacingVars['--spacing-3']}`,
   },
-  sidePanelText: {
-    display: 'block',
-    minWidth: 0,
-    maxWidth: '100%',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
   historyTimelineDot: {
     width: 8,
     height: 8,
@@ -149,11 +141,7 @@ $ `;
 function buildFileTree(
   onFileClick: (name: string) => void,
 ): TreeListItemData[] {
-  const label = (text: string) => (
-    <span title={text} {...stylex.props(styles.sidePanelText)}>
-      {text}
-    </span>
-  );
+  const label = (text: string) => <Text maxLines={1}>{text}</Text>;
   const file = (id: string): TreeListItemData => ({
     id,
     label: label(id),
