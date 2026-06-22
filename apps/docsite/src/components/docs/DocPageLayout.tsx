@@ -13,12 +13,9 @@ import {Text, Heading} from '@xds/core/Text';
 import {VStack} from '@xds/core/Layout';
 import {Section} from '@xds/core/Section';
 import {Divider} from '@xds/core/Divider';
-import {spacingVars} from '@xds/core/theme/tokens.stylex';
-
 const styles = stylex.create({
   section: {
     marginInline: 'auto',
-    paddingBottom: `calc(${spacingVars['--spacing-12']} * 2)`,
   },
 });
 
