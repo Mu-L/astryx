@@ -30,8 +30,6 @@ const styles = stylex.create({
 });
 
 // ─── Image Data ─────────────────────────────────────────────────────────────
-// From the astryx asset set (colorful home + lifestyle collection)
-// Source: meta assets.file list -s astryx -g <name>
 
 const IMAGES = [
   {

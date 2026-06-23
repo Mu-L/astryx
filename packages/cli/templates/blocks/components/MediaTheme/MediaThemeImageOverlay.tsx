@@ -9,7 +9,6 @@ import {Section} from '@xds/core/Section';
 import {Stack} from '@xds/core/Layout';
 import {Text} from '@xds/core/Text';
 
-// light-scene-horizontal-1 from astryx asset set
 const LANDSCAPE_IMAGE_URL =
   'https://lookaside.facebook.com/assets/astryx/light-scene-horizontal-1.png';
 

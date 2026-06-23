@@ -19,13 +19,10 @@ import {Link} from '@xds/core/Link';
 import {Divider} from '@xds/core/Divider';
 import {colorVars, spacingVars} from '@xds/core/theme/tokens.stylex';
 
-// light-working-vertical-1 from astryx asset set
 const COVER_IMAGE_URL =
   'https://lookaside.facebook.com/assets/astryx/light-working-vertical-1.png';
-// AppleLogo from astryx asset set
 const APPLE_LOGO_URL =
   'https://lookaside.facebook.com/assets/astryx/AppleLogo.png';
-// GoogleLogo from astryx asset set
 const GOOGLE_LOGO_URL =
   'https://lookaside.facebook.com/assets/astryx/GoogleLogo.png';
 
