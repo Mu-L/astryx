@@ -10,6 +10,20 @@ import {resolveToken, getTokensByPrefix} from './helpers';
 
 const FONT_SAMPLE = 'The quick brown fox jumps over the lazy dog';
 
+// Return the primary font family from a font stack, splitting on the first
+// top-level comma so a leading `var(--x, fallback)` (which contains its own
+// comma) isn't chopped mid-token.
+function primaryFamily(value: string): string {
+  let depth = 0;
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (ch === '(') {depth++;}
+    else if (ch === ')') {depth--;}
+    else if (ch === ',' && depth === 0) {return value.slice(0, i).trim();}
+  }
+  return value.trim();
+}
+
 const styles = stylex.create({
   fontSample: {
     overflow: 'hidden',
@@ -37,7 +51,7 @@ export function FontFamilyTokenTable({theme}: TokenTableProps) {
           width: pixel(200),
           renderCell: (item: Record<string, unknown>) => (
             <Text type="code" color="secondary">
-              {(item.value as string)?.split(',')[0]?.trim()}
+              {primaryFamily(item.value as string)}
             </Text>
           ),
         },
