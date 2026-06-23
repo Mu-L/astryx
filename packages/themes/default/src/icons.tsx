@@ -2,7 +2,7 @@
 
 /**
  * @file icons.tsx
- * @input Uses @heroicons/react outline and solid icon components, XDSIconRegistry type
+ * @input Uses @heroicons/react outline and solid icon components, IconRegistry type
  * @output Exports defaultIconRegistry for the default theme
  * @position Icon configuration for the default theme; consumed by index.ts
  *
@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type {XDSIconRegistry} from '@xds/core/Icon';
+import type {IconRegistry} from '@xds/core/Icon';
 
 import {
   XMarkIcon,
@@ -50,7 +50,7 @@ const iconProps = {
   'aria-hidden': true as const,
 };
 
-export const defaultIconRegistry: XDSIconRegistry = {
+export const defaultIconRegistry: IconRegistry = {
   close: <XMarkIcon {...iconProps} />,
   chevronDown: <ChevronDownIcon {...iconProps} />,
   chevronLeft: <ChevronLeftIcon {...iconProps} />,

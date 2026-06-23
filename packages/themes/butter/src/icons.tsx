@@ -2,7 +2,7 @@
 
 /**
  * @file icons.tsx
- * @input Uses lucide-react icon components, XDSIconRegistry type
+ * @input Uses lucide-react icon components, IconRegistry type
  * @output Exports butterIconRegistry for the butter theme
  * @position Icon configuration for the butter theme; consumed by index.ts
  *
@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import type {XDSIconRegistry} from '@xds/core/Icon';
+import type {IconRegistry} from '@xds/core/Icon';
 
 import {
   X,
@@ -47,7 +47,7 @@ const iconProps = {
   'aria-hidden': true as const,
 };
 
-export const butterIconRegistry: XDSIconRegistry = {
+export const butterIconRegistry: IconRegistry = {
   close: <X {...iconProps} />,
   chevronDown: <ChevronDown {...iconProps} />,
   chevronLeft: <ChevronLeft {...iconProps} />,

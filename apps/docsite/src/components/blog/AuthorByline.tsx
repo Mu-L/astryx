@@ -16,7 +16,6 @@ import * as stylex from '@stylexjs/stylex';
 import {Avatar} from '@xds/core/Avatar';
 import {Text} from '@xds/core/Text';
 import {HStack} from '@xds/core/Layout';
-import {Divider} from '@xds/core/Divider';
 import {resolveAuthor} from '../../content/blog/authors';
 
 export function formatDate(iso: string): string {
@@ -37,8 +36,8 @@ const styles = stylex.create({
   names: {
     display: 'inline',
   },
-  divider: {
-    height: '0.75em',
+  dot: {
+    opacity: 0.5,
   },
 });
 
@@ -49,8 +48,6 @@ export interface AuthorBylineProps {
   readingTimeMinutes?: number;
   /** 'compact' for cards, 'full' for article headers. */
   variant?: 'compact' | 'full';
-  /** Optional class on the root row (e.g. for parent-driven hover styling). */
-  className?: string;
 }
 
 export function AuthorByline({
@@ -59,34 +56,38 @@ export function AuthorByline({
   updatedAt,
   readingTimeMinutes,
   variant = 'compact',
-  className,
 }: AuthorBylineProps) {
   const resolved = authors.map(resolveAuthor);
+  const avatarSize = variant === 'full' ? 'small' : 'tiny';
   const names = resolved.map(a => a.name).join(', ');
 
   return (
-    <HStack gap={2} align="center" className={className}>
+    <HStack gap={2} align="center">
       <HStack gap={0} align="center">
         {resolved.map(author => (
           <Avatar
             key={author.key}
             src={author.avatar}
             name={author.name}
-            size="tiny"
+            size={avatarSize}
           />
         ))}
       </HStack>
-      <HStack gap={2} align="center">
+      <HStack gap={1} align="center">
         <Text type="supporting" color="secondary">
           {names}
         </Text>
-        <Divider orientation="vertical" xstyle={styles.divider} />
+        <Text type="supporting" color="secondary" xstyle={styles.dot}>
+          ·
+        </Text>
         <Text type="supporting" color="secondary">
           {formatDate(date)}
         </Text>
         {variant === 'full' && updatedAt ? (
           <>
-            <Divider orientation="vertical" xstyle={styles.divider} />
+            <Text type="supporting" color="secondary" xstyle={styles.dot}>
+              ·
+            </Text>
             <Text type="supporting" color="secondary">
               Updated {formatDate(updatedAt)}
             </Text>
@@ -94,7 +95,9 @@ export function AuthorByline({
         ) : null}
         {readingTimeMinutes ? (
           <>
-            <Divider orientation="vertical" xstyle={styles.divider} />
+            <Text type="supporting" color="secondary" xstyle={styles.dot}>
+              ·
+            </Text>
             <Text type="supporting" color="secondary">
               {readingTimeMinutes} min read
             </Text>

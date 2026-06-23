@@ -23,16 +23,22 @@ import {Text, Heading} from '@xds/core/Text';
 import {VStack} from '@xds/core/Layout';
 import {Section} from '@xds/core/Section';
 import {Grid} from '@xds/core/Grid';
-import {ToggleButton, ToggleButtonGroup} from '@xds/core/ToggleButton';
-import {EmptyState} from '@xds/core/EmptyState';
+import {Carousel} from '@xds/core/Carousel';
+import {TabList, Tab} from '@xds/core/TabList';
 import type {BlogPost, BlogPostType} from '../../lib/blog/schema';
 import {POST_TYPE_LABELS} from '../../lib/blog/schema';
 import {BlogCard} from './BlogCard';
 
 const styles = stylex.create({
-  typeFilter: {
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+  header: {
+    maxWidth: 720,
+  },
+  filterRow: {
+    marginBottom: 4,
+  },
+  empty: {
+    paddingBlock: 48,
+    textAlign: 'center',
   },
 });
 
@@ -66,51 +72,55 @@ export function BlogIndex({posts, availableTypes}: BlogIndexProps) {
   const restPosts = showFeature ? filtered.slice(1) : filtered;
 
   return (
-    <Section maxWidth={800} padding={6} style={{marginInline: 'auto'}}>
-      <VStack gap={10}>
-        {/* Header */}
-        <VStack gap={2}>
-          <Heading level={1} type="display-1" justify="center">
+    <Section maxWidth={1100} padding={6}>
+      <VStack gap={6}>
+        <VStack gap={4} xstyle={styles.header}>
+          <Heading level={1} type="display-1">
             Blog
           </Heading>
-          <Text weight="normal" color="secondary" justify="center">
-            Releases, guides, and stories on building Astryx for humans and
-            agents.
+          <Text type="large" weight="normal" color="secondary">
+            Notes on building Astryx — releases, guides, stories, and
+            perspectives on designing a system for humans and agents.
           </Text>
         </VStack>
 
         {availableTypes.length > 1 ? (
-          <ToggleButtonGroup
-            label="Filter posts by type"
-            value={activeType}
-            onChange={value =>
-              setActiveType((value as 'all' | BlogPostType) ?? 'all')
-            }
-            xstyle={styles.typeFilter}>
-            <ToggleButton value="all" label={`All (${counts.all})`} />
-            {availableTypes.map(t => (
-              <ToggleButton
-                key={t}
-                value={t}
-                label={`${POST_TYPE_LABELS[t]} (${counts[t]})`}
-              />
-            ))}
-          </ToggleButtonGroup>
+          <Carousel gap={0}>
+            <TabList
+              value={activeType}
+              onChange={v => setActiveType(v as 'all' | BlogPostType)}
+              size="md"
+              xstyle={styles.filterRow}>
+              <Tab value="all" label={`All (${counts.all})`} />
+              {availableTypes.map(t => (
+                <Tab
+                  key={t}
+                  value={t}
+                  label={`${POST_TYPE_LABELS[t]} (${counts[t]})`}
+                />
+              ))}
+            </TabList>
+          </Carousel>
         ) : null}
 
         {filtered.length === 0 ? (
-          <EmptyState
-            title="No posts yet"
-            description="Check back soon for releases, guides, and stories."
-          />
+          <div {...stylex.props(styles.empty)}>
+            <Text type="body" color="secondary">
+              No posts yet. Check back soon.
+            </Text>
+          </div>
         ) : (
-          <VStack gap={10}>
-            {featurePost ? <BlogCard post={featurePost} feature /> : null}
+          <VStack gap={6}>
+            {featurePost ? (
+              <Grid columns={1} gap={4}>
+                <BlogCard post={featurePost} feature />
+              </Grid>
+            ) : null}
             {restPosts.length > 0 ? (
               <Grid
                 columns={{minWidth: 320, repeat: 'fill'}}
-                gap={5}
-                rowGap={10}>
+                gap={4}
+                rowGap={6}>
                 {restPosts.map(post => (
                   <BlogCard key={post.slug} post={post} />
                 ))}
