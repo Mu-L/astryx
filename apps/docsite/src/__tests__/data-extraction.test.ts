@@ -427,7 +427,7 @@ describe('componentRegistry', () => {
     const button = core.find(c => c.name === 'Button');
     expect(button!.theming).toBeDefined();
     expect(button!.theming!.targets.length).toBeGreaterThanOrEqual(1);
-    expect(button!.theming!.targets[0].className).toBe('xds-button');
+    expect(button!.theming!.targets[0].className).toBe('astryx-button');
     expect(button!.theming!.vars).toBeDefined();
     expect(button!.theming!.vars!.length).toBeGreaterThanOrEqual(1);
   });

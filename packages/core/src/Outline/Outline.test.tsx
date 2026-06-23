@@ -110,7 +110,7 @@ describe('Outline', () => {
     render(<Outline items={items} data-testid="outline" activeId="api" />);
     expect(screen.getByTestId('outline').className).toContain('astryx-outline');
     expect(screen.getByRole('link', {name: 'API'}).className).toContain(
-      'xds-outline-item',
+      'astryx-outline-item',
     );
     expect(screen.getByRole('link', {name: 'API'}).className).toContain(
       'active',
