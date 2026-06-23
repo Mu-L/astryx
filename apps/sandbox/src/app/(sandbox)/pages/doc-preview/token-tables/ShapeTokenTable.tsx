@@ -3,7 +3,7 @@
 'use client';
 
 import * as stylex from '@stylexjs/stylex';
-import {VStack, HStack} from '@xds/core/Layout';
+import {VStack} from '@xds/core/Layout';
 import {Text, Heading} from '@xds/core/Text';
 import {Table} from '@xds/core/Table';
 import type {TokenTableProps} from './types';
@@ -65,15 +65,19 @@ function RadiusTokenTable({theme}: TokenTableProps) {
           key: 'value',
           header: 'Value',
           renderCell: (item: Record<string, unknown>) => (
-            <HStack gap={2} align="center">
-              <div
-                {...stylex.props(styles.radiusBox)}
-                style={{borderRadius: item.value as string}}
-              />
-              <Text type="code" color="secondary">
-                {item.value as string}
-              </Text>
-            </HStack>
+            <Text type="code" color="secondary">
+              {item.value as string}
+            </Text>
+          ),
+        },
+        {
+          key: 'example',
+          header: 'Example',
+          renderCell: (item: Record<string, unknown>) => (
+            <div
+              {...stylex.props(styles.radiusBox)}
+              style={{borderRadius: item.value as string}}
+            />
           ),
         },
       ]}
@@ -104,15 +108,19 @@ function BorderTokenTable({theme}: TokenTableProps) {
           key: 'value',
           header: 'Value',
           renderCell: (item: Record<string, unknown>) => (
-            <HStack gap={2} align="center">
-              <div
-                {...stylex.props(styles.borderLine)}
-                style={{borderBottomWidth: item.value as string}}
-              />
-              <Text type="code" color="secondary">
-                {item.value as string}
-              </Text>
-            </HStack>
+            <Text type="code" color="secondary">
+              {item.value as string}
+            </Text>
+          ),
+        },
+        {
+          key: 'example',
+          header: 'Example',
+          renderCell: (item: Record<string, unknown>) => (
+            <div
+              {...stylex.props(styles.borderLine)}
+              style={{borderBottomWidth: item.value as string}}
+            />
           ),
         },
       ]}
