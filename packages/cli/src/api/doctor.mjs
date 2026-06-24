@@ -240,7 +240,7 @@ export function checkThemes(ctx) {
       label: 'Theme packages',
       status: 'warn',
       message: 'No @astryxdesign/theme-* packages are installed.',
-      fix: 'Install a theme, e.g. `npm install @astryxdesign/theme-default`, then import its CSS or set xds.theme.',
+      fix: 'Install a theme, e.g. `npm install @astryxdesign/theme-neutral`, then import its CSS or set xds.theme.',
     };
   }
 

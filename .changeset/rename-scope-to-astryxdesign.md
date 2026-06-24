@@ -2,7 +2,6 @@
 '@astryxdesign/build': patch
 '@astryxdesign/cli': patch
 '@astryxdesign/core': patch
-'@astryxdesign/theme-default': patch
 ---
 
 [chore] Rename the npm package scope from `@xds/*` to `@astryxdesign/*`

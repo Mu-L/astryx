@@ -27,15 +27,15 @@ Quick install:
 
 ```bash
 # pnpm
-pnpm add @astryxdesign/core @astryxdesign/theme-default
+pnpm add @astryxdesign/core @astryxdesign/theme-neutral
 pnpm add -D @astryxdesign/cli
 
 # npm
-npm install @astryxdesign/core @astryxdesign/theme-default
+npm install @astryxdesign/core @astryxdesign/theme-neutral
 npm install -D @astryxdesign/cli
 
 # yarn
-yarn add @astryxdesign/core @astryxdesign/theme-default
+yarn add @astryxdesign/core @astryxdesign/theme-neutral
 yarn add -D @astryxdesign/cli
 ```
 

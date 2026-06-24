@@ -100,7 +100,7 @@ module.exports = {
 
 ```js
 const nextConfig = {
-  transpilePackages: ['@astryxdesign/core', '@astryxdesign/theme-default'],
+  transpilePackages: ['@astryxdesign/core', '@astryxdesign/theme-neutral'],
   webpack: config => {
     // Resolve to source TypeScript instead of dist
     config.resolve.conditionNames = ['source', 'import', 'require', 'default'];
@@ -124,7 +124,7 @@ export default nextConfig;
 ```css
 @import './layers.css';
 @import '@astryxdesign/core/reset.css';
-@import '@astryxdesign/theme-default/theme.css';
+@import '@astryxdesign/theme-neutral/theme.css';
 
 @stylex;
 ```
@@ -168,7 +168,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ['@astryxdesign/core', '@astryxdesign/theme-default'],
+    exclude: ['@astryxdesign/core', '@astryxdesign/theme-neutral'],
   },
 });
 ```

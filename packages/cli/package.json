@@ -60,7 +60,6 @@
   "peerDependencies": {
     "@astryxdesign/core": "*",
     "@astryxdesign/lab": "*",
-    "@astryxdesign/theme-default": "*",
     "@astryxdesign/theme-neutral": "*"
   },
   "peerDependenciesMeta": {
@@ -70,9 +69,6 @@
     "@astryxdesign/lab": {
       "optional": true
     },
-    "@astryxdesign/theme-default": {
-      "optional": true
-    },
     "@astryxdesign/theme-neutral": {
       "optional": true
     }
@@ -80,7 +76,6 @@
   "devDependencies": {
     "@astryxdesign/core": "*",
     "@astryxdesign/lab": "*",
-    "@astryxdesign/theme-default": "*",
     "@astryxdesign/theme-neutral": "*"
   }
 }

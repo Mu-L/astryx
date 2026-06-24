@@ -341,7 +341,7 @@ astryx doctor — diagnosing your setup
       @astryxdesign/core v0.0.14 is in step with @astryxdesign/cli v0.0.14.
   ⚠ Theme packages
       No @astryxdesign/theme-* packages are installed.
-      → fix: Install a theme, e.g. `npm install @astryxdesign/theme-default`, then import its CSS or set xds.theme.
+      → fix: Install a theme, e.g. `npm install @astryxdesign/theme-neutral`, then import its CSS or set xds.theme.
   ℹ astryx.config.mjs
       No astryx.config.mjs found — using defaults.
   ℹ AI agent docs
