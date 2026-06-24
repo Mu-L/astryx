@@ -273,9 +273,13 @@ jobs:
   # Auth is npm OIDC trusted publishing (no NPM_TOKEN): the id-token: write
   # permission lets pnpm fetch a short-lived OIDC token, and each package
   # trusts this workflow (deploy.yml) on npmjs.com.
-  # pnpm -r publish publishes every non-private workspace package whose
-  # version is not yet on the registry; already-published versions are
-  # skipped (npm 409 Conflict → no-op) and workspace: deps are rewritten.
+  # We publish per-package with `pnpm publish --provenance` (NOT `pnpm -r
+  # publish`, which silently drops --provenance and ships with no attestation).
+  # Each package is skipped when its version is already on the registry, so the
+  # job is a no-op until a version bump lands; pnpm rewrites workspace: deps to
+  # real versions on publish.
+  # NOTE: npm provenance requires a PUBLIC source repo — it fails with HTTP 422
+  # while facebook/astryx is private. Provenance attaches once the repo is public.
   publish:
     name: Publish to npm
     needs: test
@@ -305,10 +309,27 @@ jobs:
         run: pnpm build
 
       - name: Publish changed packages
-        # Pure OIDC trusted publishing — no NPM_TOKEN. pnpm -r publish skips
-        # already-published versions, filters private packages, and rewrites
-        # workspace: deps to real versions before upload.
-        run: pnpm -r publish --tag latest --provenance --access public --no-git-checks
+        # Pure OIDC trusted publishing — no NPM_TOKEN. Publish each non-private
+        # @astryxdesign/* package whose version isn't on the registry yet, with
+        # provenance. No `|| true` — a real publish failure fails the job.
+        run: |
+          set -eu
+          published=0
+          for pkg_dir in packages/* packages/themes/*; do
+            [ -f "$pkg_dir/package.json" ] || continue
+            IS_PUBLISHABLE=$(node -p "const p=require('./$pkg_dir/package.json'); !p.private && p.name?.startsWith('@astryxdesign/') ? 'yes' : 'no'")
+            [ "$IS_PUBLISHABLE" = "yes" ] || continue
+            NAME=$(node -p "require('./$pkg_dir/package.json').name")
+            VERSION=$(node -p "require('./$pkg_dir/package.json').version")
+            if npm view "$NAME@$VERSION" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+              echo "Skipping $NAME@$VERSION (already on registry)"
+              continue
+            fi
+            echo "Publishing $NAME@$VERSION"
+            pnpm publish "./$pkg_dir" --tag latest --provenance --access public --no-git-checks
+            published=$((published + 1))
+          done
+          echo "Published $published package(s)."
 
   # Publish canary versions to the public npm registry on every push to main.
   # The @canary dist-tag always points to the latest main commit:
