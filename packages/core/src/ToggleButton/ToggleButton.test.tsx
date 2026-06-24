@@ -9,7 +9,7 @@
  */
 
 import {describe, it, expect, vi} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {render, screen, act} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {ToggleButton} from './ToggleButton';
@@ -71,11 +71,7 @@ describe('ToggleButton', () => {
 
   it('sets aria-pressed=true when pressed', () => {
     render(
-      <ToggleButton
-        label="Bold"
-        isPressed={true}
-        onPressedChange={() => {}}
-      />,
+      <ToggleButton label="Bold" isPressed={true} onPressedChange={() => {}} />,
     );
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
   });
@@ -195,6 +191,72 @@ describe('ToggleButton', () => {
       />,
     );
     expect(screen.getByTestId('bold-toggle')).toBeInTheDocument();
+  });
+
+  it('shows a loading spinner while pressedChangeAction is pending', async () => {
+    const user = userEvent.setup();
+    let resolveAction: (() => void) | undefined;
+    const pressedChangeAction = vi.fn(
+      async () =>
+        new Promise<void>(resolve => {
+          resolveAction = resolve;
+        }),
+    );
+
+    render(
+      <ToggleButton
+        label="Favorite"
+        isPressed={false}
+        onPressedChange={() => {}}
+        pressedChangeAction={pressedChangeAction}
+      />,
+    );
+
+    const button = screen.getByRole('button', {name: 'Favorite'});
+    await user.click(button);
+
+    // While the action is in flight the button is disabled and aria-busy.
+    expect(pressedChangeAction).toHaveBeenCalledWith(true);
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+
+    // Once the action settles the pending state clears.
+    await act(async () => {
+      resolveAction?.();
+    });
+    expect(button).not.toBeDisabled();
+    expect(button).not.toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('ignores re-entrant clicks while pressedChangeAction is pending', async () => {
+    const user = userEvent.setup();
+    let resolveAction: (() => void) | undefined;
+    const pressedChangeAction = vi.fn(
+      async () =>
+        new Promise<void>(resolve => {
+          resolveAction = resolve;
+        }),
+    );
+
+    render(
+      <ToggleButton
+        label="Favorite"
+        isPressed={false}
+        onPressedChange={() => {}}
+        pressedChangeAction={pressedChangeAction}
+      />,
+    );
+
+    const button = screen.getByRole('button', {name: 'Favorite'});
+    await user.click(button);
+    await user.click(button);
+
+    // Second click is a no-op while the first action is still pending.
+    expect(pressedChangeAction).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveAction?.();
+    });
   });
 });
 

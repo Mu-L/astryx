@@ -20,7 +20,7 @@
  * - /packages/cli/templates/blocks/components/ToggleButton/ (showcase blocks)
  */
 
-import React, {useCallback, type ReactNode} from 'react';
+import React, {useCallback, useRef, useTransition, type ReactNode} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {colorVars, fontWeightVars} from '../theme/tokens.stylex';
 
@@ -231,8 +231,15 @@ export function ToggleButton({
 
   const resolvedIcon = isPressed && pressedIcon ? pressedIcon : icon;
 
+  // Wrap pressedChangeAction in a transition so the button shows a loading
+  // spinner while the async action is pending and re-entrant clicks are
+  // ignored until it settles. Mirrors Button's clickAction handling.
+  const [isPending, startTransition] = useTransition();
+  const actionInFlightRef = useRef(false);
+  const isLoadingState = isLoading || isPending;
+
   const handleClick = useCallback(() => {
-    if (isDisabled || isLoading) {
+    if (isDisabled || isLoadingState || actionInFlightRef.current) {
       return;
     }
 
@@ -244,12 +251,19 @@ export function ToggleButton({
       const newState = !isPressed;
       onPressedChangeProp(newState);
       if (pressedChangeAction) {
-        void pressedChangeAction(newState);
+        actionInFlightRef.current = true;
+        startTransition(async () => {
+          try {
+            await pressedChangeAction(newState);
+          } finally {
+            actionInFlightRef.current = false;
+          }
+        });
       }
     }
   }, [
     isDisabled,
-    isLoading,
+    isLoadingState,
     group,
     value,
     onPressedChangeProp,
@@ -289,7 +303,7 @@ export function ToggleButton({
       variant="ghost"
       size={size}
       isDisabled={isDisabled}
-      isLoading={isLoading}
+      isLoading={isLoadingState}
       isIconOnly={isIconOnly}
       aria-pressed={isPressed}
       icon={resolvedIcon}
