@@ -4,7 +4,7 @@
  * @file vegaLiteConfig.ts
  * @input XDS theme tokens via useXDSTheme
  * @output Predefined Vega-Lite Config object for XDS-themed charts
- * @position Utility module; consumed by XDSVegaChart and exported standalone
+ * @position Utility module; consumed by VegaChart and exported standalone
  *
  * Ported from the internal XDS data-viz config — structural config only.
  * Colors are wired through XDS data tokens (see domainTokens/dataTokens.ts).
