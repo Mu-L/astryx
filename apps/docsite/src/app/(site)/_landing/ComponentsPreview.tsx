@@ -84,7 +84,7 @@ export function ComponentsPreview() {
         <RadioList
           label="Sample option"
           isLabelHidden
-          size="sm"
+          size="md"
           value=""
           onChange={() => {}}>
           {/* Empty label keeps just the bare radio circle (unselected,
@@ -95,7 +95,7 @@ export function ComponentsPreview() {
         <CheckboxInput
           label="Sample checkbox"
           isLabelHidden
-          size="sm"
+          size="md"
           value={checked}
           onChange={setChecked}
         />
