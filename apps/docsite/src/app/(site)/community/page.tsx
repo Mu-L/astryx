@@ -7,8 +7,8 @@
  * Three roles in one page (modeled after how Astro, Svelte, and
  * GitHub Primer balance the same trio):
  *
- *   1. Channels   — where the community talks (GitHub Discussions,
- *      Issues, Wiki). Above the fold.
+ *   1. Channels   — where the community talks (GitHub Issues, X,
+ *      Discord). Above the fold.
  *   2. Contribute — how to land code (visual stepper for the RFC
  *      process, plus "Start Here" no-RFC paths with effort
  *      estimates so first-timers can pick a small win).
@@ -25,8 +25,11 @@
  * is Astryx.
  */
 
+import type {ReactNode} from 'react';
 import {FileText, Scale} from 'lucide-react';
 import {NavSurfaceMode} from './NavSurfaceMode';
+import {TemplatesPreview} from '../_landing/TemplatesPreview';
+import {ThemesPreview} from '../_landing/ThemesPreview';
 import * as stylex from '@stylexjs/stylex';
 import {Card} from '@astryxdesign/core/Card';
 import {ClickableCard} from '@astryxdesign/core/ClickableCard';
@@ -37,8 +40,23 @@ import {Section} from '@astryxdesign/core/Section';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {Button} from '@astryxdesign/core/Button';
 import {getKey} from '@astryxdesign/core/utils';
-import {AstryxLogo} from '../../../components/logos';
-import {GITHUB_REPO} from '../../../constants';
+import {
+  AstryxLogo,
+  GitHubLogo,
+  DiscordLogo,
+  FacebookLogo,
+  InstagramLogo,
+  ThreadsLogo,
+  XLogo,
+} from '../../../components/logos';
+import {
+  GITHUB_REPO,
+  DISCORD_URL,
+  FACEBOOK_URL,
+  INSTAGRAM_URL,
+  THREADS_URL,
+  X_URL,
+} from '../../../constants';
 import {layout} from '../../../layout.stylex';
 
 const WIKI_BASE = `${GITHUB_REPO}/wiki`;
@@ -437,9 +455,13 @@ const styles = stylex.create({
   // image (negative margin) clip cleanly at the rounded corners.
   // height:100% so cards in the same grid row stretch to the
   // tallest one (grid default), keeping the row visually aligned.
+  // Soft pastel-blue backdrop shared with the home page's feature
+  // cards via the marketing token (set on a transparent card so the
+  // token is the sole surface color, matching FeaturesShowcase).
   blockCard: {
     height: '100%',
     overflow: 'hidden',
+    backgroundColor: 'var(--astryx-marketing-feature-card-bg)',
   },
   // Inner VStack of the card — height:100% so the auto margins
   // on the image wrapper below have a known parent height to
@@ -475,6 +497,20 @@ const styles = stylex.create({
     width: '100%',
     height: 'auto',
     display: 'block',
+  },
+  // Live-preview wrapper — bottom-anchored like the image slot
+  // (marginTop:auto) with a 16px gap above. Unlike the image, no
+  // negative-margin bleed here: the preview components
+  // (TemplatesPreview / ThemesPreview) own their own edge bleed via
+  // internal container queries, so the wrapper just spans the
+  // content width and lets them paint to (and past) the card edges,
+  // clipped by the card's overflow:hidden.
+  blockCardPreview: {
+    marginTop: 'auto',
+    paddingTop: 16,
+    alignSelf: 'stretch',
+    width: '100%',
+    minWidth: 0,
   },
 });
 
@@ -623,21 +659,36 @@ interface BlockCardProps {
   badge?: string;
   /** Optional preview image rendered in the image slot. */
   image?: {src: string; alt: string};
+  /**
+   * Optional live, theme-aware preview rendered in place of the
+   * image (same components the home page's feature cards use).
+   * Takes precedence over `image` when both are provided.
+   */
+  preview?: ReactNode;
 }
 
-function BlockCard({label, description, href, badge, image}: BlockCardProps) {
-  const showImage = image != null;
+function BlockCard({
+  label,
+  description,
+  href,
+  badge,
+  image,
+  preview,
+}: BlockCardProps) {
+  const hasPreview = preview != null;
+  const hasImage = !hasPreview && image != null;
+  const hasMedia = hasPreview || hasImage;
   return (
     <ClickableCard
       label={`Open ${label}`}
       href={href}
-      variant="gray"
+      variant="transparent"
       padding={5}
       xstyle={styles.blockCard}>
       <VStack
         gap={1}
         align="start"
-        xstyle={showImage ? styles.blockCardStack : undefined}>
+        xstyle={hasMedia ? styles.blockCardStack : undefined}>
         <Heading level={3} color="primary">
           {label}
         </Heading>
@@ -649,7 +700,10 @@ function BlockCard({label, description, href, badge, image}: BlockCardProps) {
             {badge}
           </Text>
         )}
-        {showImage && image && (
+        {hasPreview && (
+          <div {...stylex.props(styles.blockCardPreview)}>{preview}</div>
+        )}
+        {hasImage && image && (
           <div {...stylex.props(styles.blockCardImage)}>
             <img
               src={image.src}
@@ -667,104 +721,73 @@ function BlockCard({label, description, href, badge, image}: BlockCardProps) {
 // Data
 // =============================================================================
 
-// Brand glyphs for the Communications section's channel rows.
-// Each icon matches the ListItem startContent slot's expected
-// size (~20px). Inline SVGs keep the bundle lean and avoid
-// pulling in a brand-icon package for just three glyphs.
-
-// Brand glyphs accept the same `size` prop as Lucide icons so all
-// three of them slot uniformly into the Resource.icon shape (see
-// the interface comment below) and the render site can call any
-// icon component with `<Icon size={n} />` regardless of source.
-const GitHubGlyph = ({size = 20}: {size?: number}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true">
-    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z" />
-  </svg>
-);
-
-// X (formerly Twitter) glyph — the post-2023 wordmark/logo.
-const TwitterGlyph = ({size = 20}: {size?: number}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-const DiscordGlyph = ({size = 20}: {size?: number}) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true">
-    <path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.548-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-  </svg>
-);
-
 // Shared shape for any titled link rendered in the bottom-of-page
 // Resources grid (long-form guides, legal pages, and community
 // channels all use this). title/description/href feed the
-// ListItem chrome; icon renders in the startContent slot at
-// ~20px (Lucide icons + the brand glyphs above are interchangeable
-// since both accept the same `size` prop shape).
+// ListItem chrome; icon renders in the startContent slot at ~18px.
 interface Resource {
   title: string;
   description: string;
   href: string;
   /**
    * Icon component rendered in each resource row's startContent
-   * slot. Accepts `size` so Lucide icons (FileText / Scale / etc.)
-   * and the hand-rolled brand glyphs below (GitHubGlyph /
-   * TwitterGlyph / DiscordGlyph) can be called with the same prop
-   * shape at the render site.
+   * slot. Typed as a standard SVG component so Lucide icons
+   * (FileText / Scale) and the shared brand logos (GitHubLogo /
+   * DiscordLogo / XLogo / …) are interchangeable — the render site
+   * sizes them with explicit width/height props.
    */
-  icon: React.ComponentType<{size?: number}>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 // Communications channels — where the community talks. Same
 // Resource shape as the documentation/legal lists below so the
 // whole bottom-of-page area renders with one consistent
 // list-item treatment (small icon + title + description) instead
-// of competing visual languages. Channels carry brand glyphs
-// (GitHub, X, Discord) so they're instantly recognizable in the
-// list.
+// of competing visual languages. Channels carry the shared brand
+// logos (the same set the site footer uses) so they're instantly
+// recognizable and stay in sync with the footer.
 const CHANNELS: ReadonlyArray<Resource> = [
   {
     title: 'GitHub Issues',
     description:
       'File bugs and feature requests. Triaged weekly with response within a few days.',
     href: `${GITHUB_REPO}/issues`,
-    icon: GitHubGlyph,
-  },
-  {
-    title: 'Twitter',
-    description:
-      'Follow along for release notes, design notes, and behind-the-scenes from the team.',
-    // TODO: replace with the real Astryx Twitter URL once the
-    // account is live.
-    href: '#',
-    icon: TwitterGlyph,
+    icon: GitHubLogo,
   },
   {
     title: 'Discord',
     description:
       'Hang out with the community in real time. Ask questions, share work, and trade ideas.',
-    // TODO: replace with the real Astryx Discord invite URL once
-    // the server is live.
-    href: '#',
-    icon: DiscordGlyph,
+    href: DISCORD_URL,
+    icon: DiscordLogo,
+  },
+  {
+    title: 'Facebook',
+    description:
+      'Follow the page for announcements, milestones, and community highlights.',
+    href: FACEBOOK_URL,
+    icon: FacebookLogo,
+  },
+  {
+    title: 'Instagram',
+    description:
+      'See design work, behind-the-scenes, and visual inspiration from the team.',
+    href: INSTAGRAM_URL,
+    icon: InstagramLogo,
+  },
+  {
+    title: 'Threads',
+    description:
+      'Join the conversation and keep up with updates as they happen.',
+    href: THREADS_URL,
+    icon: ThreadsLogo,
+  },
+  {
+    title: 'X',
+    description:
+      'Follow along for release notes, design notes, and behind-the-scenes from the team.',
+    href: X_URL,
+    icon: XLogo,
   },
 ];
 
@@ -817,6 +840,12 @@ interface StartHerePath {
    * When omitted, the card renders with text only — no image
    * placeholder, so empty cards stay visually clean. */
   image?: {src: string; alt: string};
+  /**
+   * Optional live, theme-aware preview (the same components the home
+   * page's feature cards use) rendered in place of the image. Used
+   * for the cards whose topic maps to a home-page preview.
+   */
+  preview?: ReactNode;
 }
 
 const START_HERE: ReadonlyArray<StartHerePath> = [
@@ -848,10 +877,10 @@ const START_HERE: ReadonlyArray<StartHerePath> = [
       'Show components in realistic context. Templates are training signal for both humans and LLMs.',
     href: `${WIKI_BASE}/Contributing-Templates`,
     effort: '~half day',
-    image: {
-      src: '/feature-templates.png',
-      alt: 'Stacked theme preview pages cascading toward a fully designed Butter theme example',
-    },
+    // Live page-template renders — the same preview the home page's
+    // "Ready to ship templates" feature card uses, trimmed to the
+    // first two rows so the card stays compact here.
+    preview: <TemplatesPreview maxRows={2} />,
   },
   {
     title: 'Build a theme',
@@ -859,10 +888,9 @@ const START_HERE: ReadonlyArray<StartHerePath> = [
       'Full visual control through defineTheme(). Tokens, component overrides, and mode switching.',
     href: '/docs/theme',
     effort: '~1 day',
-    image: {
-      src: '/feature-brand.png',
-      alt: 'Butter theme applied to a full product landing page with display script, primary CTA, and three product cards',
-    },
+    // Live Butter-themed store preview — the same preview the home
+    // page's "Themes that fit your brand" feature card uses.
+    preview: <ThemesPreview />,
   },
 ];
 
@@ -877,10 +905,6 @@ interface ResourceCategory {
 }
 
 const RESOURCE_CATEGORIES: ReadonlyArray<ResourceCategory> = [
-  {
-    label: 'Communications',
-    items: CHANNELS,
-  },
   {
     label: 'Contributing',
     items: [
@@ -901,7 +925,7 @@ const RESOURCE_CATEGORIES: ReadonlyArray<ResourceCategory> = [
       {
         title: 'Dev Setup',
         description: 'Clone, install, build, and run Storybook locally.',
-        href: `${GITHUB_REPO}/blob/main/CONTRIBUTING.md`,
+        href: '/docs/getting-started',
         icon: FileText,
       },
       {
@@ -918,6 +942,10 @@ const RESOURCE_CATEGORIES: ReadonlyArray<ResourceCategory> = [
         icon: FileText,
       },
     ],
+  },
+  {
+    label: 'Communications',
+    items: CHANNELS,
   },
   {
     label: 'Legal',
@@ -1010,8 +1038,8 @@ export default async function CommunityPage() {
                 <Button
                   variant="secondary"
                   size="md"
-                  label="View Discussions"
-                  href={`${GITHUB_REPO}/discussions`}
+                  label="Browse Issues"
+                  href={`${GITHUB_REPO}/issues`}
                 />
                 <Button
                   variant="primary"
@@ -1088,6 +1116,7 @@ export default async function CommunityPage() {
                     href={path.href}
                     badge={path.effort}
                     image={path.image}
+                    preview={path.preview}
                   />
                 ))}
               </div>
@@ -1123,6 +1152,9 @@ export default async function CommunityPage() {
                     <List xstyle={styles.resourceList}>
                       {category.items.map(resource => {
                         const Icon = resource.icon;
+                        // Open external links in a new tab; internal docs
+                        // routes navigate in place via the framework router.
+                        const isExternal = resource.href.startsWith('http');
                         return (
                           <ListItem
                             key={resource.title}
@@ -1141,10 +1173,14 @@ export default async function CommunityPage() {
                               </span>
                             }
                             href={resource.href}
-                            target="_blank"
+                            target={isExternal ? '_blank' : undefined}
                             startContent={
                               <span {...stylex.props(styles.iconTile)}>
-                                <Icon size={18} />
+                                <Icon
+                                  width={18}
+                                  height={18}
+                                  aria-hidden="true"
+                                />
                               </span>
                             }
                           />
