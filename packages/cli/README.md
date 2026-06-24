@@ -198,7 +198,7 @@ Shape:
         "options": [{"flag": "--props", "type": "boolean", "description": "Print only the props table"}],
         "json": true,
         "responseTypes": ["component.list", "component.detail", "component.detail.props", "…"],
-        "examples": ["xds component XDSButton --props --json"]
+        "examples": ["xds component Button --props --json"]
       }
       // …one entry per command; subcommands (e.g. `theme build`) nest under `subcommands`
     ],

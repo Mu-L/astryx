@@ -36,7 +36,7 @@ The CLI (`@astryxdesign/cli`) provides additional tooling:
 npx xds --help                       # full listing of all commands
 npx xds component Button             # full docs + related block templates
 npx xds docs                         # reference docs (principles, tokens, theming, styling)
-npx xds docs theme                   # theming guide (XDSTheme, defineTheme, light/dark)
+npx xds docs theme                   # theming guide (Theme, defineTheme, light/dark)
 npx xds docs tokens                  # spacing, color, radius, typography token reference
 npx xds init                         # initialize XDS in your project
 npx xds theme build                  # build theme CSS for production
@@ -120,15 +120,15 @@ Spacing references `var(--spacing-1)` as the base unit, so `p-4` = 16px, matchin
 'use client';
 
 import Link from 'next/link';
-import {XDSTheme} from '@astryxdesign/core/theme';
-import {XDSLinkProvider} from '@astryxdesign/core/Link';
+import {Theme} from '@astryxdesign/core/theme';
+import {LinkProvider} from '@astryxdesign/core/Link';
 import {defaultTheme} from '@astryxdesign/theme-default/built';
 
 export function Providers({children}: {children: React.ReactNode}) {
   return (
-    <XDSTheme theme={defaultTheme}>
-      <XDSLinkProvider component={Link}>{children}</XDSLinkProvider>
-    </XDSTheme>
+    <Theme theme={defaultTheme}>
+      <LinkProvider component={Link}>{children}</LinkProvider>
+    </Theme>
   );
 }
 ```
@@ -153,10 +153,10 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 That's it. Start using components:
 
 ```tsx
-import {XDSButton} from '@astryxdesign/core/Button';
+import {Button} from '@astryxdesign/core/Button';
 
 export default function Page() {
-  return <XDSButton label="Hello XDS" variant="primary" />;
+  return <Button label="Hello XDS" variant="primary" />;
 }
 ```
 
