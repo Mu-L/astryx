@@ -27,7 +27,7 @@ import {colorVars, fontWeightVars} from '../theme/tokens.stylex';
 import {Button, type ButtonSize} from '../Button';
 import {useToggleButtonGroup} from './ToggleButtonGroup';
 import type {BaseProps} from '../BaseProps';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Styles
@@ -294,7 +294,7 @@ export function ToggleButton({
       aria-pressed={isPressed}
       icon={resolvedIcon}
       tooltip={tooltip}
-      {...xdsThemeProps('toggle-button', {
+      {...themeProps('toggle-button', {
         isPressed: isPressed ? 'true' : 'false',
       })}
       xstyle={[isPressed ? pressedStyles.background : undefined, xstyle]}

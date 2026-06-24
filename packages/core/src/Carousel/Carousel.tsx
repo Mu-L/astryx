@@ -33,7 +33,7 @@ import {useScrollOverflow} from '../hooks/useScrollOverflow';
 import type {BaseProps} from '../BaseProps';
 import {mergeProps, mergeRefs} from '../utils';
 import type {SpacingStep} from '../utils/types';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 export interface CarouselProps extends BaseProps<HTMLDivElement> {
   ref?: React.Ref<HTMLDivElement>;
@@ -325,7 +325,7 @@ export function Carousel({
       aria-label={ariaLabel}
       aria-roledescription="carousel"
       {...mergeProps(
-        xdsThemeProps('carousel'),
+        themeProps('carousel'),
         stylex.props(styles.root, xstyle),
         className,
         style,

@@ -21,7 +21,7 @@ import {colorVars} from '../theme/tokens.stylex';
 import type {BaseProps} from '../BaseProps';
 import {Tooltip} from '../Tooltip/Tooltip';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Pulse animation keyframes
@@ -160,7 +160,7 @@ export function StatusDot({
       role="img"
       aria-label={label}
       {...mergeProps(
-        xdsThemeProps('statusdot', {variant}),
+        themeProps('statusdot', {variant}),
         stylex.props(
           styles.base,
           variants[variant],

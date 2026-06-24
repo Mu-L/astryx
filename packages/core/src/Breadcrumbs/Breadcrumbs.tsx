@@ -21,7 +21,7 @@ import * as stylex from '@stylexjs/stylex';
 import {spacingVars} from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
 import type {BaseProps} from '../BaseProps';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Variant type
@@ -165,7 +165,7 @@ export function Breadcrumbs({
         ref={ref}
         aria-label={label}
         {...mergeProps(
-          xdsThemeProps('breadcrumbs', {variant}),
+          themeProps('breadcrumbs', {variant}),
           stylex.props(navStyles.root, xstyle),
           className,
           style,

@@ -26,7 +26,7 @@ import {
   borderVars,
 } from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Extensible variant map for Divider.
@@ -197,7 +197,7 @@ export function Divider({
       role="separator"
       aria-orientation={orientation}
       {...mergeProps(
-        xdsThemeProps('divider', {variant, orientation}),
+        themeProps('divider', {variant, orientation}),
         stylex.props(
           isHorizontal ? baseStyles.horizontal : baseStyles.vertical,
           isFullBleed &&

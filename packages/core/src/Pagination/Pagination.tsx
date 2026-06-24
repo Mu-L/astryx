@@ -36,7 +36,7 @@ import {Selector} from '../Selector';
 import {Text} from '../Text';
 import {mergeProps} from '../utils';
 import type {BaseProps} from '../BaseProps';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Types
@@ -507,7 +507,7 @@ export function Pagination({
                 onClick={() => handlePageChange(i + 1)}
                 disabled={isDisabled}
                 {...mergeProps(
-                  xdsThemeProps('pagination-dot', {
+                  themeProps('pagination-dot', {
                     active: i + 1 === page ? 'active' : null,
                     size,
                   }),
@@ -536,7 +536,7 @@ export function Pagination({
       aria-label={label}
       data-testid={testId}
       {...mergeProps(
-        xdsThemeProps('pagination', {variant, size}),
+        themeProps('pagination', {variant, size}),
         stylex.props(styles.root, xstyle),
         className,
         style,

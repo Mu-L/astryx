@@ -31,7 +31,7 @@ import type {BaseProps} from '../BaseProps';
 import {ListContext} from './ListContext';
 import {mergeProps} from '../utils';
 import {Item} from '../Item';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Types
@@ -251,7 +251,7 @@ export function ListItem({
         hasDividers && embeddedStyles.noRadius,
         xstyle,
       ]}
-      {...mergeProps(xdsThemeProps('list-item'), {className, style})}
+      {...mergeProps(themeProps('list-item'), {className, style})}
       {...restProps}
     />
   );

@@ -65,7 +65,7 @@ import {mergeProps} from '../utils';
 import {useSize} from '../SizeContext/SizeContext';
 import type {BaseProps} from '../BaseProps';
 import type {SizeValue} from '../utils/types';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 const styles = stylex.create({
   // Trigger container — the enhanced click target wrapping the combobox button and clear button as siblings
@@ -873,7 +873,7 @@ export function Selector<T extends SelectorOptionType>(
         onClick={onTriggerClick}
         data-testid={testId}
         {...mergeProps(
-          xdsThemeProps('selector', {size, status: status?.type ?? null}),
+          themeProps('selector', {size, status: status?.type ?? null}),
           stylex.props(
             inputWrapperStyles.base,
             styles.triggerContainer,

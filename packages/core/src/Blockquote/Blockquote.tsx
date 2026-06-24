@@ -20,7 +20,7 @@ import type {BaseProps} from '../BaseProps';
 import * as stylex from '@stylexjs/stylex';
 import {colorVars, spacingVars, typeScaleVars} from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 export interface BlockquoteProps extends BaseProps<HTMLQuoteElement> {
   /** Ref forwarded to the root <blockquote> element */
@@ -78,7 +78,7 @@ export function Blockquote({
     <blockquote
       ref={ref}
       {...mergeProps(
-        xdsThemeProps('blockquote'),
+        themeProps('blockquote'),
         stylex.props(styles.root, xstyle),
         className,
         style,

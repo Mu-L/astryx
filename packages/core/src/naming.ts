@@ -27,7 +27,7 @@
  * - CSS custom properties: `--astryx-*` via {@link cssVarNamespace} / {@link cssVar}.
  * - CSS layers: `astryx-base` / `astryx-theme`.
  *
- * SYNC: packages/core/src/utils/xdsThemeProps.ts (consumes classPrefix)
+ * SYNC: packages/core/src/utils/themeProps.ts (consumes classPrefix)
  * SYNC: packages/core/src/utils/parseStyleKey.ts
  * SYNC: packages/cli/src/commands/build-theme.mjs (imports @astryxdesign/core/naming)
  */

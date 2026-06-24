@@ -39,7 +39,7 @@ import {
 import type {SpacingStep} from '../utils/types';
 import {mergeProps, mergeRefs} from '../utils';
 import {DialogContext} from './DialogContext';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Calculate a directional translate offset for dialog entry animation.
@@ -505,7 +505,7 @@ export function Dialog({
     return (
       <div
         {...mergeProps(
-          xdsThemeProps('dialog', {variant}),
+          themeProps('dialog', {variant}),
           stylex.props(
             styles.inlineWrapper,
             !isFullscreen && dynamicStyles.sizing(width, maxHeight),
@@ -539,7 +539,7 @@ export function Dialog({
       aria-modal="true"
       role={purpose === 'required' ? 'alertdialog' : undefined}
       {...mergeProps(
-        xdsThemeProps('dialog', {variant}),
+        themeProps('dialog', {variant}),
         stylex.props(
           styles.dialog,
           isOpen && styles.open,

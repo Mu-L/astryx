@@ -41,7 +41,7 @@ import {useButtonGroup} from '../ButtonGroup/ButtonGroupContext';
 import {mergeProps} from '../utils';
 import {useLinkComponent} from '../Link/useLinkComponent';
 import type {LinkComponentType} from '../Link/types';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Base button styles
@@ -588,7 +588,7 @@ export function Button({
   );
 
   const sharedMergedProps = mergeProps(
-    xdsThemeProps('button', {variant, size}),
+    themeProps('button', {variant, size}),
     sharedStylexProps,
     className,
     style,

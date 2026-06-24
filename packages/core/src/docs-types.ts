@@ -76,7 +76,7 @@ export interface PropDoc {
  * A theming target — a stable selector surface that `defineTheme` can target
  * via `@scope` selectors. Each component renders one or more stable `xds-*`
  * class names and reflects visual props/states as `data-*` attributes via
- * `xdsThemeProps()`, so themes and external CSS have an explicit prop-aware selector surface.
+ * `themeProps()`, so themes and external CSS have an explicit prop-aware selector surface.
  *
  * @example
  * ```
@@ -91,7 +91,7 @@ export interface ThemingTarget {
    *  e.g. `"astryx-button"`, `"astryx-avatar-status-dot"`, `"astryx-card"` */
   className: string;
   /** Visual prop names reflected on this element.
-   *  These are the props passed to `xdsThemeProps()` as the second argument.
+   *  These are the props passed to `themeProps()` as the second argument.
    *  Use these names to derive preferred data selectors: `variant` →
    *  `[data-variant="secondary"]`, `level` → `[data-level="2"]`. Legacy bare
    *  classes are still emitted for compatibility but should not be the primary
@@ -494,7 +494,7 @@ interface BaseDoc {
      *  `--layout-padding-*` tokens instead of emitting raw CSS. */
     container?: boolean;
     /** Selector targets rendered by this component.
-     *  Each entry corresponds to an `xdsThemeProps()` call in the source. */
+     *  Each entry corresponds to an `themeProps()` call in the source. */
     targets: ThemingTarget[];
     /** CSS custom properties exposed for theming. */
     vars?: ComponentVar[];

@@ -21,7 +21,7 @@ function classTokenForPropValue(prop: string, value: string): string {
  *
  * Every component renders a stable base class (`astryx-button`, `astryx-card`,
  * etc.) plus variant classes derived from visual props. Components also reflect
- * those visual props as data attributes via `xdsThemeProps()` (`data-variant`,
+ * those visual props as data attributes via `themeProps()` (`data-variant`,
  * `data-size`, `data-level`, etc.) so consumers target stable data-attribute
  * selectors rather than collision-prone bare class names.
  *
@@ -73,7 +73,7 @@ function buildClassName(component: string, props?: ClassProps): string {
  * literal prop values, including numeric values (`level: 1` → `data-level="1"`).
  * Nullish values are omitted.
  */
-export function xdsThemeDataAttributes(
+export function themeDataAttributes(
   props?: ClassProps,
 ): ThemeDataAttributes {
   const attrs: ThemeDataAttributes = {};
@@ -98,16 +98,16 @@ export function xdsThemeDataAttributes(
  * surface. For example:
  *
  * ```ts
- * xdsThemeProps('button', { variant: 'primary', size: 'sm' })
+ * themeProps('button', { variant: 'primary', size: 'sm' })
  * // → { className: 'astryx-button primary sm', data-variant: 'primary', data-size: 'sm' }
  * ```
  */
-export function xdsThemeProps(
+export function themeProps(
   component: string,
   props?: ClassProps,
 ): ThemeProps {
   return {
     className: buildClassName(component, props),
-    ...xdsThemeDataAttributes(props),
+    ...themeDataAttributes(props),
   };
 }

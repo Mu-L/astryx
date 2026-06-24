@@ -31,7 +31,7 @@ import {
 import {mergeProps} from '@astryxdesign/core/utils';
 import type {BaseProps} from '@astryxdesign/core';
 import {useStepperContext} from './StepperContext';
-import {xdsThemeProps} from '../../../core/src/utils/xdsThemeProps';
+import {themeProps} from '../../../core/src/utils/themeProps';
 import type {StepStatus} from './StepStatus';
 
 /**
@@ -632,7 +632,7 @@ export function Step({
     ) : null;
 
   // Theme data attributes reflect progress + optional semantic status.
-  const themeProps = xdsThemeProps('step', {
+  const stepThemeProps = themeProps('step', {
     progress,
     status: status ?? undefined,
   });
@@ -643,7 +643,7 @@ export function Step({
       <li
         ref={ref}
         {...mergeProps(
-          themeProps,
+          stepThemeProps,
           stylex.props(styles.verticalRoot, xstyle),
           className,
           style,
@@ -654,7 +654,7 @@ export function Step({
         {/* 4px progress bar */}
         <div
           {...mergeProps(
-            xdsThemeProps('step-bar'),
+            themeProps('step-bar'),
             stylex.props(
               styles.verticalBar,
               statusBarStyle ??
@@ -702,7 +702,7 @@ export function Step({
     <li
       ref={ref}
       {...mergeProps(
-        themeProps,
+        stepThemeProps,
         stylex.props(styles.horizontalStep, xstyle),
         className,
         style,
@@ -713,7 +713,7 @@ export function Step({
       {/* 4px progress bar segment for this step */}
       <div
         {...mergeProps(
-          xdsThemeProps('step-bar'),
+          themeProps('step-bar'),
           stylex.props(
             styles.horizontalBar,
             statusBarStyle ??

@@ -33,7 +33,7 @@ import {
   SYNC_TOKENIZE_THRESHOLD,
 } from '@astryxdesign/core/CodeBlock';
 import type {TokenLine} from '@astryxdesign/core/CodeBlock';
-import {xdsThemeProps} from '../../../core/src/utils/xdsThemeProps';
+import {themeProps} from '../../../core/src/utils/themeProps';
 import {
   ensureHighlightStyles,
   applyHighlightRangesFlat,
@@ -417,7 +417,7 @@ export function CodeEditor({
     <div
       ref={ref}
       {...mergeProps(
-        xdsThemeProps('codeeditor', {size, language}),
+        themeProps('codeeditor', {size, language}),
         stylex.props(styles.root, focused && styles.rootFocused, xstyle),
         className,
         style,

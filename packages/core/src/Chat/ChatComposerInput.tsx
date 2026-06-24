@@ -55,7 +55,7 @@ import {
 } from './useChatPasteAsToken';
 import {Badge, type BadgeProps} from '../Badge';
 import {useChatComposerContext} from './ChatContext';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Types
@@ -619,7 +619,7 @@ export function ChatComposerInput(props: ChatComposerInputProps) {
     <div
       ref={ref}
       {...mergeProps(
-        xdsThemeProps('chat-composer-input'),
+        themeProps('chat-composer-input'),
         stylex.props(styles.root, isDisabled && styles.disabled, xstyle),
         className,
         style,

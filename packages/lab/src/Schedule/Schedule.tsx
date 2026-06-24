@@ -23,7 +23,7 @@ import {ScheduleContext} from './context';
 import {defaultSchedulePlugins} from './plugins';
 import {styles} from './shared';
 import {createZonedDateTime} from './zonedDateTime';
-import {xdsThemeProps} from '../../../core/src/utils/xdsThemeProps';
+import {themeProps} from '../../../core/src/utils/themeProps';
 import type {
   CalendarEvent,
   Instant,
@@ -265,7 +265,7 @@ export function Schedule({
     <div
       {...rest}
       {...mergeProps(
-        xdsThemeProps('schedule'),
+        themeProps('schedule'),
         stylex.props(styles.root, xstyle),
         className,
         style,

@@ -29,7 +29,7 @@ import {
 } from '../theme/tokens.stylex';
 import type {InputStatusType} from '../Field/types';
 import {useEntryAnimation} from '../hooks/useEntryAnimation';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 const styles = stylex.create({
   base: {
@@ -147,7 +147,7 @@ export function FieldStatus({
       aria-live={type === 'error' ? 'assertive' : 'polite'}
       {...rest}
       {...mergeProps(
-        xdsThemeProps('field-status', {type, variant}),
+        themeProps('field-status', {type, variant}),
         stylex.props(
           styles.base,
           entryStyle,

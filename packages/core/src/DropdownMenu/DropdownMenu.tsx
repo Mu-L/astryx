@@ -53,7 +53,7 @@ import {
 } from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
 import type {BaseProps} from '../BaseProps';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 const styles = stylex.create({
   dropdown: {
@@ -401,7 +401,7 @@ export function DropdownMenu({
           role="menu"
           onKeyDown={listKeyDown}
           {...mergeProps(
-            xdsThemeProps('dropdown-menu'),
+            themeProps('dropdown-menu'),
             stylex.props(styles.dropdown, xstyle),
             className,
             style,

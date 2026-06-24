@@ -30,7 +30,7 @@ import {
 } from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
 import type {BaseProps} from '../BaseProps';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Extensible variant map for ProgressBar.
@@ -283,7 +283,7 @@ export function ProgressBar({
     <div
       ref={ref}
       {...mergeProps(
-        xdsThemeProps('progressbar', {variant}),
+        themeProps('progressbar', {variant}),
         stylex.props(styles.container, xstyle),
         className,
         style,
@@ -327,13 +327,13 @@ export function ProgressBar({
         aria-labelledby={labelId}
         aria-valuetext={isIndeterminate ? undefined : valueText}
         {...mergeProps(
-          xdsThemeProps('progressbar-track'),
+          themeProps('progressbar-track'),
           stylex.props(styles.track),
         )}>
         {isIndeterminate ? (
           <div
             {...mergeProps(
-              xdsThemeProps('progressbar-fill', {variant: fillVariant}),
+              themeProps('progressbar-fill', {variant: fillVariant}),
               stylex.props(
                 styles.indeterminateFill,
                 variantStyles[fillVariant],
@@ -343,7 +343,7 @@ export function ProgressBar({
         ) : (
           <div
             {...mergeProps(
-              xdsThemeProps('progressbar-fill', {variant: fillVariant}),
+              themeProps('progressbar-fill', {variant: fillVariant}),
               stylex.props(styles.fill, variantStyles[fillVariant]),
             )}
             style={{width: `${percentage}%`}}

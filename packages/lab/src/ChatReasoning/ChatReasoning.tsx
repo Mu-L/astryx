@@ -28,7 +28,7 @@ import {
   easeVars,
 } from '@astryxdesign/core/theme/tokens.stylex';
 import {mergeProps} from '@astryxdesign/core/utils';
-import {xdsThemeProps} from '../../../core/src/utils/xdsThemeProps';
+import {themeProps} from '../../../core/src/utils/themeProps';
 
 // =============================================================================
 // Types
@@ -259,7 +259,7 @@ export function ChatReasoning(props: ChatReasoningProps) {
   return (
     <div
       {...mergeProps(
-        xdsThemeProps('chat-reasoning', {
+        themeProps('chat-reasoning', {
           expanded: isExpanded ? 'expanded' : null,
           streaming: isStreaming ? 'streaming' : null,
         }),

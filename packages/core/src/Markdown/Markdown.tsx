@@ -55,7 +55,7 @@ import {
   trimStreamingArtifacts,
 } from './parser';
 import type {BlockNode, InlineNode, IncrementalState} from './parser';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 type SyncReactNode = Exclude<React.ReactNode, Promise<unknown>>;
 
@@ -1649,7 +1649,7 @@ export function Markdown({
         ref={ref}
         data-testid={testId}
         {...mergeProps(
-          xdsThemeProps('markdown', {density}),
+          themeProps('markdown', {density}),
           stylex.props(styles.root, styles.inlineRoot, xstyle),
           className,
           style,
@@ -1682,7 +1682,7 @@ export function Markdown({
       ref={ref as React.Ref<HTMLDivElement>}
       data-testid={testId}
       {...mergeProps(
-        xdsThemeProps('markdown', {density}),
+        themeProps('markdown', {density}),
         stylex.props(styles.root, xstyle),
         className,
         style,

@@ -24,7 +24,7 @@ import {
 } from '../theme/tokens.stylex';
 import type {BaseProps} from '../BaseProps';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 const styles = stylex.create({
   container: {
@@ -156,7 +156,7 @@ export function EmptyState({
       ref={ref}
       role="status"
       {...mergeProps(
-        xdsThemeProps('empty-state', {variant: isCompact ? 'compact' : null}),
+        themeProps('empty-state', {variant: isCompact ? 'compact' : null}),
         stylex.props(
           styles.container,
           isCompact && styles.containerCompact,

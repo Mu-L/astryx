@@ -36,7 +36,7 @@ import {mergeProps, mergeRefs} from '../utils';
 import type {BaseProps} from '../BaseProps';
 import {useScrollSpy} from './useScrollSpy';
 import type {OutlineItem} from './types';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 export type {OutlineItem} from './types';
 
@@ -281,7 +281,7 @@ export function Outline({
       aria-label={label}
       data-testid={testId}
       {...mergeProps(
-        xdsThemeProps('outline', {density}),
+        themeProps('outline', {density}),
         stylex.props(styles.root, xstyle),
         className,
         style,
@@ -297,7 +297,7 @@ export function Outline({
                 aria-current={isActive ? 'true' : undefined}
                 onClick={handleClick(item.id)}
                 {...mergeProps(
-                  xdsThemeProps('outline-item', {
+                  themeProps('outline-item', {
                     active: isActive ? 'active' : null,
                     level: item.level,
                   }),
@@ -323,7 +323,7 @@ export function Outline({
       </div>
       <span
         {...mergeProps(
-          xdsThemeProps('outline-indicator'),
+          themeProps('outline-indicator'),
           stylex.props(styles.indicator),
         )}
         aria-hidden="true"

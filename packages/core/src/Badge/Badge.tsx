@@ -27,7 +27,7 @@ import {
   typeScaleVars,
 } from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 /**
  * Base badge styles
@@ -198,7 +198,7 @@ export function Badge({
     <span
       ref={ref}
       {...mergeProps(
-        xdsThemeProps('badge', {variant}),
+        themeProps('badge', {variant}),
         stylex.props(styles.base, variants[variant], xstyle),
         className,
         style,

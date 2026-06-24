@@ -24,7 +24,7 @@ import {
   type FormLayoutDirection,
 } from './FormLayoutContext';
 import {mergeProps} from '../utils';
-import {xdsThemeProps} from '../utils/xdsThemeProps';
+import {themeProps} from '../utils/themeProps';
 
 // =============================================================================
 // Responsive breakpoint for horizontal-labels collapse
@@ -125,7 +125,7 @@ export function FormLayout({
       <div
         ref={ref}
         {...mergeProps(
-          xdsThemeProps('form-layout', {direction}),
+          themeProps('form-layout', {direction}),
           stylex.props(
             styles.base,
             direction === 'horizontal' && styles.horizontal,
