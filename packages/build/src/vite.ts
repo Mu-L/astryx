@@ -8,7 +8,7 @@ import {fileURLToPath} from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const XDS_LIBRARY_PATTERN = 'node_modules/@astryxdesign/';
+const LIBRARY_PATTERN = 'node_modules/@astryxdesign/';
 const STYLEX_CSS_PATH = '/virtual:stylex.css';
 
 /**
@@ -121,7 +121,7 @@ export function xdsStylex(
   const {
     dev = process.env.NODE_ENV !== 'production',
     rootDir = process.cwd(),
-    libraryPattern = XDS_LIBRARY_PATTERN,
+    libraryPattern = LIBRARY_PATTERN,
     layers = {},
     lightningcssTargets,
     stylexPrefix = 'astryx',
@@ -305,7 +305,7 @@ export function xdsStylex(
 function xdsStylexLegacy(options: XDSVitePluginLegacyOptions): Plugin[] {
   const {
     stylexOptions,
-    libraryPattern = XDS_LIBRARY_PATTERN,
+    libraryPattern = LIBRARY_PATTERN,
     stylexPrefix = 'astryx',
     layers = {},
   } = options;
