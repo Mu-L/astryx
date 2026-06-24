@@ -99,15 +99,15 @@ jobs:
         with:
           path: apps/sandbox/.next/cache
           # IMPORTANT: no restore-keys fallback. The key is pinned to the
-          # @xds/core dist hash because the Next.js module cache bakes in the
-          # resolved export graph of @xds/core. A loose restore-keys fallback
+          # @astryxdesign/core dist hash because the Next.js module cache bakes in the
+          # resolved export graph of @astryxdesign/core. A loose restore-keys fallback
           # (e.g. "nextjs-sandbox-<lock>-") would let a build restore a cache
           # produced against a DIFFERENT export shape. That is exactly what
           # broke the post-merge deploy of the XDS un-prefix migration (#2941):
           # the migration changed core's exports (bare names, new subpaths), the
           # exact key missed, and restore-keys fell back to a pre-migration
           # cache whose compiled modules still expected XDS*-prefixed exports —
-          # producing "'Text' is not exported from '@xds/core/Text'" and
+          # producing "'Text' is not exported from '@astryxdesign/core/Text'" and
           # "Element type is invalid ... undefined" prerender failures.
           # A changed key now yields a COLD cache (safe rebuild) instead of a
           # poisoned warm one.
@@ -268,7 +268,7 @@ jobs:
           force_orphan: true
           destination_dir: .
 
-  # Publish @xds/* packages to Metaccio (Meta's internal npm registry).
+  # Publish @astryxdesign/* packages to Metaccio (Meta's internal npm registry).
   # Runs in parallel with deploy — both gate on test passing.
   # changeset publish checks each package: if the version in package.json
   # is not yet on the registry, it publishes. Already-published versions
@@ -314,7 +314,7 @@ jobs:
 
   # Publish canary versions to Metaccio on every push to main.
   # The @canary dist-tag always points to the latest main commit:
-  #   npm install @xds/core@canary --registry https://registry.facebook.net
+  #   npm install @astryxdesign/core@canary --registry https://registry.facebook.net
   canary:
     name: Publish canary to Metaccio
     needs: test
@@ -362,12 +362,12 @@ jobs:
             node -e "
               const fs = require('fs');
               const p = JSON.parse(fs.readFileSync('$pkg','utf8'));
-              if (p.private || !p.name?.startsWith('@xds/')) process.exit(0);
+              if (p.private || !p.name?.startsWith('@astryxdesign/')) process.exit(0);
               p.version = '${CANARY_VERSION}';
               for (const dt of ['dependencies','peerDependencies','devDependencies']) {
                 if (!p[dt]) continue;
                 for (const [k,v] of Object.entries(p[dt])) {
-                  if (k.startsWith('@xds/')) p[dt][k] = '${CANARY_VERSION}';
+                  if (k.startsWith('@astryxdesign/')) p[dt][k] = '${CANARY_VERSION}';
                 }
               }
               fs.writeFileSync('$pkg', JSON.stringify(p, null, 2) + '\n');
@@ -378,7 +378,7 @@ jobs:
           # Publish each package with --tag canary
           for pkg_dir in packages/* packages/themes/*; do
             [ -f "$pkg_dir/package.json" ] || continue
-            IS_PUBLISHABLE=$(node -p "const p=require('./$pkg_dir/package.json'); !p.private && p.name?.startsWith('@xds/') ? 'yes' : 'no'")
+            IS_PUBLISHABLE=$(node -p "const p=require('./$pkg_dir/package.json'); !p.private && p.name?.startsWith('@astryxdesign/') ? 'yes' : 'no'")
             if [ "$IS_PUBLISHABLE" = "yes" ]; then
               NAME=$(node -p "require('./$pkg_dir/package.json').name")
               echo "Publishing ${NAME}@${CANARY_VERSION}"
@@ -386,4 +386,4 @@ jobs:
             fi
           done
 
-          echo "Canary published: npm install @xds/core@${CANARY_VERSION} --registry https://registry.facebook.net"
+          echo "Canary published: npm install @astryxdesign/core@${CANARY_VERSION} --registry https://registry.facebook.net"
