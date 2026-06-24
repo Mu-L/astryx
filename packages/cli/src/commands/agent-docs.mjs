@@ -121,14 +121,29 @@ export function generateCompressedIndex(version, {coreDir, runPrefix = getRunPre
   lines.push(`Astryx v${version} — ${componentCount} components`);
   lines.push('');
 
-  // Behavioral workflow — templates first, then component lookup
-  lines.push('Before writing any UI code:');
-  lines.push(`1. \`${run} template --list\` — find a related page pattern`);
-  lines.push(`2. \`${run} template <name> --skeleton\` — study layout structure (gap, padding, nesting)`);
-  lines.push(`3. \`${run} component <Name>\` — read props + examples for EVERY component you use`);
+  // One-time project setup — components ship precompiled CSS that MUST be
+  // imported, or everything renders unstyled. Stated as text (the CLI does not
+  // edit your files). The Theme provider is OPTIONAL (a default theme ships in
+  // astryx.css); only the CSS imports are required.
+  lines.push('SETUP (required, once) — in your app entry (e.g. main.tsx):');
+  lines.push('  import "@astryxdesign/core/reset.css";');
+  lines.push('  import "@astryxdesign/core/astryx.css";');
+  lines.push('Without these CSS imports, components render completely unstyled.');
+  lines.push(`Optional: apply a specific theme with <Theme> — see \`${run} docs theme\`.`);
   lines.push('');
-  lines.push('Templates are reference code — read them for composition patterns, not just scaffolding.');
-  lines.push('Full pages → dashboard (uses AppShell). Forms → contact-form. Tables → data-table. Settings → settings-sidebar.');
+
+  // Behavioral workflow — `build` is the front door for making pages: it returns
+  // a composition kit, and `build` with no args prints the full how-to playbook.
+  lines.push('Before writing any UI code:');
+  lines.push(
+    `1. \`${run} build "<what you're building>"\` — START HERE. Returns a composition kit: the closest [page] recipe (scaffold it, or use as a layout reference), the [block]s that cover parts, and the [component]s to fill gaps. (Run \`${run} build\` with no args for the full how-to-build playbook.)`,
+  );
+  lines.push(`2. \`${run} template <name> --skeleton\` — scaffold a matched [page], or study its layout (gap, padding, nesting)`);
+  lines.push(`3. \`${run} template <BlockName>\` — drop in each [block] the kit surfaced (ready-made multi-component patterns) instead of hand-building`);
+  lines.push(`4. \`${run} component <Name>\` — read props + examples for EVERY component you use`);
+  lines.push('');
+  lines.push('Templates and blocks are reference code — read them for composition patterns, not just scaffolding.');
+  lines.push(`(\`${run} search <query>\` is a neutral find across components/hooks/docs/templates when you just need to look something up.)`);
   lines.push('');
 
   // Rules — inline, compact, prevents the top error categories
@@ -141,6 +156,8 @@ export function generateCompressedIndex(version, {coreDir, runPrefix = getRunPre
   lines.push('');
 
   // CLI quick reference
+  lines.push(`${run} build "<idea>"            START HERE for pages — kit: closest page + blocks + components (\`build\` = how-to playbook)`);
+  lines.push(`${run} search "<query>"          find anything: components, hooks, docs, templates, blocks`);
   lines.push(`${run} component --list         ${componentCount} components by category`);
   lines.push(`${run} component <Name>         props, types, examples`);
 
