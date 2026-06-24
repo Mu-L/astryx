@@ -183,7 +183,7 @@ npx astryx docs tokens --dense`,
   "mcpServers": {
     "xds": {
       "type": "url",
-      "url": "https://xds-sandbox.vercel.app/mcp"
+      "url": "https://astryx.meta.com/mcp"
     }
   }
 }`,
