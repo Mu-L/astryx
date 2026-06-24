@@ -45,7 +45,7 @@ export interface CompileOptions {
 }
 
 /**
- * A spec accepted by `<XDSVegaChart>`. Must include a `$schema` field --
+ * A spec accepted by `<VegaChart>`. Must include a `$schema` field --
  * the component uses it to decide whether to compile (Vega-Lite) or
  * render directly (Vega).
  */
@@ -86,7 +86,7 @@ export interface ParseOptions {
 export type ViewData = Record<string, unknown[]>;
 
 /**
- * Props for the `<XDSVegaChart>` component.
+ * Props for the `<VegaChart>` component.
  *
  * Extends `React.HTMLAttributes<HTMLDivElement>` (minus `contentEditable`,
  * `dangerouslySetInnerHTML`) for full DOM event passthrough — drag, pointer,
@@ -96,7 +96,7 @@ export type ViewData = Record<string, unknown[]>;
  * because `@astryxdesign/vega` does not depend on StyleX. Use `className` or `style`
  * for layout overrides instead.
  */
-export interface XDSVegaChartProps extends Omit<
+export interface VegaChartProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   | 'contentEditable'
   | 'dangerouslySetInnerHTML'
