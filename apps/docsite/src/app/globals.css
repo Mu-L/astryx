@@ -12,6 +12,14 @@
    reset, astryx-base, astryx-theme so product styles always win. */
 @stylex;
 
+/* Disable rubber-band overscroll. The home hero's pin-and-cover layers
+   (hero band, nav backdrop, aurora glow, floating cards) are position:fixed,
+   so an elastic bounce past the top/bottom exposes them behind the footer.
+   The (site) layout scrolls the document (AppShell height="auto"). */
+html {
+  overscroll-behavior-y: none;
+}
+
 /* Marketing-only custom properties for the docsite home page. These are
    NOT XDS theming tokens — they're docsite-specific values that back the
    landing page's bento feature cards + section rhythm — so they live here
