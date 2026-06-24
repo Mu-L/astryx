@@ -304,6 +304,13 @@ jobs:
       - name: Build all packages
         run: pnpm build
 
+      # pnpm publish delegates the upload to the runner's npm, and OIDC trusted
+      # publishing only exists in npm >= 11.5.1. Node 22 bundles npm 10.x, so we
+      # upgrade explicitly — otherwise the publish runs unauthenticated and the
+      # registry returns a misleading 404.
+      - name: Ensure npm supports OIDC trusted publishing
+        run: npm install -g npm@latest
+
       - name: Publish changed packages
         # Pure OIDC trusted publishing — no NPM_TOKEN. pnpm -r publish skips
         # already-published versions, filters private packages, and rewrites
@@ -340,6 +347,10 @@ jobs:
 
       - name: Build all packages
         run: pnpm build
+
+      # OIDC trusted publishing requires npm >= 11.5.1 (Node 22 bundles npm 10.x).
+      - name: Ensure npm supports OIDC trusted publishing
+        run: npm install -g npm@latest
 
       - name: Publish canary versions
         # Pure OIDC trusted publishing — no NPM_TOKEN.
