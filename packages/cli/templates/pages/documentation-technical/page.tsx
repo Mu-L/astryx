@@ -81,7 +81,7 @@ export default function TechnicalDocumentationPage() {
                     icon={<Icon icon={ClipboardDocumentIcon} />}
                     onClick={() => {
                       void navigator.clipboard.writeText(
-                        'Help me get set up with Product Name. Based on my project, do the following: 1. Install @astryxdesign/core and the StyleX compiler. 2. Wrap my app in ThemeProvider. 3. Replace one existing component with an XDS equivalent. After setup, suggest relevant next steps based on my project.',
+                        'Help me get set up with Product Name. Based on my project, do the following: 1. Install @astryxdesign/core and the StyleX compiler. 2. Wrap my app in ThemeProvider. 3. Replace one existing component with an Astryx equivalent. After setup, suggest relevant next steps based on my project.',
                       );
                     }}
                   />
@@ -105,7 +105,7 @@ export default function TechnicalDocumentationPage() {
                   Help me get set up with Product Name. Based on my project, do
                   the following: 1. Install @astryxdesign/core and the StyleX compiler.
                   2. Wrap my app in ThemeProvider. 3. Replace one existing
-                  component with an XDS equivalent.
+                  component with an Astryx equivalent.
                 </Text>
               </VStack>
             </Card>
@@ -140,7 +140,7 @@ export default function TechnicalDocumentationPage() {
                   Step 2: Add the StyleX compiler
                 </Text>
                 <Text type="body" color="secondary">
-                  XDS uses StyleX for styling. Add the compiler plugin to your
+                  Astryx uses StyleX for styling. Add the compiler plugin to your
                   build configuration.
                 </Text>
                 <Card padding={0}>
@@ -159,7 +159,7 @@ export default function TechnicalDocumentationPage() {
                     code={`import { Button } from '@astryxdesign/core/Button';
 
 export default function App() {
-  return <Button label="Hello XDS" variant="primary" />;
+  return <Button label="Hello Astryx" variant="primary" />;
 }`}
                     language="tsx"
                   />
@@ -172,7 +172,7 @@ export default function App() {
             <VStack gap={4}>
               <Heading level={2}>Configure theming</Heading>
               <Text type="body">
-                XDS ships with a default theme that works out of the box. To
+                Astryx ships with a default theme that works out of the box. To
                 customize colors, typography, and spacing, wrap your app in a
                 theme provider.
               </Text>

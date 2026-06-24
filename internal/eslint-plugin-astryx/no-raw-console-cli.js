@@ -44,7 +44,7 @@ const rule = {
     docs: {
       description:
         'Ban bare console.log in CLI runtime files; use humanLog so --json stdout stays clean',
-      category: 'XDS Conventions',
+      category: 'Astryx Conventions',
       recommended: true,
     },
     fixable: 'code',

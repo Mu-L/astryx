@@ -1,6 +1,6 @@
 # @astryx/eslint-plugin
 
-ESLint plugin for XDS design system token enforcement.
+ESLint plugin for Astryx design system token enforcement.
 
 ## Philosophy: Two-Tier Linting
 
@@ -20,7 +20,7 @@ This plugin implements a two-tier linting strategy:
 
 ### `@astryx/no-hardcoded-styles`
 
-Detects hardcoded CSS values in `stylex.create()` that should use XDS tokens:
+Detects hardcoded CSS values in `stylex.create()` that should use Astryx tokens:
 
 | Property                     | Should Use                          |
 | ---------------------------- | ----------------------------------- |
