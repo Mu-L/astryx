@@ -4,10 +4,10 @@
  * @file Programmatic API for the XDS CLI.
  *
  * Every function returns the same { type, data } envelope that `xds --json` outputs.
- * Errors throw XDSError (with optional .suggestions).
+ * Errors throw AstryxError (with optional .suggestions).
  *
  * @example
- * import { component, docs, hook, XDSError } from '@astryxdesign/cli/api';
+ * import { component, docs, hook, AstryxError } from '@astryxdesign/cli/api';
  *
  * const result = await component('Button');
  * // { type: 'component.detail', data: { name: 'Button', ... } }
@@ -26,4 +26,4 @@ export {template} from './template.mjs';
 export {hook} from './hook.mjs';
 export {search} from './search.mjs';
 export {doctor} from './doctor.mjs';
-export {XDSError} from './error.mjs';
+export {AstryxError} from './error.mjs';

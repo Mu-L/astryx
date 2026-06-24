@@ -97,7 +97,7 @@ The `code` field is a **stable, machine-readable identifier**. Branch on it,
 never on the human-readable `error` string, which changes freely as we improve
 wording. Every error envelope carries a `code` (falling back to `ERR_UNKNOWN`
 when no more specific code applies). The same `code` is exposed on thrown
-`XDSError` instances from the programmatic API, so both surfaces agree.
+`AstryxError` instances from the programmatic API, so both surfaces agree.
 
 Codes are **append-only**: once shipped, a code's meaning never changes and a
 code is never removed. New error conditions get new codes.
@@ -225,7 +225,7 @@ For the standalone manifest envelope (`type: "manifest"`), use `xds manifest --j
 The same logic that powers `xds --json` is available as importable, type-safe functions:
 
 ```typescript
-import {component, docs, discover, template, hook, search, XDSError} from '@astryxdesign/cli/api';
+import {component, docs, discover, template, hook, search, AstryxError} from '@astryxdesign/cli/api';
 
 // Same result as: xds --json component Button
 const btn = await component('Button');
@@ -244,7 +244,7 @@ principles.data.title; // 'XDS Principles'
 const useMediaQuery = await hook('useMediaQuery');
 useMediaQuery.data.params; // typed as HookParamDoc[]
 
-// Errors throw XDSError with a stable .code and optional .suggestions
+// Errors throw AstryxError with a stable .code and optional .suggestions
 try {
   await component('Buttn');
 } catch (e) {

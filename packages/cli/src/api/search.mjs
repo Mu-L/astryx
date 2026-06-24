@@ -42,7 +42,7 @@ import {
 import {discoverHooks, findHookDoc} from '../lib/hook-discovery.mjs';
 import {levenshteinDistance} from '../lib/string-utils.mjs';
 import {discoverTemplates} from './template.mjs';
-import {XDSError} from './error.mjs';
+import {AstryxError} from './error.mjs';
 
 const DOCS_DIR = path.join(CLI_ROOT, 'docs');
 
@@ -312,13 +312,13 @@ export async function search(query, options = {}) {
   const {cwd = process.cwd(), type, limit = 20} = options;
 
   if (!query || !String(query).trim()) {
-    throw new XDSError('A search query is required', [
+    throw new AstryxError('A search query is required', [
       {name: 'xds search button', reason: 'example'},
     ]);
   }
 
   if (type && !SEARCH_DOMAINS.includes(type)) {
-    throw new XDSError(
+    throw new AstryxError(
       `Unknown --type "${type}"`,
       SEARCH_DOMAINS.map(d => ({name: d, reason: 'valid type'})),
     );
@@ -328,7 +328,7 @@ export async function search(query, options = {}) {
 
   const coreDir = findCoreDir(cwd);
   if (!coreDir) {
-    throw new XDSError('Could not find @astryxdesign/core package');
+    throw new AstryxError('Could not find @astryxdesign/core package');
   }
 
   // Gather candidates from each requested domain in parallel.

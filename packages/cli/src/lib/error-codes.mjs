@@ -12,7 +12,7 @@
  * named X" is brittle and silently breaks the moment we reword it.
  *
  * The `code` field is the stable contract. Every error — whether raised by a
- * command, the API layer (`XDSError`), or Commander's own parse machinery —
+ * command, the API layer (`AstryxError`), or Commander's own parse machinery —
  * carries one of the identifiers below. Codes are append-only: once shipped,
  * a code's meaning never changes and the code is never removed. The message
  * may change freely; the code never does.
@@ -26,7 +26,7 @@
  *
  *   import {ERROR_CODES} from './error-codes.mjs';
  *   cliError('No component named "Buton"', {code: ERROR_CODES.ERR_UNKNOWN_COMPONENT});
- *   throw new XDSError('No component named "Buton"', suggestions, ERROR_CODES.ERR_UNKNOWN_COMPONENT);
+ *   throw new AstryxError('No component named "Buton"', suggestions, ERROR_CODES.ERR_UNKNOWN_COMPONENT);
  *
  * Consumers read `envelope.code` and compare against the published list in
  * packages/cli/README.md.

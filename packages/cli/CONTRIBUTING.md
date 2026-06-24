@@ -21,12 +21,12 @@ Both paths run identical code. The CLI handler just adds argument parsing and ou
 ```
 src/
   api/                         # Programmatic API (exported as @astryxdesign/cli/api)
-    index.mjs                  # barrel: component, docs, discover, template, XDSError
+    index.mjs                  # barrel: component, docs, discover, template, AstryxError
     component.mjs              # component(name?, opts?) → { type, data }
     docs.mjs                   # docs(topic?, section?, opts?) → { type, data }
     discover.mjs               # discover(query?, opts?) → { type, data }
     template.mjs               # template(name?, opts?) → { type, data }
-    error.mjs                  # XDSError class (carries .suggestions)
+    error.mjs                  # AstryxError class (carries .suggestions)
   commands/                    # CLI wrappers (thin: parse args → call API → format output)
     component/index.mjs        # calls api/component.mjs
     docs.mjs                   # calls api/docs.mjs
@@ -42,7 +42,7 @@ src/
     json.mjs                   # jsonOut(type, data), jsonError(msg) — internal
     parse.mjs                  # parseResponse, isError, assertResponse — consumer
   types/
-    api.d.ts                   # API function signatures + XDSError
+    api.d.ts                   # API function signatures + AstryxError
     base.d.ts                  # CLIError, CLIResult<T>, CLIAnyResponse, CLIResponseType
     component.d.ts             # ComponentListResponse, ComponentDetailResponse, ...
     discover.d.ts              # DiscoverListResponse, ...
@@ -67,11 +67,11 @@ src/
 
 ### 1. Write the API function
 
-Add a file in `src/api/` with all the logic. It returns `{ type, data }` on success and throws `XDSError` on failure. The CLI handler should have zero logic — just arg parsing and text formatting:
+Add a file in `src/api/` with all the logic. It returns `{ type, data }` on success and throws `AstryxError` on failure. The CLI handler should have zero logic — just arg parsing and text formatting:
 
 ```javascript
 // src/api/my-command.mjs
-import {XDSError} from './error.mjs';
+import {AstryxError} from './error.mjs';
 
 export async function myCommand(name, options = {}) {
   if (!name) {
@@ -80,7 +80,7 @@ export async function myCommand(name, options = {}) {
 
   const item = findItem(name);
   if (!item) {
-    throw new XDSError(`Item "${name}" not found`, suggestions);
+    throw new AstryxError(`Item "${name}" not found`, suggestions);
   }
 
   return {type: 'my-command.detail', data: item};
