@@ -19,7 +19,7 @@
  *   label, data-testid, xstyle
  */
 
-import {useTransition} from 'react';
+import {useOptimistic, useTransition} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {
   colorVars,
@@ -349,16 +349,24 @@ export function Pagination({
   style,
   ref,
 }: PaginationProps) {
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+
+  // Track the page optimistically. While a changeAction is pending the controls
+  // reflect the page the user is navigating to, and a click mid-flight derives
+  // its target from this value — so rapid prev/next clicks advance instead of
+  // stalling on the last committed page.
+  const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 
   // Compute pagination state
   const computedTotalPages =
     totalPagesProp ??
     (totalItems != null ? Math.ceil(totalItems / pageSize) : undefined);
 
-  const hasPrevious = page > 1;
+  const hasPrevious = optimisticPage > 1;
   const hasNext =
-    computedTotalPages != null ? page < computedTotalPages : (hasMore ?? false);
+    computedTotalPages != null
+      ? optimisticPage < computedTotalPages
+      : (hasMore ?? false);
 
   // Return null for empty state
   if (totalItems != null && totalItems <= 0) {
@@ -368,48 +376,48 @@ export function Pagination({
     return null;
   }
 
+  // Run the page change inside a transition so changeAction drives a pending
+  // state. The transition is interruptible — clicking again before it settles
+  // starts a fresh transition with the next optimistic page rather than being
+  // dropped, so there is no re-entry guard. A synchronous handler that suspends
+  // (e.g. a router navigation that suspends on data) also drives the pending
+  // state, not just promises.
   const handlePageChange = (newPage: number) => {
-    if (isDisabled || isPending) {
+    if (isDisabled) {
       return;
     }
-    onChange(newPage);
-    if (changeAction) {
-      startTransition(async () => {
-        await changeAction(newPage);
-      });
-    }
+    startTransition(async () => {
+      setOptimisticPage(newPage);
+      onChange(newPage);
+      await changeAction?.(newPage);
+    });
   };
 
   const handlePrevious = () => {
     if (hasPrevious) {
-      handlePageChange(page - 1);
+      handlePageChange(optimisticPage - 1);
     }
   };
 
   const handleNext = () => {
     if (hasNext) {
-      handlePageChange(page + 1);
+      handlePageChange(optimisticPage + 1);
     }
   };
 
   const handlePageSizeChange = (value: string) => {
     const newSize = Number(value);
     onPageSizeChange?.(newSize);
-    // Reset to page 1 when page size changes
-    onChange(1);
-    if (changeAction) {
-      startTransition(async () => {
-        await changeAction(1);
-      });
-    }
+    // Reset to page 1 when page size changes.
+    handlePageChange(1);
   };
 
   // Item range for count display
-  const rangeStart = (page - 1) * pageSize + 1;
+  const rangeStart = (optimisticPage - 1) * pageSize + 1;
   const rangeEnd =
     totalItems != null
-      ? Math.min(page * pageSize, totalItems)
-      : page * pageSize;
+      ? Math.min(optimisticPage * pageSize, totalItems)
+      : optimisticPage * pageSize;
 
   const buttonSize = size === 'sm' ? 'sm' : 'md';
   const isSm = size === 'sm';
@@ -421,7 +429,7 @@ export function Pagination({
           return null;
         }
         const pageRange = generatePageRange(
-          page,
+          optimisticPage,
           computedTotalPages,
           siblingCount,
         );
@@ -443,7 +451,7 @@ export function Pagination({
                   </span>
                 );
               }
-              const isActive = item === page;
+              const isActive = item === optimisticPage;
               return (
                 <Button
                   key={item}
@@ -483,7 +491,7 @@ export function Pagination({
         return (
           <span {...stylex.props(styles.infoText)}>
             <Text type="body" size="sm" color="secondary">
-              {`Page ${page} of ${computedTotalPages}`}
+              {`Page ${optimisticPage} of ${computedTotalPages}`}
             </Text>
           </span>
         );
@@ -503,18 +511,18 @@ export function Pagination({
                 key={i + 1}
                 type="button"
                 aria-label={`Go to page ${i + 1}`}
-                aria-current={i + 1 === page ? 'page' : undefined}
+                aria-current={i + 1 === optimisticPage ? 'page' : undefined}
                 onClick={() => handlePageChange(i + 1)}
                 disabled={isDisabled}
                 {...mergeProps(
                   themeProps('pagination-dot', {
-                    active: i + 1 === page ? 'active' : null,
+                    active: i + 1 === optimisticPage ? 'active' : null,
                     size,
                   }),
                   stylex.props(
                     styles.dot,
                     isSm && styles.dotSm,
-                    i + 1 === page && styles.dotActive,
+                    i + 1 === optimisticPage && styles.dotActive,
                     isDisabled && styles.dotDisabled,
                   ),
                 )}
