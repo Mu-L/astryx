@@ -27,9 +27,7 @@ import {FeaturesShowcase} from './_landing/FeaturesShowcase';
 import {AboutShowcase} from './_landing/AboutShowcase';
 import {DiscoverShowcase} from './_landing/DiscoverShowcase';
 
-// Desktop hero band height — reserved by heroSpacer for the fixed (pinned)
-// hero. Narrow screens render the hero in normal flow, so they don't use a
-// fixed band height.
+// Desktop hero band height (reserved by heroSpacer for the fixed hero).
 const HERO_BAND_HEIGHT = 760;
 
 const styles = stylex.create({
@@ -160,7 +158,6 @@ const styles = stylex.create({
       default: 'auto',
       '@media (min-width: 1024px)': 0,
     },
-    // Center the dots horizontally within the absolute box on desktop.
     display: 'flex',
     justifyContent: 'center',
   },
