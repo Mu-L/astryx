@@ -49,6 +49,12 @@ const PRIMARY_MUTED =
 // to the UI here as the custom CSS variable --color-brand (see the token block
 // below), so consumers can reference the brand blue via var(--color-brand).
 
+// Custom (non-core) token. Typed as a Record so the extra key spreads into
+// `tokens` without a literal `as` cast (which the lint config forbids).
+const customTokens: Record<string, TokenValue> = {
+  '--color-brand': BRAND_BLUE,
+};
+
 export const astryxTheme = defineTheme({
   name: 'astryx',
 
@@ -100,11 +106,9 @@ export const astryxTheme = defineTheme({
     '--radius-container': '16px',
     '--radius-page': '32px',
 
-    // --- Custom brand color token ---
-    // Not a core XDS token, so it's spread in with a cast to allow the extra
-    // key while keeping the standard tokens above type-checked. Exposed to the
-    // UI as var(--color-brand).
-    ...({'--color-brand': BRAND_BLUE} as Record<string, TokenValue>),
+    // Custom brand color token (see customTokens above), exposed as
+    // var(--color-brand).
+    ...customTokens,
   },
 
   typography: {
