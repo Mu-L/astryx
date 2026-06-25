@@ -660,14 +660,6 @@ export function ThemePackagePage({packageName, theme}: ThemePackagePageProps) {
   // registry drifts).
   const selectedTheme = themeObjects[selectedPkgName] ?? theme;
 
-  // Friendly wordmark for the selected theme — used by the install
-  // block heading ("Use the Y2K theme") so users see the brand name
-  // they just clicked, not the package slug.
-  const selectedLabel = useMemo(() => {
-    const pkg = themePackages.find(p => p.name === selectedPkgName);
-    return pkg ? themeLabel(pkg.displayName) || pkg.displayName : '';
-  }, [themePackages, selectedPkgName]);
-
   // Mobile dropdown options — mirror the sidebar list. Value is the
   // full @astryxdesign/theme-<slug> package name (matches state), label is
   // the friendly brand wordmark ("Neutral", "Butter").
@@ -1001,10 +993,7 @@ export function ThemePackagePage({packageName, theme}: ThemePackagePageProps) {
             so the themed preview leads (it's the reason the visitor came
             here); the install snippet acts as the natural next step
             after they've decided they like what they see. */}
-        <ThemeInstallBlock
-          packageName={selectedPkgName}
-          themeLabel={selectedLabel}
-        />
+        <ThemeInstallBlock packageName={selectedPkgName} />
       </div>
     </div>
   );
