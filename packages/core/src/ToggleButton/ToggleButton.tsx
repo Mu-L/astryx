@@ -263,10 +263,8 @@ export function ToggleButton({
   style,
   ...props
 }: ToggleButtonProps): ReactNode {
-  // Read group context if inside a group
   const group = useToggleButtonGroup();
 
-  // The committed pressed state, resolved from the group or props.
   const committedPressed =
     group && value != null
       ? group.selectedValues.has(value)
@@ -307,8 +305,6 @@ export function ToggleButton({
       return;
     }
 
-    // Standalone toggle. Derive the next state from the optimistic value so a
-    // click while an action is in flight flips from the in-progress state.
     const newState = !optimisticPressed;
     startTransition(async () => {
       setOptimisticPressed(newState);
@@ -325,7 +321,6 @@ export function ToggleButton({
     setOptimisticPressed,
   ]);
 
-  // Label with font weight shift and width reservation
   // isIconOnly prop is the source of truth for icon-only rendering.
   const labelContent =
     children != null ? (

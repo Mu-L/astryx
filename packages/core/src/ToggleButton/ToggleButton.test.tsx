@@ -259,7 +259,6 @@ describe('ToggleButton', () => {
     await waitFor(() => expect(button).toBeDisabled());
     expect(button).toHaveAttribute('aria-busy', 'true');
 
-    // Once the action settles the pending state clears.
     await act(async () => {
       resolveAction?.();
       await Promise.resolve();
