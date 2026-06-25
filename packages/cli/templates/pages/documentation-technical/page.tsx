@@ -138,9 +138,9 @@ export default function TechnicalDocumentationPage() {
                 </HStack>
                 <Text type="body" color="secondary">
                   Help me get set up with Product Name. Based on my project, do
-                  the following: 1. Install @astryxdesign/core and the StyleX compiler.
-                  2. Wrap my app in ThemeProvider. 3. Replace one existing
-                  component with an Astryx equivalent.
+                  the following: 1. Install @astryxdesign/core and the StyleX
+                  compiler. 2. Wrap my app in ThemeProvider. 3. Replace one
+                  existing component with an Astryx equivalent.
                 </Text>
               </VStack>
             </Card>
@@ -181,8 +181,8 @@ export default function TechnicalDocumentationPage() {
                   Step 2: Add the StyleX compiler
                 </Text>
                 <Text type="body" color="secondary">
-                  Astryx uses StyleX for styling. Add the compiler plugin to your
-                  build configuration.
+                  Astryx uses StyleX for styling. Add the compiler plugin to
+                  your build configuration.
                 </Text>
                 <CodeBlock
                   code="npm install @stylexjs/babel-plugin"
