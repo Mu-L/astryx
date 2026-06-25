@@ -22,12 +22,12 @@
 'use client';
 
 import * as stylex from '@stylexjs/stylex';
-import {Heading, Text} from '@xds/core/Text';
-import {VStack, HStack} from '@xds/core/Layout';
-import {Link} from '@xds/core/Link';
-import {Divider} from '@xds/core/Divider';
-import {AspectRatio} from '@xds/core/AspectRatio';
-import {spacingVars} from '@xds/core/theme/tokens.stylex';
+import {Heading, Text} from '@astryxdesign/core/Text';
+import {VStack, HStack} from '@astryxdesign/core/Layout';
+import {Link} from '@astryxdesign/core/Link';
+import {Divider} from '@astryxdesign/core/Divider';
+import {AspectRatio} from '@astryxdesign/core/AspectRatio';
+import {spacingVars} from '@astryxdesign/core/theme/tokens.stylex';
 import {blogPosts} from '../../../generated/blogRegistry';
 import {POST_TYPE_LABELS} from '../../../lib/blog/schema';
 import type {BlogPost} from '../../../lib/blog/schema';
