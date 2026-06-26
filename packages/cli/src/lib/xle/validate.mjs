@@ -315,7 +315,7 @@ export class Validation {
       this.error(
         node,
         `Unknown block '{${hint.name}}' — block hints must name an existing template block`,
-        nearest.length > 0 ? nearest : ['run: xds template --list --type block'],
+        nearest.length > 0 ? nearest : ['run: astryx template --list --type block'],
       );
     }
   }

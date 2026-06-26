@@ -4,11 +4,11 @@
  * @file Playground tab for XLE/XLO layout expressions.
  *
  * Type a compressed layout expression (compact XLE or indented outline XLO),
- * see it live-validated against the @xds/core registry shipped as build-time
+ * see it live-validated against the @astryxdesign/core registry shipped as build-time
  * JSON, watch the expanded TSX render inline with input/output token counts,
  * browse a searchable example library, and "Expand to code" to push it into
  * the shared editor/preview. The whole pipeline runs in-browser via the pure
- * @xds/cli/xle barrel.
+ * @astryxdesign/cli/xle barrel.
  *
  * @input  user-typed expression + onApplyCode(tsx) from the playground
  * @output validity/errors, token metrics, live expanded TSX, example browser
@@ -19,14 +19,14 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import * as stylex from '@stylexjs/stylex';
-import {XDSVStack, XDSHStack} from '@xds/core/Stack';
-import {XDSText} from '@xds/core/Text';
-import {XDSHeading} from '@xds/core/Heading';
-import {XDSButton} from '@xds/core/Button';
-import {XDSBadge} from '@xds/core/Badge';
-import {XDSSegmentedControl, XDSSegmentedControlItem} from '@xds/core/SegmentedControl';
-import {XDSBanner} from '@xds/core/Banner';
-import {checkExpression, expandExpression} from '@xds/cli/xle';
+import {VStack, HStack} from '@astryxdesign/core/Stack';
+import {Text} from '@astryxdesign/core/Text';
+import {Heading} from '@astryxdesign/core/Heading';
+import {Button} from '@astryxdesign/core/Button';
+import {Badge} from '@astryxdesign/core/Badge';
+import {SegmentedControl, SegmentedControlItem} from '@astryxdesign/core/SegmentedControl';
+import {Banner} from '@astryxdesign/core/Banner';
+import {checkExpression, expandExpression} from '@astryxdesign/cli/xle';
 import xleData from '@/generated/xle-registry.json';
 import {XLE_EXAMPLES, XLE_CATEGORIES} from './xleExamples';
 
@@ -56,7 +56,9 @@ function useTokenCounter() {
     let alive = true;
     (import(/* webpackIgnore: true */ TOKENIZER_URL) as Promise<TokenizerModule>)
       .then(m => {
-        if (!alive) return;
+        if (!alive) {
+          return;
+        }
         setBpe(() => (s: string) => m.countTokens(s));
         setEncoder(m.ENCODER || 'o200k_base');
       })
@@ -219,11 +221,11 @@ const s = stylex.create({
 function Metric({label, value, sub}: {label: string; value: string; sub?: string}) {
   return (
     <div {...stylex.props(s.metric)}>
-      <XDSText type="supporting">{label}</XDSText>
-      <XDSText weight="semibold" xstyle={s.metricValue}>
+      <Text type="supporting">{label}</Text>
+      <Text weight="semibold" xstyle={s.metricValue}>
         {value}
-      </XDSText>
-      {sub && <XDSText type="supporting">{sub}</XDSText>}
+      </Text>
+      {sub && <Text type="supporting">{sub}</Text>}
     </div>
   );
 }
@@ -262,7 +264,9 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return XLE_EXAMPLES;
+    if (!q) {
+      return XLE_EXAMPLES;
+    }
     return XLE_EXAMPLES.filter(
       e =>
         e.label.toLowerCase().includes(q) ||
@@ -275,11 +279,15 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
   // (using the canonical printers) rather than forcing a mismatched parse.
   const switchSurface = (next: Surface) => {
     setSurface(next);
-    if (next === 'auto') return;
+    if (next === 'auto') {
+      return;
+    }
     const c = checkExpression(expr, xleData.registry, {blocks: xleData.blocks, form: 'auto'});
     if (c.ok && c.valid) {
       const converted = next === 'compact' ? c.compact : c.outline;
-      if (converted) setExpr(converted);
+      if (converted) {
+        setExpr(converted);
+      }
     }
   };
 
@@ -292,28 +300,30 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
       form: 'auto',
       name: 'PlaygroundLayout',
     });
-    if (r.ok) onApplyCode(r.code);
+    if (r.ok) {
+      onApplyCode(r.code);
+    }
   };
 
   return (
     <div {...stylex.props(s.panel)}>
-      <XDSVStack gap={1}>
-        <XDSHeading level={4}>Layout expression (XLE / XLO)</XDSHeading>
-        <XDSText type="supporting">
-          Write a compressed layout. Validated live against @xds/core; the
+      <VStack gap={1}>
+        <Heading level={4}>Layout expression (XLE / XLO)</Heading>
+        <Text type="supporting">
+          Write a compressed layout. Validated live against @astryxdesign/core; the
           expanded TSX and token counts update below.
-        </XDSText>
-      </XDSVStack>
+        </Text>
+      </VStack>
 
-      <XDSSegmentedControl
+      <SegmentedControl
         label="Surface"
         size="sm"
         value={surface}
         onChange={v => v && switchSurface(v as Surface)}>
-        <XDSSegmentedControlItem value="auto" label="Auto" />
-        <XDSSegmentedControlItem value="compact" label="Compact (XLE)" />
-        <XDSSegmentedControlItem value="outline" label="Outline (XLO)" />
-      </XDSSegmentedControl>
+        <SegmentedControlItem value="auto" label="Auto" />
+        <SegmentedControlItem value="compact" label="Compact (XLE)" />
+        <SegmentedControlItem value="outline" label="Outline (XLO)" />
+      </SegmentedControl>
 
       <textarea
         {...stylex.props(s.editor)}
@@ -323,15 +333,15 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
         aria-label="Layout expression"
       />
 
-      <XDSHStack gap={2} align="center">
-        <XDSButton
+      <HStack gap={2} align="center">
+        <Button
           variant="primary"
           size="sm"
           label="Expand to code → preview"
           isDisabled={!valid}
           onClick={() => expanded?.ok && onApplyCode(expanded.code)}
         />
-        <XDSBadge
+        <Badge
           variant={valid ? 'success' : 'error'}
           label={
             check.ok
@@ -342,9 +352,9 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
           }
         />
         {valid && check.warnings.length > 0 && (
-          <XDSBadge variant="warning" label={`${check.warnings.length} warning`} />
+          <Badge variant="warning" label={`${check.warnings.length} warning`} />
         )}
-      </XDSHStack>
+      </HStack>
 
       {/* Token economics (BPE via gpt-tokenizer o200k_base; 'est.' until loaded) */}
       <div {...stylex.props(s.metrics)}>
@@ -362,9 +372,9 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
       </div>
 
       {!valid && check.errors.length > 0 && (
-        <XDSVStack gap={1}>
+        <VStack gap={1}>
           {check.errors.map((e, i) => (
-            <XDSBanner
+            <Banner
               key={i}
               status="error"
               title={
@@ -377,40 +387,40 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
               }
             />
           ))}
-        </XDSVStack>
+        </VStack>
       )}
 
       {valid && expanded?.ok && (
-        <XDSVStack gap={1}>
-          <XDSHStack gap={2} align="center">
-            <XDSText type="label">Rendered source (TSX)</XDSText>
+        <VStack gap={1}>
+          <HStack gap={2} align="center">
+            <Text type="label">Rendered source (TSX)</Text>
             {expanded.componentsUsed.length > 0 && (
-              <XDSText type="supporting">
+              <Text type="supporting">
                 {expanded.componentsUsed.length} components
                 {expanded.states ? ` · ${expanded.states} state hooks` : ''}
                 {expanded.todos.length ? ` · ${expanded.todos.length} TODO` : ''}
-              </XDSText>
+              </Text>
             )}
-          </XDSHStack>
+          </HStack>
           <pre {...stylex.props(s.source)}>{expanded.code}</pre>
-        </XDSVStack>
+        </VStack>
       )}
 
       {valid && (
-        <XDSVStack gap={1}>
-          <XDSText type="label">Canonical forms</XDSText>
+        <VStack gap={1}>
+          <Text type="label">Canonical forms</Text>
           <pre {...stylex.props(s.echo)}>{`compact:\n${check.compact}\n\noutline:\n${check.outline}`}</pre>
-        </XDSVStack>
+        </VStack>
       )}
 
       {/* Example browser */}
-      <XDSVStack gap={1}>
-        <XDSHStack gap={2} align="center" justify="between">
-          <XDSText type="label">Examples</XDSText>
-          <XDSText type="supporting">
+      <VStack gap={1}>
+        <HStack gap={2} align="center" justify="between">
+          <Text type="label">Examples</Text>
+          <Text type="supporting">
             {filtered.length} of {XLE_EXAMPLES.length}
-          </XDSText>
-        </XDSHStack>
+          </Text>
+        </HStack>
         <input
           {...stylex.props(s.search)}
           type="search"
@@ -422,7 +432,9 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
         <div {...stylex.props(s.browser)}>
           {XLE_CATEGORIES.map(cat => {
             const rows = filtered.filter(e => e.category === cat);
-            if (rows.length === 0) return null;
+            if (rows.length === 0) {
+              return null;
+            }
             return (
               <div key={cat}>
                 <div {...stylex.props(s.catHeader)}>{cat}</div>
@@ -432,10 +444,10 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
                     type="button"
                     {...stylex.props(s.row, ex.label === activeLabel && s.rowActive)}
                     onClick={() => pick(ex.label, ex.expr)}>
-                    <XDSVStack gap={0} xstyle={s.min0}>
+                    <VStack gap={0} xstyle={s.min0}>
                       <span {...stylex.props(s.rowLabel)}>{ex.label}</span>
                       <span {...stylex.props(s.rowExpr)}>{ex.expr.replace(/\n/g, ' ⏎ ')}</span>
-                    </XDSVStack>
+                    </VStack>
                     <span {...stylex.props(s.rowTok)}>{countTokens(ex.expr)} tok</span>
                   </button>
                 ))}
@@ -443,7 +455,7 @@ export function XLEPanel({onApplyCode}: {onApplyCode: (code: string) => void}) {
             );
           })}
         </div>
-      </XDSVStack>
+      </VStack>
     </div>
   );
 }

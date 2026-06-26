@@ -1,7 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 /**
- * @file Integration tests for the layout API against the real @xds/core
+ * @file Integration tests for the layout API against the real @astryxdesign/core
  * registry and real template blocks. Every expansion is additionally
  * checked for TSX syntactic validity with the TypeScript parser, so the
  * "expansion emits compilable JSX" contract is enforced, not assumed.
@@ -176,7 +176,7 @@ describe('template referencing', () => {
     expect((code.match(/<CardCallout \/>/g) || [])).toHaveLength(3);
     expect(code).not.toContain('TODO(xle)');
     // the block's own import is hoisted, and shared specifiers dedupe
-    expect((code.match(/from '@xds\/core\/Card'/g) || [])).toHaveLength(1);
+    expect((code.match(/from '@astryxdesign\/core\/Card'/g) || [])).toHaveLength(1);
     // the block lost its export — it's a local declaration now
     expect(code).not.toContain('export default function CardCallout');
     expect(result.data.blocksReferenced).toEqual([{name: 'CardCallout', mode: 'splice'}]);
@@ -195,11 +195,11 @@ describe('template referencing', () => {
   }, SLOW);
 
   it('imports app-registered local components (the local-component bridge)', async () => {
-    // Inside the workspace so @xds/core resolves; cleaned up after.
+    // Inside the workspace so @astryxdesign/core resolves; cleaned up after.
     const cwd = mkdtempSync(join(process.cwd(), '.xle-imp-test-'));
     try {
       writeFileSync(
-        join(cwd, 'xds.config.mjs'),
+        join(cwd, 'astryx.config.mjs'),
         `export default {layout: {components: {KpiCard: '@/components/KpiCard', TimeRangePicker: {from: '@/components/TimeRangePicker'}}}};\n`,
       );
       const result = await layoutExpand('S[p6] > (G[c4 g4] > {kpi-card}*4) + {time-range-picker}', {

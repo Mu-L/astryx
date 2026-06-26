@@ -4,9 +4,9 @@
  * @file layout command — thin CLI wrapper around api/layout.mjs.
  *
  * Subcommands:
- *   xds layout expand "<expr>" [path]   compressed expression → validated TSX
- *   xds layout check "<expr>"           validate + echo both canonical surfaces
- *   xds layout grammar                  agent cheatsheet (alias table is branch-generated)
+ *   astryx layout expand "<expr>" [path]   compressed expression → validated TSX
+ *   astryx layout check "<expr>"           validate + echo both canonical surfaces
+ *   astryx layout grammar                  agent cheatsheet (alias table is branch-generated)
  *
  * The expression argument may also come from --file or stdin (`-`),
  * which is how multi-line outline (XLO) input usually arrives.

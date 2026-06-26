@@ -70,7 +70,8 @@
   "peerDependencies": {
     "@astryxdesign/core": "*",
     "@astryxdesign/lab": "*",
-    "@astryxdesign/theme-neutral": "*"
+    "@astryxdesign/theme-neutral": "*",
+    "gpt-tokenizer": "^2.0.0"
   },
   "peerDependenciesMeta": {
     "@astryxdesign/core": {

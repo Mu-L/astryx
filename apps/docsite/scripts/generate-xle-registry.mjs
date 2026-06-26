@@ -4,7 +4,7 @@
 /**
  * Generates apps/docsite/src/generated/xle-registry.json
  *
- * The XLE/XLO layout language validates against @xds/core .doc.mjs metadata,
+ * The XLE/XLO layout language validates against @astryxdesign/core .doc.mjs metadata,
  * which the CLI reads from disk (Node-only). The browser playground can't do
  * that, so we build the registry here at deploy time and ship it as plain
  * JSON. Mirrors generate-scope.mjs; runs in the `pnpm generate` chain so new

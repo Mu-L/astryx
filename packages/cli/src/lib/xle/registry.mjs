@@ -1,7 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 /**
- * @file XLE component registry — built from @xds/core .doc.mjs metadata.
+ * @file XLE component registry — built from @astryxdesign/core .doc.mjs metadata.
  *
  * Everything the layout language knows about components (valid names,
  * aliases, props, enums, slots) is derived from the same .doc.mjs files
@@ -105,7 +105,7 @@ export async function buildRegistry({cwd = process.cwd()} = {}) {
 
   const coreDir = findCoreDir(cwd);
   if (!coreDir) {
-    throw new Error('Could not find @xds/core package — run from an XDS workspace');
+    throw new Error('Could not find @astryxdesign/core package — run from an XDS workspace');
   }
 
   const components = new Map();
@@ -150,7 +150,7 @@ export async function buildRegistry({cwd = process.cwd()} = {}) {
   const upgradeFromDoc = (rawName, props, fallbackDir) => {
     if (!props || props.length === 0) return;
     const name = normalizeName(rawName);
-    // Prefer the component's own export subpath (Heading → @xds/core/Heading);
+    // Prefer the component's own export subpath (Heading → @astryxdesign/core/Heading);
     // fall back to the dir it was found in, then any existing entry's path.
     const ip =
       resolveImportPath(coreDir, name) ||

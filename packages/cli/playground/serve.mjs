@@ -108,7 +108,9 @@ const server = createServer(async (req, res) => {
       const abs = file === 'levenshtein.mjs'
         ? join(CLI_SRC, 'lib/levenshtein.mjs')
         : join(CLI_SRC, 'lib/xle', file);
-      if (!abs.startsWith(CLI_SRC) || !file.endsWith('.mjs')) return send(res, 403, 'text/plain', 'forbidden');
+      if (!abs.startsWith(CLI_SRC) || !file.endsWith('.mjs')) {
+        return send(res, 403, 'text/plain', 'forbidden');
+      }
       // validate.mjs imports '../levenshtein.mjs' — rewrite to a flat /xle path.
       const body = readFileSync(abs, 'utf-8').replace(/from '\.\.\/levenshtein\.mjs'/g, "from './levenshtein.mjs'");
       return send(res, 200, 'text/javascript; charset=utf-8', body);

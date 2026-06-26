@@ -11,7 +11,7 @@
  *
  * @input  expression string + a serialized-or-hydrated registry (+ blocks)
  * @output checkExpression / expandExpression + the raw pipeline pieces
- * @position lib/xle — exported as `@xds/cli/xle`
+ * @position lib/xle — exported as `@astryxdesign/cli/xle`
  */
 
 import {parse, detectForm, XLEParseError} from './parse.mjs';

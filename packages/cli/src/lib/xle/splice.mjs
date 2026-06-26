@@ -7,7 +7,7 @@
  * A `{hint}` can resolve two ways:
  *   - splice: a template block (not an importable package) is co-defined as a
  *     local component in the generated module and referenced — the block's
- *     imports are hoisted and merged. This is what `xds template <name>` would
+ *     imports are hoisted and merged. This is what `astryx template <name>` would
  *     scaffold, inlined.
  *   - import: an app-registered local component (KpiCard, charts, …) is simply
  *     imported from its configured path and referenced. This is the bridge that

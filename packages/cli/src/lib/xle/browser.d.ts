@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-/** Type surface for `@xds/cli/xle` — the browser-safe layout language. */
+/** Type surface for `@astryxdesign/cli/xle` — the browser-safe layout language. */
 
 export interface XLEIssue {
   message: string;

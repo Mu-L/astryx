@@ -3,7 +3,7 @@
 /**
  * @file Programmatic API for the layout command (XLE/XLO).
  *
- * `xds layout` turns token-compressed layout expressions into validated
+ * `astryx layout` turns token-compressed layout expressions into validated
  * XDS TSX. Two input surfaces — compact (Emmet-derived XLE) and outline
  * (indentation-based XLO) — share one AST, one validator, and one
  * expander. See the research: pastes P2376666892 (spec) and P2376717669
@@ -16,7 +16,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {XDSError} from './error.mjs';
+import {AstryxError} from './error.mjs';
 import {ERROR_CODES} from '../lib/error-codes.mjs';
 import {assertWithin, isFilePathArg, PathSafetyError} from '../utils/path-safety.mjs';
 import {parse, detectForm, XLEParseError} from '../lib/xle/parse.mjs';
@@ -29,9 +29,9 @@ import {loadConfig} from '../lib/config.mjs';
 
 /**
  * The catalog a `{hint}` can resolve to: template blocks (spliced inline) plus
- * any app-registered local components from xds.config.mjs `layout.components`
+ * any app-registered local components from astryx.config.mjs `layout.components`
  * (imported by name). App components are how XLE reaches domain pieces — the
- * KpiCard/chart/drawer set that the @xds/core registry can't see.
+ * KpiCard/chart/drawer set that the @astryxdesign/core registry can't see.
  */
 async function loadBlocks(cwd) {
   const blocks = [];
@@ -127,7 +127,7 @@ async function analyze(expression, {form = 'auto', loose = false, cwd = process.
     doc = parse(expression, {form});
   } catch (e) {
     if (e instanceof XLEParseError) {
-      throw new XDSError(
+      throw new AstryxError(
         `Layout expression syntax error at line ${e.line}, col ${e.col}: ${e.message}`,
         undefined,
         ERROR_CODES.ERR_LAYOUT_PARSE,
@@ -141,7 +141,7 @@ async function analyze(expression, {form = 'auto', loose = false, cwd = process.
 }
 
 /**
- * `xds layout expand "<expr>" [path]`
+ * `astryx layout expand "<expr>" [path]`
  *
  * @param {string} expression
  * @param {object} [options]
@@ -156,7 +156,7 @@ export async function layoutExpand(expression, options = {}) {
   const {doc, registry, blocks, errors, warnings} = await analyze(expression, {form, loose, cwd});
 
   if (errors.length > 0) {
-    throw new XDSError(
+    throw new AstryxError(
       `Layout expression is invalid:\n` + errors.map(e => `  - ${formatIssue(e)}`).join('\n'),
       errors.flatMap(e => (e.suggestions || []).map(s => ({name: s, reason: 'did you mean this?'}))),
       ERROR_CODES.ERR_LAYOUT_INVALID,
@@ -165,7 +165,7 @@ export async function layoutExpand(expression, options = {}) {
 
   const componentName = name || 'GeneratedLayout';
   if (!/^[A-Z][A-Za-z0-9]*$/.test(componentName)) {
-    throw new XDSError(
+    throw new AstryxError(
       `--name must be a PascalCase component name, got '${componentName}'`,
       undefined,
       ERROR_CODES.ERR_INVALID_ARGUMENT,
@@ -181,7 +181,7 @@ export async function layoutExpand(expression, options = {}) {
       resolved = assertWithin(targetPath, cwd, {label: 'layout target path'});
     } catch (err) {
       if (err instanceof PathSafetyError) {
-        throw new XDSError(err.message, undefined, ERROR_CODES.ERR_PATH_TRAVERSAL);
+        throw new AstryxError(err.message, undefined, ERROR_CODES.ERR_PATH_TRAVERSAL);
       }
       throw err;
     }
@@ -209,7 +209,7 @@ export async function layoutExpand(expression, options = {}) {
 }
 
 /**
- * `xds layout check "<expr>" [--form compact|outline]`
+ * `astryx layout check "<expr>" [--form compact|outline]`
  * Validates without expanding; echoes both canonical surfaces.
  */
 export async function layoutCheck(expression, options = {}) {
@@ -230,7 +230,7 @@ export async function layoutCheck(expression, options = {}) {
 }
 
 /**
- * `xds layout grammar` — the agent cheatsheet, with the alias table
+ * `astryx layout grammar` — the agent cheatsheet, with the alias table
  * generated from this branch's registry (never hand-maintained).
  */
 export async function layoutGrammar(options = {}) {
@@ -250,8 +250,8 @@ export async function layoutGrammar(options = {}) {
   const text = `XLE/XLO — XDS layout expressions (branch-generated; aliases reflect this install)
 
 WORKFLOW
-  xds layout check "<expr>"           validate; echoes canonical compact + outline forms
-  xds layout expand "<expr>" [path]   emit validated TSX (path optional; --name <Pascal>)
+  astryx layout check "<expr>"           validate; echoes canonical compact + outline forms
+  astryx layout expand "<expr>" [path]   emit validated TSX (path optional; --name <Pascal>)
   Errors carry line/col + suggestions. Fix and resubmit; nothing is guessed.
 
 TWO SURFACES, ONE LANGUAGE (autodetected; --form to force)
@@ -275,12 +275,12 @@ ATTRS [...] (outline: bare tokens after the name, no brackets)
   trigger      opens=#id  (a plain attr, no @ — binds an onClick that opens the overlay)
   fill         on a stack child → wraps in <StackItem size="fill">
 
-TEMPLATE REFERENCING  ({hint} pulls in real content — this is how XLE reaches past the @xds/core shell)
-  C{card-callout}              splice a template block (xds template --list --type block):
+TEMPLATE REFERENCING  ({hint} pulls in real content — this is how XLE reaches past the @astryxdesign/core shell)
+  C{card-callout}              splice a template block (astryx template --list --type block):
                               the block is co-defined once in the file, referenced, imports merged
   {kpi-card}                   standalone reference (no wrapper element) — place a component directly
   {kpi-card}*4                 repeat a reference; the definition/import is emitted once
-  app components               register local ones in xds.config.mjs to import them by name:
+  app components               register local ones in astryx.config.mjs to import them by name:
                                  export default {layout: {components: {KpiCard: '@/components/KpiCard'}}}
                                then {kpi-card} → import {KpiCard} + <KpiCard /> (kebab ↔ Pascal)
 
