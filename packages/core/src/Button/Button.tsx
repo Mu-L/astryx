@@ -15,7 +15,7 @@
  * - /apps/storybook/stories/Button.stories.tsx (storybook stories)
  * - /packages/cli/templates/blocks/components/Button/ (showcase blocks)
  *
- * Last synced props: label, variant, size, isDisabled, isLoading, clickAction, icon, isIconOnly, children, tooltip, endContent, href, as, target, rel
+ * Last synced props: label, variant, size, isDisabled, isLoading, isInterruptible, clickAction, icon, isIconOnly, children, tooltip, endContent, href, as, target, rel
  */
 
 import {useRef, useTransition, type ReactNode} from 'react';
@@ -321,6 +321,14 @@ export interface ButtonProps extends BaseProps<HTMLButtonElement> {
    */
   isLoading?: boolean;
   /**
+   * Keep the button interactive while loading. The loading state still renders
+   * the spinner and `aria-busy`, but does not disable the button — so clicks
+   * keep landing. Use for interruptible actions (e.g. a toggle whose action can
+   * be re-triggered before the previous one settles).
+   * @default false
+   */
+  isInterruptible?: boolean;
+  /**
    * Click handler. For async actions that should show a loading state,
    * use `clickAction` instead.
    */
@@ -493,6 +501,7 @@ export function Button({
   type = 'button',
   isDisabled = false,
   isLoading = false,
+  isInterruptible = false,
   clickAction,
   icon,
   isIconOnly = false,
@@ -518,7 +527,10 @@ export function Button({
   const actionInFlightRef = useRef(false);
   const isLoadingState = isLoading || isPending;
   const groupDisabled = buttonGroup?.isDisabled ?? false;
-  const buttonDisabled = isDisabled || groupDisabled || isLoadingState;
+  // When interruptible, the loading state drives the spinner and aria-busy but
+  // not disabled, so clicks keep landing and can interrupt the in-flight action.
+  const buttonDisabled =
+    isDisabled || groupDisabled || (isLoadingState && !isInterruptible);
   // isIconOnly prop is the source of truth for icon-only rendering.
   // When false (default), label is always rendered as visible text.
 

@@ -9,7 +9,7 @@
  */
 
 import {describe, it, expect, vi} from 'vitest';
-import {render, screen, act, fireEvent, waitFor} from '@testing-library/react';
+import {render, screen, act, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {ToggleButton} from './ToggleButton';
@@ -193,7 +193,7 @@ describe('ToggleButton', () => {
     expect(screen.getByTestId('bold-toggle')).toBeInTheDocument();
   });
 
-  it('shows the optimistic pressed state immediately, before any spinner', async () => {
+  it('shows the optimistic pressed state and stays interruptible while pending', async () => {
     const user = userEvent.setup();
     let resolveAction: (() => void) | undefined;
     const pressedChangeAction = vi.fn(
@@ -217,12 +217,13 @@ describe('ToggleButton', () => {
 
     await user.click(button);
 
-    // The optimistic state flips immediately. The spinner is debounced, so the
-    // button is not disabled or aria-busy yet — it stays interruptible.
+    // The optimistic state flips immediately and the spinner shows via
+    // aria-busy, but the button is never disabled — it stays clickable so the
+    // action can be interrupted by another click.
     expect(pressedChangeAction).toHaveBeenCalledWith(true);
     expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveAttribute('aria-busy', 'true');
     expect(button).not.toBeDisabled();
-    expect(button).not.toHaveAttribute('aria-busy', 'true');
 
     // Settle the action so the pending transition doesn't leak into later tests.
     await act(async () => {
@@ -231,7 +232,7 @@ describe('ToggleButton', () => {
     });
   });
 
-  it('shows a loading spinner once the action stays pending past the delay', async () => {
+  it('clears the loading state once the action settles', async () => {
     const user = userEvent.setup();
     let resolveAction: (() => void) | undefined;
     const pressedChangeAction = vi.fn(
@@ -253,18 +254,15 @@ describe('ToggleButton', () => {
     const button = screen.getByRole('button', {name: 'Favorite'});
     await user.click(button);
 
-    // The optimistic state shows immediately; the spinner is debounced and
-    // appears only after the action stays pending past the delay window.
-    expect(button).toHaveAttribute('aria-pressed', 'true');
-    await waitFor(() => expect(button).toBeDisabled());
     expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).not.toBeDisabled();
 
     await act(async () => {
       resolveAction?.();
       await Promise.resolve();
     });
-    expect(button).not.toBeDisabled();
     expect(button).not.toHaveAttribute('aria-busy', 'true');
+    expect(button).not.toBeDisabled();
   });
 
   it('interrupts an in-flight action on re-click (true -> false -> true)', async () => {
@@ -290,9 +288,8 @@ describe('ToggleButton', () => {
     const button = screen.getByRole('button', {name: 'Favorite'});
 
     // Each click derives the next state from the optimistic (in-progress)
-    // value, so rapid clicks toggle rather than being dropped. fireEvent keeps
-    // the clicks within the spinner debounce window so the button stays
-    // interruptible.
+    // value, so rapid clicks toggle rather than being dropped. The button is
+    // never disabled while pending, so every click lands and interrupts.
     await act(async () => {
       fireEvent.click(button);
     });

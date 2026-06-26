@@ -40,7 +40,7 @@ export const docs = {
     {
       name: 'pressedChangeAction',
       type: '(isPressed: boolean) => void | Promise<void>',
-      description: 'Action handler for API- or navigation-backed toggles, run in a transition. Shows an optimistic pressed state immediately and a (debounced) spinner while pending; interruptible by re-clicks.',
+      description: 'Action handler for API- or navigation-backed toggles, run in a transition. Shows an optimistic pressed state immediately and a spinner while pending; the button stays interruptible by re-clicks.',
     },
     {
       name: 'size',

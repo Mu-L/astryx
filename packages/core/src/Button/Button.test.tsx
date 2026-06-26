@@ -71,6 +71,20 @@ describe('Button', () => {
     expect(button).toBeDisabled();
   });
 
+  it('stays clickable while loading when isInterruptible is set', async () => {
+    const user = userEvent.setup();
+    const handleClick = vi.fn();
+    render(
+      <Button label="Submit" isLoading isInterruptible onClick={handleClick} />,
+    );
+    const button = screen.getByRole('button');
+    // Loading affordance still shows, but the button is not disabled.
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).not.toBeDisabled();
+    await user.click(button);
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the loading spinner with the inherit shade for every variant (#2717)', () => {
     // The spinner must follow the button's resolved foreground color rather
     // than a hardcoded white, so it keeps contrast on themed variants like the
