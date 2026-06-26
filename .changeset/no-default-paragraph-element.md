@@ -19,8 +19,10 @@ result is unchanged):
 - `Banner` — `title` and `description` slots.
 - `EmptyState` — `description` slot.
 - `Markdown` — rendered paragraphs and image blocks. A markdown paragraph maps
-  to a block `<div>` rather than `<p>`; spacing already comes from tokens. Pass
-  `components={{paragraph: 'p'}}` to opt back into `<p>` semantics.
+  to a block `<div role="paragraph">` rather than `<p>`; the role re-exposes
+  paragraph semantics to assistive tech without the `<p>` composition hazard,
+  and spacing already comes from tokens. Pass `components={{paragraph: 'p'}}`
+  to render a real `<p>` element instead.
 
 `Text` is unaffected — it already defaults to `<span>` and keeps `as="p"` as an
 opt-in. No public API changes: this only changes the default rendered element.

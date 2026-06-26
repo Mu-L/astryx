@@ -26,9 +26,12 @@ describe('Markdown', () => {
     render(<Markdown>{'Hello world'}</Markdown>);
     // Markdown paragraphs render as <div> so block-level inline content
     // (images, custom inline components) never trips the phrasing-content
-    // trap that a <p> would impose. Consumers who want <p> semantics can
-    // pass `components={{paragraph: 'p'}}`.
-    expect(screen.getByText('Hello world').tagName).toBe('DIV');
+    // trap that a <p> would impose. role="paragraph" re-exposes the paragraph
+    // role to assistive tech without the <p> hazard. Consumers who want a real
+    // <p> element can pass `components={{paragraph: 'p'}}`.
+    const para = screen.getByText('Hello world');
+    expect(para.tagName).toBe('DIV');
+    expect(para).toHaveAttribute('role', 'paragraph');
   });
 
   it('renders inline display without block wrappers', () => {

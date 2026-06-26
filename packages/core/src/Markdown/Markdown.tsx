@@ -1117,11 +1117,15 @@ function renderBlock(
       // include block-level nodes (images, custom inline components), and a
       // <p> would reparent them, desyncing SSR markup from the hydrated DOM.
       // Block spacing comes from token-based StyleX margins, so the rendered
-      // appearance is unchanged. Consumers who want <p> semantics can pass
-      // components={{paragraph: 'p'}}.
+      // appearance is unchanged. role="paragraph" re-exposes the paragraph
+      // role in the accessibility tree (a pure ARIA hint — it does not trigger
+      // the parser's block-child reparenting) so prose semantics are preserved
+      // without the <p> composition hazard. Consumers who want a real <p>
+      // element can still pass components={{paragraph: 'p'}}.
       return (
         <div
           key={index}
+          role="paragraph"
           {...stylex.props(
             spacing,
             contentWidthValue != null
