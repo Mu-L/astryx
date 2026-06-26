@@ -251,9 +251,6 @@ describe('Button', () => {
   });
 
   it('fires clickAction once on a fast double-click (no double-submit)', async () => {
-    // clickAction is a fire-once command, so a second synchronous click while
-    // the first action is still pending must not fire it again. Guards the
-    // re-entry protection in handleClick from regressing.
     let resolveAction: (() => void) | undefined;
     const handleAction = vi.fn(
       async () =>

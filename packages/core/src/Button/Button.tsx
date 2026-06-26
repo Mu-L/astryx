@@ -513,14 +513,10 @@ export function Button({
   const buttonGroup = useButtonGroup();
 
   const [isPending, startTransition] = useTransition();
-  // Synchronous re-entry guard against double-submit. Unlike a toggle (where a
-  // re-click is a *new* intent and the action should stay interruptible),
-  // clickAction is a fire-once command (submit/save/pay) — a second fire is a
-  // duplicate, not new intent. isPending and useOptimistic don't help here:
-  // neither commits within the same tick, so a fast double-click would fire
-  // clickAction twice before the disabled state lands. The ref is the only
-  // same-tick-safe dedupe — keep it. (cf. ToggleButton/Pagination, which are
-  // interruptible state transitions and intentionally have no guard.)
+  // clickAction is a fire-once command (submit/save/pay), not a state
+  // transition — a re-click is a duplicate, not new intent. Neither isPending
+  // nor useOptimistic dedupes a same-tick double-click, so this ref is the only
+  // reliable guard. Keep it (unlike the interruptible ToggleButton/Pagination).
   const actionInFlightRef = useRef(false);
   const isLoadingState = isLoading || isPending;
   const groupDisabled = buttonGroup?.isDisabled ?? false;

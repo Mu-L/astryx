@@ -391,8 +391,8 @@ describe('Pagination', () => {
         />,
       );
 
-      // The committed `page` prop stays at 1 (the consumer hasn't re-rendered),
-      // but the indicator optimistically reflects the page being navigated to.
+      // The committed `page` prop stays at 1, but the indicator optimistically
+      // reflects the page being navigated to.
       await user.click(screen.getByRole('button', {name: 'Go to next page'}));
       expect(changeAction).toHaveBeenCalledWith(2);
       expect(screen.getByText('Page 2 of 5')).toBeInTheDocument();
@@ -405,9 +405,8 @@ describe('Pagination', () => {
 
     it('interrupts an in-flight action on rapid next clicks', async () => {
       // Each click derives its target from the optimistic page, so clicking
-      // next twice before the action settles advances 1 -> 2 -> 3 rather than
-      // being dropped by a re-entry guard. The consumer never re-renders here,
-      // so the committed `page` prop stays at 1 the whole time.
+      // next twice before the action settles advances 1 -> 2 -> 3 instead of
+      // being dropped by a re-entry guard.
       const resolvers: (() => void)[] = [];
       const changeAction = vi.fn(
         async () =>

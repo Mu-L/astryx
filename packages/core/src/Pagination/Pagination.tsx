@@ -352,8 +352,8 @@ export function Pagination({
   const [, startTransition] = useTransition();
 
   // Track the page optimistically. While a changeAction is pending the controls
-  // reflect the page the user is navigating to, and a click mid-flight derives
-  // its target from this value — so rapid prev/next clicks advance instead of
+  // reflect the page being navigated to, and a click mid-flight derives its
+  // target from this value — so rapid prev/next clicks advance instead of
   // stalling on the last committed page.
   const [optimisticPage, setOptimisticPage] = useOptimistic(page);
 
@@ -376,21 +376,18 @@ export function Pagination({
     return null;
   }
 
-  // Run the page change inside a transition so changeAction drives a pending
-  // state. The transition is interruptible — clicking again before it settles
-  // starts a fresh transition with the next optimistic page rather than being
-  // dropped, so there is no re-entry guard. A synchronous handler that suspends
-  // (e.g. a router navigation that suspends on data) also drives the pending
-  // state, not just promises.
+  // Run the page change in a transition so changeAction drives a pending state.
+  // The transition is interruptible — clicking again before it settles starts a
+  // fresh transition with the next optimistic page rather than being dropped, so
+  // there is no re-entry guard. A synchronous handler that suspends drives the
+  // pending state too, not just promises.
   const handlePageChange = (newPage: number) => {
     if (isDisabled) {
       return;
     }
-    // Notify the consumer urgently so controlled page state (and any data it
-    // drives, e.g. the Table pagination plugin slicing rows) updates in the
-    // same commit as the click. Only the optimistic indicator and changeAction
-    // run inside the transition — keeping onChange urgent avoids deferring the
-    // real page update behind the low-priority transition.
+    // Keep onChange urgent so controlled page state updates in the same commit
+    // as the click; only the optimistic indicator and changeAction defer to the
+    // transition.
     onChange(newPage);
     startTransition(async () => {
       setOptimisticPage(newPage);
