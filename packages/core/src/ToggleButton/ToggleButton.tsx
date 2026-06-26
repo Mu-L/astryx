@@ -89,11 +89,17 @@ export interface ToggleButtonProps extends BaseProps<HTMLButtonElement> {
   isPressed?: boolean;
 
   /**
-   * Called when the pressed state should change.
+   * Called when the pressed state should change. Receives the next pressed
+   * state and the originating click event. Call `event.preventDefault()` to
+   * opt out of running `pressedChangeAction` (e.g. to handle the toggle
+   * entirely in this callback).
    * When used inside ToggleButtonGroup, this is handled by the group
    * and this prop is ignored.
    */
-  onPressedChange?: (isPressed: boolean) => void;
+  onPressedChange?: (
+    isPressed: boolean,
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => void;
 
   /**
    * Action handler for API- or navigation-backed toggles, run inside a
@@ -262,32 +268,38 @@ export function ToggleButton({
   const isLoadingState =
     isLoading || (isPending && pressedChangeAction != null);
 
-  const handleClick = useCallback(() => {
-    if (isDisabled) {
-      return;
-    }
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (isDisabled) {
+        return;
+      }
 
-    if (group && value != null) {
-      // Group mode delegates selection to the group; no async-action path.
-      group.toggle(value);
-      return;
-    }
+      if (group && value != null) {
+        // Group mode delegates selection to the group; no async-action path.
+        group.toggle(value);
+        return;
+      }
 
-    const newState = !optimisticPressed;
-    startTransition(async () => {
-      setOptimisticPressed(newState);
-      onPressedChangeProp?.(newState);
-      await pressedChangeAction?.(newState);
-    });
-  }, [
-    isDisabled,
-    group,
-    value,
-    optimisticPressed,
-    onPressedChangeProp,
-    pressedChangeAction,
-    setOptimisticPressed,
-  ]);
+      const newState = !optimisticPressed;
+      startTransition(async () => {
+        setOptimisticPressed(newState);
+        onPressedChangeProp?.(newState, event);
+        // Let onPressedChange opt out of the action via event.preventDefault().
+        if (!event.defaultPrevented) {
+          await pressedChangeAction?.(newState);
+        }
+      });
+    },
+    [
+      isDisabled,
+      group,
+      value,
+      optimisticPressed,
+      onPressedChangeProp,
+      pressedChangeAction,
+      setOptimisticPressed,
+    ],
+  );
 
   // isIconOnly prop is the source of truth for icon-only rendering.
   const labelContent =

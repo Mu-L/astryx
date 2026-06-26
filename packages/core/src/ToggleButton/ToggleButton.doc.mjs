@@ -34,8 +34,8 @@ export const docs = {
     },
     {
       name: 'onPressedChange',
-      type: '(isPressed: boolean) => void',
-      description: 'Called when pressed state should change. Ignored when inside a group.',
+      type: '(isPressed: boolean, event: MouseEvent) => void',
+      description: 'Called when pressed state should change. Receives the next state and the click event; call event.preventDefault() to skip pressedChangeAction. Ignored when inside a group.',
     },
     {
       name: 'pressedChangeAction',

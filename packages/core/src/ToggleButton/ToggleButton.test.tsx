@@ -11,7 +11,7 @@
 import {describe, it, expect, vi} from 'vitest';
 import {render, screen, act, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {useState} from 'react';
+import {useState, type MouseEvent} from 'react';
 import {ToggleButton} from './ToggleButton';
 import {ToggleButtonGroup} from './ToggleButtonGroup';
 
@@ -88,7 +88,7 @@ describe('ToggleButton', () => {
     );
 
     await user.click(screen.getByRole('button'));
-    expect(handleChange).toHaveBeenCalledWith(true);
+    expect(handleChange).toHaveBeenCalledWith(true, expect.anything());
   });
 
   it('calls onPressedChange with false when clicking pressed button', async () => {
@@ -103,7 +103,7 @@ describe('ToggleButton', () => {
     );
 
     await user.click(screen.getByRole('button'));
-    expect(handleChange).toHaveBeenCalledWith(false);
+    expect(handleChange).toHaveBeenCalledWith(false, expect.anything());
   });
 
   it('renders pressedIcon when pressed', () => {
@@ -332,8 +332,32 @@ describe('ToggleButton', () => {
     const button = screen.getByRole('button', {name: 'Favorite'});
     await user.click(button);
 
-    expect(onPressedChange).toHaveBeenCalledWith(true);
+    expect(onPressedChange).toHaveBeenCalledWith(true, expect.anything());
     expect(pressedChangeAction).toHaveBeenCalledWith(true);
+  });
+
+  it('skips pressedChangeAction when onPressedChange calls preventDefault', async () => {
+    const user = userEvent.setup();
+    const pressedChangeAction = vi.fn();
+    const onPressedChange = vi.fn(
+      (_next: boolean, event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+      },
+    );
+
+    render(
+      <ToggleButton
+        label="Favorite"
+        isPressed={false}
+        onPressedChange={onPressedChange}
+        pressedChangeAction={pressedChangeAction}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', {name: 'Favorite'}));
+
+    expect(onPressedChange).toHaveBeenCalledWith(true, expect.anything());
+    expect(pressedChangeAction).not.toHaveBeenCalled();
   });
 });
 
