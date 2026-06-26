@@ -1113,8 +1113,14 @@ function renderBlock(
       if (ParagraphComp) {
         return <ParagraphComp key={index}>{paraChildren}</ParagraphComp>;
       }
+      // Markdown paragraphs render as <div>, not <p>: inline content can
+      // include block-level nodes (images, custom inline components), and a
+      // <p> would reparent them, desyncing SSR markup from the hydrated DOM.
+      // Block spacing comes from token-based StyleX margins, so the rendered
+      // appearance is unchanged. Consumers who want <p> semantics can pass
+      // components={{paragraph: 'p'}}.
       return (
-        <p
+        <div
           key={index}
           {...stylex.props(
             spacing,
@@ -1128,7 +1134,7 @@ function renderBlock(
             isLast && styles.noMarginBlockEnd,
           )}>
           {paraChildren}
-        </p>
+        </div>
       );
     }
     case 'codeblock': {
@@ -1487,7 +1493,7 @@ function renderBlock(
       const safeSrc = sanitizeUrl(node.src);
       if (safeSrc == null) {
         return (
-          <p
+          <div
             key={index}
             {...stylex.props(
               spacing,
@@ -1495,11 +1501,11 @@ function renderBlock(
               isLast && styles.noMarginBlockEnd,
             )}>
             [{node.alt}]
-          </p>
+          </div>
         );
       }
       return (
-        <p
+        <div
           key={index}
           {...stylex.props(
             spacing,
@@ -1507,7 +1513,7 @@ function renderBlock(
             isLast && styles.noMarginBlockEnd,
           )}>
           <img src={safeSrc} alt={node.alt} {...stylex.props(styles.image)} />
-        </p>
+        </div>
       );
     }
   }
