@@ -22,9 +22,7 @@
 
 import React, {
   useCallback,
-  useEffect,
   useOptimistic,
-  useState,
   useTransition,
   type ReactNode,
 } from 'react';
@@ -35,37 +33,6 @@ import {Button, type ButtonSize} from '../Button';
 import {useToggleButtonGroup} from './ToggleButtonGroup';
 import type {BaseProps} from '../BaseProps';
 import {xdsThemeProps} from '../utils/xdsThemeProps';
-
-// =============================================================================
-// Constants & helpers
-// =============================================================================
-
-/**
- * The spinner only appears once the action has been pending for this long.
- * A fast action shows the optimistic pressed state immediately with no spinner
- * flash, and rapid re-clicks can interrupt the in-flight action before the
- * button locks behind the spinner.
- */
-const PENDING_SPINNER_DELAY_MS = 150;
-
-/**
- * Returns `true` only once `active` has stayed `true` for `delayMs`.
- * Used to debounce the loading spinner so the optimistic state shows first.
- */
-function useDelayed(active: boolean, delayMs: number): boolean {
-  const [delayed, setDelayed] = useState(false);
-  useEffect(() => {
-    if (!active) {
-      return undefined;
-    }
-    const timer = setTimeout(() => setDelayed(true), delayMs);
-    return () => {
-      clearTimeout(timer);
-      setDelayed(false);
-    };
-  }, [active, delayMs]);
-  return active && delayed;
-}
 
 // =============================================================================
 // Styles
@@ -289,10 +256,11 @@ export function ToggleButton({
   // which means a synchronous-but-suspending handler (e.g. a router navigation
   // that suspends on data) also drives the pending state — not just promises.
   const [isPending, startTransition] = useTransition();
-  // Debounce the spinner so a fast action shows the optimistic state without a
-  // spinner flash, and rapid re-clicks can interrupt before the button locks.
-  const showSpinner = useDelayed(isPending, PENDING_SPINNER_DELAY_MS);
-  const isLoadingState = isLoading || showSpinner;
+  // Only an async action produces a meaningful pending state; a purely local
+  // toggle settles synchronously. isInterruptible keeps the button clickable
+  // while the spinner shows, so re-clicks interrupt instead of being blocked.
+  const isLoadingState =
+    isLoading || (isPending && pressedChangeAction != null);
 
   const handleClick = useCallback(() => {
     if (isDisabled) {
@@ -353,6 +321,7 @@ export function ToggleButton({
       size={size}
       isDisabled={isDisabled}
       isLoading={isLoadingState}
+      isInterruptible
       isIconOnly={isIconOnly}
       aria-pressed={isPressed}
       icon={resolvedIcon}
