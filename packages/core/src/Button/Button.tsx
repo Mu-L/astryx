@@ -513,10 +513,8 @@ export function Button({
   const buttonGroup = useButtonGroup();
 
   const [isPending, startTransition] = useTransition();
-  // clickAction is a fire-once command (submit/save/pay), not a state
-  // transition — a re-click is a duplicate, not new intent. Neither isPending
-  // nor useOptimistic dedupes a same-tick double-click, so this ref is the only
-  // reliable guard. Keep it (unlike the interruptible ToggleButton/Pagination).
+  // clickAction is fire-once (submit/save/pay), so a same-tick double-click must
+  // dedupe — which neither isPending nor useOptimistic do. Hence the ref guard.
   const actionInFlightRef = useRef(false);
   const isLoadingState = isLoading || isPending;
   const groupDisabled = buttonGroup?.isDisabled ?? false;
