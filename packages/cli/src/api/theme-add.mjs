@@ -1,17 +1,9 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 /**
- * @file Programmatic API for `astryx theme add`.
- *
- * Scaffolds a theme's *source* into a consumer's project so they can own and
- * customize it — the copy-and-keep counterpart to installing a maintained
- * theme package. The theme sources are bundled into the CLI under
- * `templates/themes/` (see scripts/generate-cli-themes.mjs), so this works
- * without the theme package being installed, exactly like page templates.
- *
- * A theme is a small unit of files: the `defineTheme` source plus the
- * `icons.tsx` it imports. We copy the whole unit so the scaffolded theme
- * renders without further setup; the consumer renames/edits from there.
+ * @file Programmatic API for `astryx theme add` — copies a bundled theme's
+ * source (`templates/themes/`, see scripts/generate-cli-themes.mjs) into the
+ * consumer's project so they own it, without needing the theme package.
  */
 
 import * as fs from 'node:fs';
@@ -24,25 +16,16 @@ import {ERROR_CODES} from '../lib/error-codes.mjs';
 const THEMES_DIR = path.join(CLI_ROOT, 'templates', 'themes');
 const MANIFEST_PATH = path.join(THEMES_DIR, 'manifest.json');
 
-// Repo-only copyright header. Stripped from scaffolded files so the theme the
-// consumer now owns doesn't carry our internal boilerplate (mirrors how the
-// docsite strips it from copied/rendered examples). Preserves any leading BOM
-// or shebang, like stripCodeExampleCopyrightHeader in the docsite.
+// Stripped from scaffolded files so the consumer's copy doesn't carry our
+// repo boilerplate (mirrors the docsite). Preserves a leading BOM/shebang.
 const META_COPYRIGHT_HEADER_RE =
   /^(\uFEFF?(?:#![^\r\n]*(?:\r?\n))?)\/\/ Copyright \(c\) Meta Platforms, Inc\. and affiliates\.\r?\n(?:\r?\n)*/;
 
-/** Strip the repo copyright header from a scaffolded file's contents. */
 function stripCopyrightHeader(source) {
   return source.replace(META_COPYRIGHT_HEADER_RE, '$1');
 }
 
-/**
- * Load the bundled-theme manifest. Returns the parsed `themes` array, or an
- * empty array if the bundle is missing (e.g. generator never ran). Throws only
- * on a corrupt manifest, since that signals a real packaging bug.
- *
- * @returns {Array<{slug: string, displayName: string, description: string, maintained: boolean, entry: string, exportName: string, files: string[]}>}
- */
+/** Parsed `themes` array from the bundle manifest (empty if not generated). */
 export function listThemes() {
   if (!fs.existsSync(MANIFEST_PATH)) return [];
   let manifest;
@@ -58,37 +41,23 @@ export function listThemes() {
   return Array.isArray(manifest.themes) ? manifest.themes : [];
 }
 
-/** Find one theme entry by slug (case-insensitive), or undefined. */
 function findTheme(slug) {
   if (!slug) return undefined;
   const lc = String(slug).toLowerCase();
   return listThemes().find(t => t.slug.toLowerCase() === lc);
 }
 
-/**
- * Default scaffold destination for a theme when the user omits a path. Mirrors
- * the convention the docsite shows (`./src/themes/<slug>.ts`). Returns a
- * directory the theme's files land in, plus the suggested entry rename.
- */
 function defaultTargetDir(slug) {
   return path.join('src', 'themes', slug);
 }
 
 /**
- * Resolve the scaffold plan for `theme add`.
+ * Resolve the scaffold plan for `theme add`. Returns the theme list when no
+ * slug (or `list`); otherwise copies the theme's files into the destination
+ * (defaults to `src/themes/<slug>/`).
  *
- * Behaviors:
- *   - no slug, or `list` → returns the theme list
- *   - slug only (no targetPath) → defaults the destination to
- *     `src/themes/<slug>/`
- *   - copies every file in the theme unit into the destination directory
- *
- * @param {string} [slug] - Theme slug (e.g. "matcha").
- * @param {object} [options]
- * @param {boolean} [options.list] - Force the list view.
- * @param {string} [options.targetPath] - Destination directory (relative to cwd).
- * @param {boolean} [options.overwrite] - Allow clobbering existing files.
- * @param {string} [options.cwd]
+ * @param {string} [slug]
+ * @param {{list?: boolean, targetPath?: string, overwrite?: boolean, cwd?: string}} [options]
  * @returns {Promise<{type: string, data: unknown}>}
  */
 export async function themeAdd(slug, options = {}) {
@@ -122,8 +91,7 @@ export async function themeAdd(slug, options = {}) {
 
   const themeSrcDir = path.join(THEMES_DIR, match.slug);
 
-  // Resolve the destination dir (path-safe). Default to the conventional
-  // location when the user omits it so `theme add matcha` "just works".
+  // Path-safe destination; reject traversal outside cwd.
   const rawTarget = targetPath || defaultTargetDir(match.slug);
   let resolvedDir;
   try {
@@ -139,7 +107,6 @@ export async function themeAdd(slug, options = {}) {
     throw err;
   }
 
-  // Verify every source file exists before writing anything.
   const writes = match.files.map(name => ({
     name,
     src: path.join(themeSrcDir, name),
@@ -156,8 +123,7 @@ export async function themeAdd(slug, options = {}) {
     }
   }
 
-  // Collision detection: refuse to clobber unless --overwrite. Report the
-  // first existing file (the caller surfaces a friendly message / prompt).
+  // Refuse to clobber unless --overwrite.
   if (!overwrite) {
     const existing = writes.find(w => fs.existsSync(w.dest));
     if (existing) {
@@ -171,15 +137,13 @@ export async function themeAdd(slug, options = {}) {
     }
   }
 
-  // Stage-then-commit write: copy to temp files, then rename into place. If
-  // any copy fails we roll back partial temps so we never leave a half-written
-  // theme behind.
+  // Stage to temp files then rename, rolling back partials on failure so a
+  // failed write never leaves a half-written theme.
   fs.mkdirSync(resolvedDir, {recursive: true});
   const staged = [];
   try {
     for (const w of writes) {
       const tmp = `${w.dest}.${process.pid}.tmp`;
-      // Read + strip the repo header so the user's copy is clean, then write.
       const contents = stripCopyrightHeader(fs.readFileSync(w.src, 'utf-8'));
       fs.writeFileSync(tmp, contents);
       staged.push({tmp, dest: w.dest});

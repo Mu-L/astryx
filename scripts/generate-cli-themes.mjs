@@ -1,25 +1,10 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 /**
- * @file generate-cli-themes.mjs
- *
- * Bundles theme *source* into the CLI so `astryx theme add <slug> <dest>` can
- * scaffold a theme file into a consumer's project WITHOUT requiring the theme
- * package to be installed. This mirrors how page templates are shipped under
- * `packages/cli/templates/pages/` — the CLI carries the source it scaffolds.
- *
- * For each theme package in `packages/themes/<slug>/`:
- *   - copies its `src/<slug>Theme.ts` (the defineTheme source) and the
- *     `src/icons.tsx` it imports into `packages/cli/templates/themes/<slug>/`
- *   - records metadata (display name, description, the maintained flag, the
- *     entry file, and the list of files) into a single `manifest.json`
- *
- * The maintained theme (Neutral) is included too: `theme add neutral` works,
- * even though the docsite nudges people to `npm install` it instead.
- *
- * Run from the repo root: `node scripts/generate-cli-themes.mjs`
- * Kept in sync by the CLI's prepare-ish flow / CI; commit the output so the
- * published package contains it.
+ * @file Bundles each theme's source (`src/<slug>Theme.ts` + `icons.tsx`) and a
+ * `manifest.json` into `packages/cli/templates/themes/` so `astryx theme add`
+ * can scaffold a theme without the package installed — like page templates.
+ * Run from the repo root; commit the output so the published CLI carries it.
  */
 
 import * as fs from 'node:fs';
@@ -37,12 +22,9 @@ const CLI_THEMES_OUT = path.join(
   'themes',
 );
 
-// The one theme the design team maintains as an installable package. Every
-// other theme is an example users copy into their own file. Keep in sync with
-// MAINTAINED_THEME_PACKAGE in apps/docsite/src/components/ThemePackagePage.tsx.
+// Flagged in the manifest so `theme list` can mark it "(maintained)".
 const MAINTAINED_SLUG = 'neutral';
 
-/** kebab/lowercase slug → camelCase identifier (matches the source files). */
 function toIdentifier(slug) {
   return slug.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 }
@@ -96,8 +78,7 @@ function main() {
     const themeFileName = `${id}Theme.ts`;
     const themeFile = path.join(srcDir, themeFileName);
 
-    // The theme file imports './icons' — copy that too so the scaffold is a
-    // working unit. If a theme ever drops the icons file, skip it gracefully.
+    // The theme file imports './icons', so bundle it too (optional).
     const iconsFile = path.join(srcDir, 'icons.tsx');
     const hasIcons = fs.existsSync(iconsFile);
 
@@ -125,7 +106,6 @@ function main() {
       displayName: toDisplayName(slug),
       description,
       maintained: slug === MAINTAINED_SLUG,
-      // The file a consumer renames to make the theme theirs.
       entry: themeFileName,
       exportName: `${id}Theme`,
       files,
@@ -135,7 +115,6 @@ function main() {
   }
 
   const manifest = {
-    // Bump if the on-disk shape changes so the reader can guard against drift.
     version: 1,
     generatedBy: 'scripts/generate-cli-themes.mjs',
     themes: entries,

@@ -852,8 +852,6 @@ export function registerTheme(program) {
         });
       }
 
-      // Paths relative to src/ (where most consumers import from); the note
-      // covers files elsewhere. Use the actual emitted CSS basename (--out).
       const relOutDir = path.relative(process.cwd(), outDir) || '.';
       const cssBase = path.basename(outPath, '.css');
       const jsImport = importSpecifier(relOutDir, baseName);
@@ -890,9 +888,6 @@ Or with a <link> tag:
       }
     });
 
-  // `astryx theme list` — show the themes available to scaffold. Mirrors the
-  // /themes gallery: the maintained theme is flagged so users know which one
-  // they can install as a tracked package vs. copy as a starting point.
   theme
     .command('list')
     .description('List themes available to add')
@@ -923,9 +918,6 @@ Or with a <link> tag:
       humanLog('  astryx theme add <slug> [target-path]   Scaffold a theme file you own\n');
     });
 
-  // `astryx theme add <slug> [path]` — scaffold a theme's source into the
-  // consumer's project as files they own and customize. Defaults the
-  // destination to `src/themes/<slug>/` when omitted.
   theme
     .command('add [slug] [path]')
     .description('Scaffold a theme into your project as editable source')
@@ -934,13 +926,9 @@ Or with a <link> tag:
     .action(async (slug, targetPath, options) => {
       const json = program.opts().json || false;
 
-      // Pre-flight overwrite confirmation (interactive only). The API also
-      // refuses to clobber without --overwrite; here we offer a prompt first
-      // so an interactive user isn't forced to re-run with a flag. Require a
-      // real TTY on stdin (not just "not non-interactive") so a piped or
-      // redirected stdin — e.g. `< /dev/null` — never makes clack block
-      // forever reading input that will never arrive; those callers fall
-      // through to the API's ERR_FILE_EXISTS guard instead.
+      // Only prompt with a real TTY on stdin — a piped/redirected stdin would
+      // make clack hang. Non-interactive callers fall through to the API's
+      // ERR_FILE_EXISTS guard.
       const interactive =
         !json && !isNonInteractive({json}) && Boolean(process.stdin.isTTY);
       if (slug && !options.list && !options.overwrite && interactive) {
@@ -998,8 +986,6 @@ Or with a <link> tag:
       for (const f of files) {
         humanLog(`  ${outputDir}/${f}`);
       }
-      // Path relative to src/ (where most consumers import from); the note
-      // covers files that live elsewhere.
       const entryModule = importSpecifier(
         outputDir,
         entry.replace(/\.tsx?$/, ''),
@@ -1019,11 +1005,9 @@ This is your copy of the ${displayName} theme — edit ${entry} to make it your 
 }
 
 /**
- * Detect whether scaffolding theme <slug> into <targetPath> would clobber an
- * existing file, mirroring the API's destination resolution closely enough to
- * prompt before we invoke it. Returns the first colliding absolute path, or
- * null (theme missing, no collision, or resolution failure — the API will
- * re-validate and surface any real error).
+ * First existing file that scaffolding <slug> into <targetPath> would clobber,
+ * or null. Used to prompt before invoking the API; the API re-validates and
+ * owns any authoritative error.
  *
  * @param {string} slug
  * @param {string} [targetPath]
@@ -1042,8 +1026,7 @@ async function detectThemeCollision(slug, targetPath) {
   const rawTarget = targetPath || path.join('src', 'themes', match.slug);
   let resolvedDir;
   try {
-    // Mirror the API: reject traversal here too, but fail soft (null) so the
-    // API owns the authoritative error message.
+    // Fail soft (null) on traversal; the API surfaces the real error.
     const {assertWithin} = await import('../utils/path-safety.mjs');
     resolvedDir = assertWithin(rawTarget, process.cwd(), {
       label: 'theme target path',
