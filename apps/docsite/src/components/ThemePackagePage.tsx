@@ -613,7 +613,7 @@ function ThemeActions({selectedPkgName, customizeHref}: ThemeActionsProps) {
         label="Use this theme"
         content={
           <VStack gap={2}>
-            <Text type="supporting" color="secondary">
+            <Text type="body" color="secondary">
               Run this in a terminal in your project to add {displayName} as a
               theme file you can edit.
             </Text>
