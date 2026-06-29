@@ -121,6 +121,9 @@ export const TEMPLATE_COMPONENTS: Record<
     () =>
       import('../../../../packages/cli/templates/pages/shell-side-nav/page'),
   ),
+  'shell-top-nav': lazy(
+    () => import('../../../../packages/cli/templates/pages/shell-top-nav/page'),
+  ),
   table: lazy(
     () => import('../../../../packages/cli/templates/pages/table/page'),
   ),
