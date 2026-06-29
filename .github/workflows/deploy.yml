@@ -118,7 +118,11 @@ jobs:
       - name: Build Sandbox
         run: pnpm -F @astryxdesign/sandbox build
         env:
-          SANDBOX_BASE_PATH: /sandbox
+          # GitHub Pages serves this project at <owner>.github.io/<repo>/, so the
+          # sandbox must be built with the repo name as a base path prefix —
+          # otherwise its root-absolute asset URLs (/sandbox/_next/...) drop the
+          # /<repo> segment and 404. Derived from the repo name so it survives renames.
+          SANDBOX_BASE_PATH: /${{ github.event.repository.name }}/sandbox
           NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Preserve PR previews and reports from gh-pages
@@ -153,7 +157,7 @@ jobs:
           mkdir -p deploy/storybook
           cp -r apps/storybook/dist/* deploy/storybook/
 
-          # Stable sandbox (built with basePath=/sandbox)
+          # Stable sandbox (built with basePath=/<repo>/sandbox)
           if [ -d "apps/sandbox/out" ]; then
             mkdir -p deploy/sandbox
             cp -r apps/sandbox/out/* deploy/sandbox/
