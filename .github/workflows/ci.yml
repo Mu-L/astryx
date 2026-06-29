@@ -9,7 +9,7 @@ name: CI
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["main", "xds-unprefix-integration"]
   merge_group:
 
 permissions: {}
