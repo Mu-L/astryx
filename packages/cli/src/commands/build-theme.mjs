@@ -17,10 +17,15 @@ import * as path from 'node:path';
 import {pathToFileURL, fileURLToPath} from 'node:url';
 import {createJiti} from 'jiti';
 import {getRunPrefix} from '../utils/package-manager.mjs';
-import {sanitizeName, PathSafetyError} from '../utils/path-safety.mjs';
+import {
+  sanitizeName,
+  PathSafetyError,
+  isNonInteractive,
+} from '../utils/path-safety.mjs';
 import {jsonOut, humanLog} from '../lib/json.mjs';
 import {cliError} from '../lib/cli-error.mjs';
 import {ERROR_CODES} from '../lib/error-codes.mjs';
+import {themeAdd, listThemes} from '../api/theme-add.mjs';
 
 // Import shared theme processing from core. `astryx theme build` MUST produce the
 // exact same CSS as the `<Theme>` runtime, so it has exactly one generation
@@ -871,4 +876,168 @@ Or with a <link> tag:
         humanLog('');
       }
     });
+
+  // `astryx theme list` — show the themes available to scaffold. Mirrors the
+  // /themes gallery: the maintained theme is flagged so users know which one
+  // they can install as a tracked package vs. copy as a starting point.
+  theme
+    .command('list')
+    .description('List themes available to add')
+    .action(async () => {
+      const json = program.opts().json || false;
+      let result;
+      try {
+        result = await themeAdd(undefined, {list: true, cwd: process.cwd()});
+      } catch (e) {
+        cliError(e.message, {suggestions: e.suggestions || [], code: e.code});
+        return;
+      }
+
+      if (json) return jsonOut(result.type, result.data);
+
+      const themes = result.data;
+      if (themes.length === 0) {
+        humanLog('\nNo themes are bundled with this CLI build.\n');
+        return;
+      }
+      humanLog('\nThemes:\n');
+      for (const t of themes) {
+        const tag = t.maintained ? ' (maintained)' : '';
+        humanLog(`  ${t.slug}${tag}`);
+        if (t.description) humanLog(`    ${t.description}`);
+      }
+      humanLog('\nUsage:');
+      humanLog('  astryx theme add <slug> [target-path]   Scaffold a theme file you own\n');
+    });
+
+  // `astryx theme add <slug> [path]` — scaffold a theme's source into the
+  // consumer's project as files they own and customize. Defaults the
+  // destination to `src/themes/<slug>/` when omitted.
+  theme
+    .command('add [slug] [path]')
+    .description('Scaffold a theme into your project as editable source')
+    .option('-f, --overwrite', 'Overwrite existing files without prompting')
+    .option('--list', 'List available themes')
+    .action(async (slug, targetPath, options) => {
+      const json = program.opts().json || false;
+
+      // Pre-flight overwrite confirmation (interactive only). The API also
+      // refuses to clobber without --overwrite; here we offer a prompt first
+      // so an interactive user isn't forced to re-run with a flag. Require a
+      // real TTY on stdin (not just "not non-interactive") so a piped or
+      // redirected stdin — e.g. `< /dev/null` — never makes clack block
+      // forever reading input that will never arrive; those callers fall
+      // through to the API's ERR_FILE_EXISTS guard instead.
+      const interactive =
+        !json && !isNonInteractive({json}) && Boolean(process.stdin.isTTY);
+      if (slug && !options.list && !options.overwrite && interactive) {
+        const collision = await detectThemeCollision(slug, targetPath);
+        if (collision) {
+          const rel = path.relative(process.cwd(), collision) || collision;
+          const p = await import('@clack/prompts');
+          const confirmed = await p.confirm({
+            message: `Overwrite existing file ${rel}?`,
+            initialValue: false,
+          });
+          if (p.isCancel(confirmed)) {
+            p.cancel('Cancelled.');
+            return;
+          }
+          if (!confirmed) {
+            humanLog('Aborted. Re-run with --overwrite to replace the file.');
+            return;
+          }
+          options.overwrite = true;
+        }
+      }
+
+      let result;
+      try {
+        result = await themeAdd(slug, {
+          list: options.list,
+          targetPath,
+          overwrite: options.overwrite,
+          cwd: process.cwd(),
+        });
+      } catch (e) {
+        cliError(e.message, {suggestions: e.suggestions || [], code: e.code});
+        return;
+      }
+
+      if (json) return jsonOut(result.type, result.data);
+
+      if (result.type === 'theme.list') {
+        const themes = result.data;
+        humanLog('\nThemes:\n');
+        for (const t of themes) {
+          const tag = t.maintained ? ' (maintained)' : '';
+          humanLog(`  ${t.slug}${tag}`);
+          if (t.description) humanLog(`    ${t.description}`);
+        }
+        humanLog('\nUsage:');
+        humanLog('  astryx theme add <slug> [target-path]   Scaffold a theme file you own\n');
+        return;
+      }
+
+      // theme.add — print where files landed + how to use the theme.
+      const {slug: addedSlug, displayName, outputDir, entry, exportName, files} =
+        result.data;
+      humanLog(`\n✓ Added ${displayName} theme to ${outputDir}/`);
+      for (const f of files) {
+        humanLog(`  ${outputDir}/${f}`);
+      }
+      const importPath = `${outputDir === '.' ? '.' : './' + outputDir}/${entry.replace(/\.tsx?$/, '')}`;
+      humanLog(`
+Use it in your app:
+
+  import { ${exportName} } from '${importPath}';
+
+  <Theme theme={${exportName}}>
+    <App />
+  </Theme>
+
+This is your copy of the ${displayName} theme — edit ${entry} to make it your own.
+`);
+    });
+}
+
+/**
+ * Detect whether scaffolding theme <slug> into <targetPath> would clobber an
+ * existing file, mirroring the API's destination resolution closely enough to
+ * prompt before we invoke it. Returns the first colliding absolute path, or
+ * null (theme missing, no collision, or resolution failure — the API will
+ * re-validate and surface any real error).
+ *
+ * @param {string} slug
+ * @param {string} [targetPath]
+ * @returns {Promise<string|null>}
+ */
+async function detectThemeCollision(slug, targetPath) {
+  let themes;
+  try {
+    themes = listThemes();
+  } catch {
+    return null;
+  }
+  const match = themes.find(t => t.slug.toLowerCase() === slug.toLowerCase());
+  if (!match) return null;
+
+  const rawTarget = targetPath || path.join('src', 'themes', match.slug);
+  let resolvedDir;
+  try {
+    // Mirror the API: reject traversal here too, but fail soft (null) so the
+    // API owns the authoritative error message.
+    const {assertWithin} = await import('../utils/path-safety.mjs');
+    resolvedDir = assertWithin(rawTarget, process.cwd(), {
+      label: 'theme target path',
+    });
+  } catch {
+    return null;
+  }
+
+  for (const name of match.files) {
+    const dest = path.join(resolvedDir, name);
+    if (fs.existsSync(dest)) return dest;
+  }
+  return null;
 }

@@ -1,0 +1,21 @@
+/* Copyright (c) Meta Platforms, Inc. and affiliates. */
+
+/*
+ * Scoped override for the CodeBlock used in the /themes action area.
+ *
+ * In its headerless layout, CodeBlock positions its copy button
+ * absolutely (right: --spacing-2) AND applies a negative inline-end
+ * margin (-1 * --spacing-2) meant for the header layout. In the
+ * headerless case those cancel out, so the button ends up flush against
+ * the container's right edge. Neutralize the negative margin and nudge
+ * the button in so it has breathing room from the edge.
+ *
+ * Targets the copy <button>, which CodeBlock renders as a direct child
+ * of the root <pre> (the element this class is applied to) when there's
+ * no header.
+ */
+.commandBlock > button {
+  margin-inline-end: 0;
+  inset-inline-end: var(--spacing-3);
+  inset-block-start: var(--spacing-2);
+}
