@@ -742,12 +742,8 @@ export function registerTheme(program) {
       const sourceRelative = path.relative(process.cwd(), filePath);
       const buildCommand = `astryx theme build ${sourceRelative}${options.out ? ' --out ' + path.relative(process.cwd(), path.resolve(process.cwd(), options.out)) : ''}`;
 
-      // All sibling outputs (.css/.js/.d.ts) derive from the theme's `name`
-      // so they share one naming scheme. Without an explicit --out the CSS
-      // used to be named after the INPUT file (e.g. gothicTheme.css) while
-      // the JS used the theme name (gothic.js) — confusingly inconsistent.
-      // Default the CSS to `<dir>/<name>.css` too; an explicit --out still
-      // wins (published theme packages pass `-o dist/theme.css`).
+      // Derive the default CSS name from the theme name so .css/.js/.d.ts
+      // share one scheme; an explicit --out still wins.
       const baseName = themeDef.name;
       const outPath = options.out
         ? path.resolve(process.cwd(), options.out)
@@ -844,12 +840,8 @@ export function registerTheme(program) {
         });
       }
 
-      // Print install instructions. Reference the files by bare relative
-      // specifiers (`./<name>`) rather than a cwd-rooted path: the import is
-      // relative to the consumer's file, which we don't know, so a path like
-      // `./src/...` is wrong whenever their file already lives under src/.
-      // Use the ACTUAL emitted CSS basename (honors --out, e.g. theme.css)
-      // instead of assuming `<name>.css`.
+      // Use bare `./<name>` specifiers (the import is relative to the
+      // consumer's file, not cwd) and the actual emitted CSS basename.
       const relOutDir = path.relative(process.cwd(), outDir) || '.';
       const cssBase = path.basename(outPath, '.css');
       const exportName = `${toIdentifier(baseName)}Theme`;
@@ -993,12 +985,8 @@ Or with a <link> tag:
       for (const f of files) {
         humanLog(`  ${outputDir}/${f}`);
       }
-      // The module path the consumer imports. `outputDir` is relative to the
-      // cwd, but the import has to be relative to THEIR file, which we don't
-      // know — so show a bare relative specifier (`./${entry}`) and tell them
-      // to point it at where the theme landed rather than fabricating a
-      // cwd-rooted path like `./src/...` that's wrong when their file already
-      // lives under src/.
+      // Bare specifier — the import is relative to the consumer's file, not
+      // cwd, so we can't build the full path for them.
       const entryModule = `./${entry.replace(/\.tsx?$/, '')}`;
       humanLog(`
 Use it in your app (adjust the import path to point at ${outputDir}/ from your file):
