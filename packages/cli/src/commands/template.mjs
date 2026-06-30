@@ -12,6 +12,8 @@ import {jsonOut, humanLog} from '../lib/json.mjs';
 import {cliError} from '../lib/cli-error.mjs';
 import {ERROR_CODES} from '../lib/error-codes.mjs';
 import {template as templateApi} from '../api/template.mjs';
+import {loadConfig} from '../lib/config.mjs';
+import {warnOnIntegrationIssues} from '../lib/integration-warnings.mjs';
 
 export {discoverTemplates, listTemplates} from '../api/template.mjs';
 
@@ -34,6 +36,16 @@ export function registerTemplate(program) {
     .option('-f, --overwrite', 'Overwrite existing files without prompting')
     .action(async (name, targetPath, options) => {
       const json = program.opts().json || false;
+
+      // Non-blocking nudge: if any configured integration has validation
+      // issues, print one compact line to stderr pointing at
+      // validate-integration. Best-effort; suppressed in --json mode.
+      try {
+        const config = await loadConfig(process.cwd());
+        await warnOnIntegrationIssues(config.loadedIntegrations, {json});
+      } catch {
+        // Never let the nudge break the command.
+      }
 
       // Pre-flight overwrite check (only when we'd actually copy a file).
       // The API resolves the destination; we need to mirror its logic
