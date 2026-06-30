@@ -24,32 +24,11 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {pathToFileURL} from 'node:url';
-import {createJiti} from 'jiti';
+import {importUserModule} from '../lib/module-loader.mjs';
 import {semverCompare} from '../utils/semver.mjs';
 
 /** File extensions recognized as codemod modules. */
 const CODEMOD_EXTENSIONS = ['.ts', '.mjs', '.js'];
-
-let jitiInstance;
-function getJiti() {
-  if (!jitiInstance) {
-    jitiInstance = createJiti(import.meta.url);
-  }
-  return jitiInstance;
-}
-
-/**
- * Import a codemod module. `.ts` is loaded via jiti; `.mjs`/`.js` via dynamic
- * import.
- * @param {string} file
- */
-async function importCodemodModule(file) {
-  if (file.endsWith('.ts')) {
-    return await getJiti().import(file);
-  }
-  return await import(pathToFileURL(file).href);
-}
 
 /**
  * Recursively collect codemod module files under a version folder. Returns
@@ -170,7 +149,7 @@ export async function discoverIntegrationCodemods(loadedIntegrations = []) {
         }
         idToVersion.set(id, version);
 
-        const mod = await importCodemodModule(file);
+        const mod = await importUserModule(file);
         const codemod = validateCodemodExport(mod, label);
 
         const entry = {

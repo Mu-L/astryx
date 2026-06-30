@@ -6,8 +6,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {pathToFileURL} from 'node:url';
-import {createJiti} from 'jiti';
+import {importUserModule} from '../lib/module-loader.mjs';
 import {CLI_ROOT, discoverExternalPackages} from '../utils/paths.mjs';
 import {
   assertWithin,
@@ -24,12 +23,6 @@ const CORE_PACKAGE = '@astryxdesign/core';
 /** Doc-file basename suffixes for integration templates, in precedence order. */
 const DOC_SUFFIXES = ['.doc.ts', '.doc.mjs', '.doc.js'];
 
-let jitiInstance;
-function getJiti() {
-  if (!jitiInstance) jitiInstance = createJiti(import.meta.url);
-  return jitiInstance;
-}
-
 /**
  * Load an integration template doc module. `.ts` is loaded via jiti; `.mjs`/
  * `.js` via dynamic import. The doc may be the default export (e.g.
@@ -38,9 +31,7 @@ function getJiti() {
  * @param {string} file
  */
 async function loadIntegrationDoc(file) {
-  const mod = file.endsWith('.ts')
-    ? await getJiti().import(file)
-    : await import(pathToFileURL(file).href);
+  const mod = await importUserModule(file);
   return mod.default ?? mod.doc ?? null;
 }
 
