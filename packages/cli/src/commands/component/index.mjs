@@ -24,6 +24,8 @@ import {cliError} from '../../lib/cli-error.mjs';
 import {ERROR_CODES} from '../../lib/error-codes.mjs';
 import {component as componentApi} from '../../api/component.mjs';
 import {findRelatedBlocks} from '../../api/template.mjs';
+import {loadConfig} from '../../lib/config.mjs';
+import {warnOnIntegrationIssues} from '../../lib/integration-warnings.mjs';
 
 export function registerComponent(program) {
   program
@@ -53,6 +55,16 @@ export function registerComponent(program) {
       if (!validDetails.includes(detail)) {
         cliError(`Invalid --detail value "${detail}". Valid levels: ${validDetails.join(', ')}`, {code: ERROR_CODES.ERR_INVALID_DETAIL});
         return;
+      }
+
+      // Non-blocking nudge: if any configured integration has validation
+      // issues, print one compact line to stderr pointing at
+      // validate-integration. Best-effort; suppressed in --json mode.
+      try {
+        const config = await loadConfig(process.cwd());
+        await warnOnIntegrationIssues(config.loadedIntegrations, {json});
+      } catch {
+        // Never let the nudge break the command.
       }
 
       let result;

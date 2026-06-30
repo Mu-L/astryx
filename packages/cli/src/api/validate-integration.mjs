@@ -200,6 +200,39 @@ async function runContributionChecks(integration, issues) {
 }
 
 /**
+ * Validate an already-LOADED integration (as produced by
+ * `loadIntegrations` in lib/integrations.mjs — absolute contribution roots
+ * plus identity) and return its issues. This is the reuse seam for everyday
+ * commands that have already loaded the configured integrations and want the
+ * SAME validators that `validate-integration` runs, without re-resolving the
+ * manifest from disk.
+ *
+ * The manifest schema is intentionally NOT re-validated here: `loadIntegrations`
+ * already validated it (and throws otherwise), so by the time a command holds a
+ * loaded integration the manifest is known-good. We re-run the on-disk
+ * contribution checks (roots + codemods/templates/components) because those can
+ * regress independently of the manifest (a deleted directory, a broken template).
+ *
+ * @param {object} loaded loaded-integration-shaped object
+ * @returns {Promise<Issue[]>}
+ */
+export async function validateLoadedIntegration(loaded) {
+  /** @type {Issue[]} */
+  const issues = [];
+  if (!loaded || typeof loaded !== 'object') return issues;
+  checkRoots(
+    {
+      components: loaded.components,
+      templates: loaded.templates,
+      codemods: loaded.codemods,
+    },
+    issues,
+  );
+  await runContributionChecks(loaded, issues);
+  return issues;
+}
+
+/**
  * Validate a single integration given its package directory and identity.
  * Shared core for the local and installed entry points.
  * @param {string} packageDir
@@ -261,27 +294,22 @@ async function validateAtPackageDir(packageDir, identity) {
 
   const resolveRoot = value =>
     value == null ? undefined : path.resolve(packageDir, value);
-  const resolved = {
-    components: resolveRoot(manifest.components),
-    templates: resolveRoot(manifest.templates),
-    codemods: resolveRoot(manifest.codemods),
-  };
-
-  checkRoots(resolved, issues);
 
   const loaded = {
     name: identity.name,
     version: identity.version,
-    components: resolved.components,
-    templates: resolved.templates,
-    codemods: resolved.codemods,
+    components: resolveRoot(manifest.components),
+    templates: resolveRoot(manifest.templates),
+    codemods: resolveRoot(manifest.codemods),
     issuesUrl: manifest.issuesUrl,
     __spec: identity.name,
     __packageDir: packageDir,
     __manifestFile: manifestFile,
   };
 
-  await runContributionChecks(loaded, issues);
+  // Roots + contribution checks are shared with validateLoadedIntegration so
+  // the everyday-command nudge runs the exact same validators.
+  issues.push(...(await validateLoadedIntegration(loaded)));
 
   return result;
 }

@@ -43,6 +43,7 @@ import {isValidSemver, semverGte} from '../utils/semver.mjs';
 import {jsonOut, jsonError} from '../lib/json.mjs';
 import {loadConfig} from '../lib/config.mjs';
 import {loadIntegrations} from '../lib/integrations.mjs';
+import {warnOnIntegrationIssues} from '../lib/integration-warnings.mjs';
 import {ERROR_CODES} from '../lib/error-codes.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -272,6 +273,16 @@ export function registerUpgrade(program) {
         p.log.info(
           `Integrations: ${integrations.map(i => i.name ?? i.__spec).join(', ')}`,
         );
+      }
+
+      // Non-blocking nudge: if any configured integration has validation
+      // issues, print one compact line to stderr pointing at
+      // validate-integration. Best-effort; suppressed in --json mode. The
+      // integrations are already loaded above, so this is cheap.
+      try {
+        await warnOnIntegrationIssues(integrations, {json});
+      } catch {
+        // Never let the nudge break the upgrade.
       }
 
       if (!options.force && semverGte(currentVersion, targetVersion)) {
