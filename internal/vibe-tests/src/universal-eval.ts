@@ -553,7 +553,7 @@ function countElements(code: string): number {
 function countStylingDecisions(code: string, target: string): number {
   let count = 0;
 
-  if (target === 'xds' || target === 'xds-tailwind') {
+  if (target === 'astryx' || target === 'xds-tailwind') {
     // Component props that are styling decisions: variant, size, gap, color, type
     count += (
       code.match(
@@ -661,7 +661,7 @@ function analyzeEfficiency(
       continue;
     }
     if (
-      (target === 'xds' || target === 'xds-tailwind') &&
+      (target === 'astryx' || target === 'xds-tailwind') &&
       stripped.includes('stylex.create')
     ) {
       inStyleBlock = true;
@@ -792,7 +792,7 @@ function countMagicAndSemanticValues(
   // CSS variables
   semantic += (code.match(/var\(--[\w-]+\)/g) || []).length;
 
-  if (target === 'xds' || target === 'xds-tailwind') {
+  if (target === 'astryx' || target === 'xds-tailwind') {
     // StyleX token references: spacingVars["--spacing-4"], colorVars["--color-*"]
     semantic += (code.match(/\w+Vars\[["']--[\w-]+["']\]/g) || []).length;
     // Component props that delegate styling: variant=, size=, gap=, color=, type=
@@ -1002,7 +1002,7 @@ function analyzeMaintainability(
  * Run all 5 dimension analyzers on a code sample.
  *
  * @param code - The generated TSX source code
- * @param target - The target system ('xds' | 'baseline' | 'html')
+ * @param target - The target system ('astryx' | 'xds-tailwind' | 'baseline' | 'html')
  * @param options - Optional context for enhanced scoring
  * @param options.tscResult - tsc type check results (from build-errors.json)
  * @param options.iterDir - Path to iteration directory (for loading build-errors.json)

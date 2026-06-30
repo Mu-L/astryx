@@ -159,7 +159,7 @@ function ensureComparison(
       .join(' vs ');
     console.log(`Generating comparison for ${xdsId} vs ${vsLabel}...`);
     execSync(
-      `tsx ${path.join(import.meta.dirname, 'universal-compare.ts')} --xds ${xdsId} --baseline ${baselineId}${htmlFlag}${twFlag}`,
+      `tsx ${path.join(import.meta.dirname, 'universal-compare.ts')} --astryx ${xdsId} --baseline ${baselineId}${htmlFlag}${twFlag}`,
       {cwd: path.join(import.meta.dirname, '..'), stdio: 'inherit'},
     );
   }

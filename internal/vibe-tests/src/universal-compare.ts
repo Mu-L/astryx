@@ -7,7 +7,7 @@
  * Usage:
  *   tsx src/universal-compare.ts --astryx abc123 --baseline def456
  *   tsx src/universal-compare.ts --astryx abc123 --baseline def456 --html ghi789
- *   tsx src/universal-compare.ts --astryx abc123 --baseline def456 --html ghi789 --astryx-tailwind jkl012
+ *   tsx src/universal-compare.ts --astryx abc123 --baseline def456 --html ghi789 --xds-tailwind jkl012
  *   tsx src/universal-compare.ts --astryx abc123 --baseline def456 --json
  *   tsx src/universal-compare.ts --astryx abc123 --baseline def456 --html ghi789 --markdown
  */
@@ -70,7 +70,7 @@ function winner(
     entries.push(['html', htmlVal]);
   }
   if (xdsTailwindVal != null) {
-    entries.push(['astryx-tailwind', xdsTailwindVal]);
+    entries.push(['xds-tailwind', xdsTailwindVal]);
   }
 
   const max = Math.max(...entries.map(([, v]) => v));
@@ -89,7 +89,7 @@ function winnerIcon(w: WinnerType): string {
       return '🔵 Base';
     case 'html':
       return '🟡 HTML';
-    case 'astryx-tailwind':
+    case 'xds-tailwind':
       return '🟣 XDS+TW';
     case 'tie':
       return '⚪ Tie';
@@ -119,7 +119,7 @@ function parseArgs(): {
       baseline = args[++i];
     } else if (args[i] === '--html' && args[i + 1]) {
       html = args[++i];
-    } else if (args[i] === '--astryx-tailwind' && args[i + 1]) {
+    } else if (args[i] === '--xds-tailwind' && args[i + 1]) {
       xdsTailwind = args[++i];
     } else if (args[i] === '--json') {
       json = true;
@@ -130,7 +130,7 @@ function parseArgs(): {
 
   if (!astryx || !baseline) {
     console.error(
-      'Usage: tsx src/universal-compare.ts --astryx <id> --baseline <id> [--html <id>] [--astryx-tailwind <id>] [--json] [--markdown]',
+      'Usage: tsx src/universal-compare.ts --astryx <id> --baseline <id> [--html <id>] [--xds-tailwind <id>] [--json] [--markdown]',
     );
     process.exit(1);
   }
@@ -150,7 +150,8 @@ function toMarkdown(opts: {
   xdsTailwindId?: string;
   byPrompt: UniversalComparison['byPrompt'];
 }): string {
-  const {comparison, astryxId, baselineId, htmlId, xdsTailwindId, byPrompt} = opts;
+  const {comparison, astryxId, baselineId, htmlId, xdsTailwindId, byPrompt} =
+    opts;
   const {
     astryx,
     baseline,
@@ -177,7 +178,9 @@ function toMarkdown(opts: {
   ];
 
   const astryxRow = dimOrder.map(d => astryx.averages[d]).join(' | ');
-  lines.push(`| **Astryx** | \`${astryxId}\` | ${astryx.overall} | ${astryxRow} |`);
+  lines.push(
+    `| **Astryx** | \`${astryxId}\` | ${astryx.overall} | ${astryxRow} |`,
+  );
 
   const baseRow = dimOrder.map(d => baseline.averages[d]).join(' | ');
   lines.push(
@@ -215,7 +218,7 @@ function toMarkdown(opts: {
         bWins++;
       } else if (data.winner === 'html') {
         hWins++;
-      } else if (data.winner === 'astryx-tailwind') {
+      } else if (data.winner === 'xds-tailwind') {
         twWins++;
       } else {
         ties++;
@@ -257,7 +260,7 @@ function toMarkdown(opts: {
       astryx: '🟢',
       baseline: '🔵',
       html: '🟡',
-      'astryx-tailwind': '🟣',
+      'xds-tailwind': '🟣',
       tie: '⚪',
     };
     const icon = iconMap[w] ?? '⚪';
@@ -546,7 +549,7 @@ async function main() {
         winCounts['Baseline']++;
       } else if (data.winner === 'html') {
         winCounts['HTML']++;
-      } else if (data.winner === 'astryx-tailwind') {
+      } else if (data.winner === 'xds-tailwind') {
         winCounts['XDS+TW']++;
       } else {
         winCounts['Tie']++;

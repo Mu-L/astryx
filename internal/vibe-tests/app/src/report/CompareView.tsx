@@ -20,7 +20,7 @@ import {
 } from './utils';
 import './report.css';
 
-type WinnerType = 'xds' | 'xds-tailwind' | 'baseline' | 'html' | 'tie';
+type WinnerType = 'astryx' | 'xds-tailwind' | 'baseline' | 'html' | 'tie';
 
 interface CompareViewProps {
   comparison: UniversalComparison;
@@ -325,7 +325,7 @@ function CostComparisonSection({
 }
 
 export function CompareView({comparison}: CompareViewProps) {
-  const {xds, baseline, html, xdsTailwind, winners} = comparison;
+  const {astryx, baseline, html, xdsTailwind, winners} = comparison;
   const isThreeWay = !!html;
   const isFourWay = !!xdsTailwind;
 
