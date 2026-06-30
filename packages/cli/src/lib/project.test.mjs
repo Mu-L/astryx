@@ -4,7 +4,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {Project, DEFAULT_ISSUES_URL} from './project.mjs';
+import {Project, DEFAULT_ISSUES_URL, findConfigPath} from './project.mjs';
 import {InMemoryConfigCache} from './config-cache.mjs';
 import * as componentDiscovery from './component-discovery.mjs';
 
@@ -142,6 +142,36 @@ describe('Project.load', () => {
     expect(project.integrations).toEqual(['@acme/widgets']);
     expect(project.loadedIntegrations).toHaveLength(1);
     expect(project.loadedIntegrations[0].name).toBe('@acme/widgets');
+  });
+
+  it('rejects an invalid config shape (strict validation)', async () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({name: 'consumer'}),
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, 'astryx.config.mjs'),
+      `export default { integrations: [42] };\n`,
+    );
+    await expect(Project.load(tmpDir)).rejects.toThrow(/integrations/);
+  });
+});
+
+describe('findConfigPath', () => {
+  it('rejects multiple config files at the same root', () => {
+    fs.writeFileSync(
+      path.join(tmpDir, 'package.json'),
+      JSON.stringify({name: 'consumer'}),
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, 'astryx.config.mjs'),
+      `export default {};\n`,
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, 'astryx.config.js'),
+      `module.exports = {};\n`,
+    );
+    expect(() => findConfigPath(tmpDir)).toThrow(/Multiple Astryx config files/);
   });
 });
 

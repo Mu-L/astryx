@@ -226,6 +226,15 @@ export class Project {
   }
 
   /**
+   * Absolute path to the resolved config file, or null when the project has
+   * no config (defaults-only).
+   * @returns {string|null}
+   */
+  get configPath() {
+    return this.#configPath;
+  }
+
+  /**
    * Memoize an async producer behind the pluggable cache, keyed by the config
    * content hash + cwd + discovery kind. A sentinel wrapper distinguishes a
    * cached `undefined`/falsy value from a cache miss.
