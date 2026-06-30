@@ -1,5 +1,5 @@
 {
-  "name": "xds",
+  "name": "astryx",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -20,6 +20,7 @@
     "storybook": "pnpm -F @astryxdesign/storybook dev",
     "storybook:build": "pnpm -F @astryxdesign/storybook build",
     "docs": "pnpm -F @astryxdesign/docsite dev",
+    "docsite": "pnpm -F @astryxdesign/docsite dev",
     "sync:exports": "node scripts/sync-exports.js",
     "sync:exports:check": "node scripts/sync-exports.js --check",
     "xds": "pnpm -F @astryxdesign/cli xds",
