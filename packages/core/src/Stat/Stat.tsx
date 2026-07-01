@@ -56,7 +56,7 @@ const styles = stylex.create({
   value: {
     fontFamily: typographyVars['--font-family-heading'],
     fontWeight: fontWeightVars['--font-weight-semibold'],
-    lineHeight: 1.2,
+    lineHeight: typeScaleVars['--text-heading-2-leading'],
     color: colorVars['--color-text-primary'],
     fontVariantNumeric: 'tabular-nums',
   },
