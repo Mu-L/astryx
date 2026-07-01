@@ -8,7 +8,7 @@ import {Divider} from '@astryxdesign/core/Divider';
 import {Drawer} from '@astryxdesign/core/Drawer';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Section} from '@astryxdesign/core/Section';
-import {HStack, VStack} from '@astryxdesign/core/Stack';
+import {VStack} from '@astryxdesign/core/Stack';
 import {Text} from '@astryxdesign/core/Text';
 
 export default function DrawerShowcase() {
@@ -20,18 +20,12 @@ export default function DrawerShowcase() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         label="Deployment details"
-        width={400}>
+        size={400}>
         <Section padding={4}>
           <VStack gap={4}>
             <VStack gap={1}>
-              <HStack gap={2} hAlign="between" vAlign="center">
-                <Heading level={3}>web-prod-04</Heading>
-                <Button
-                  variant="ghost"
-                  label="Close"
-                  onClick={() => setIsOpen(false)}
-                />
-              </HStack>
+              {/* Modal drawers render a built-in close button */}
+              <Heading level={3}>web-prod-04</Heading>
               <Text type="supporting" color="secondary">
                 us-east-1 · deployed 12 minutes ago
               </Text>

@@ -39,7 +39,7 @@ export default function DrawerRowInspectorDrawer() {
         onClose={() => setSelectedId(null)}
         label={selected ? `Host details: ${selected.id}` : 'Host details'}
         hasScrim={false}
-        width={360}>
+        size={360}>
         {selected != null && (
           <Section padding={4}>
             <VStack gap={4}>
