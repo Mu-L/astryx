@@ -12,6 +12,20 @@
  * fixed-width columns. Cards are the correct container here — each task
  * is a ClickableCard tile — but the page chrome stays frame-first.
  *
+ * Interaction contract (moving cards between columns):
+ * - Task→column assignment lives in useState so moves re-render; the
+ *   segmented filter and sprint selector operate on the moved state.
+ * - Menu path (always available, keyboard + touch accessible): each
+ *   card carries a MoreMenu with "Move to <column>" items for the
+ *   other three columns. ClickableCard supports independent nested
+ *   interactive elements (its accessible trigger is a hidden sibling,
+ *   not a wrapping link), so the menu never fights the card's click.
+ * - Pointer path: native HTML5 drag-and-drop — cards are draggable,
+ *   columns are drop targets with an accent highlight while a drag
+ *   hovers them. No dependencies, no pointer-event emulation.
+ * - Every move is announced through a visually-hidden aria-live
+ *   region ("Moved <task> to <column>").
+ *
  * Responsive contract:
  * - >768px: four 300px columns in a horizontal scroller (overflow-x
  *   auto); columns never shrink, the row scrolls.
@@ -19,9 +33,13 @@
  *   swipe lands on exactly one column.
  * - Each column's card list scrolls vertically and independently; the
  *   column header row stays pinned above its list.
+ * - Drag-and-drop is enabled only for fine pointers with hover
+ *   ("(hover: hover) and (pointer: fine)") so draggable cards never
+ *   interfere with touch scrolling; touch users move cards through
+ *   the per-card MoreMenu instead.
  */
 
-import {useMemo, useState, type CSSProperties} from 'react';
+import {useCallback, useMemo, useState, type CSSProperties} from 'react';
 
 import {
   VStack,
@@ -37,6 +55,7 @@ import {IconButton} from '@astryxdesign/core/IconButton';
 import {Icon} from '@astryxdesign/core/Icon';
 import {Avatar} from '@astryxdesign/core/Avatar';
 import {ClickableCard} from '@astryxdesign/core/ClickableCard';
+import {MoreMenu} from '@astryxdesign/core/MoreMenu';
 import {Token} from '@astryxdesign/core/Token';
 import {StatusDot} from '@astryxdesign/core/StatusDot';
 import {EmptyState} from '@astryxdesign/core/EmptyState';
@@ -89,6 +108,24 @@ const styles: Record<string, CSSProperties> = {
   },
   columnEmpty: {
     padding: 'var(--spacing-4) 0',
+  },
+  columnDropTarget: {
+    outline: '2px solid var(--color-accent)',
+    outlineOffset: '-2px',
+    backgroundColor: 'var(--color-accent-muted)',
+  },
+  cardDragging: {
+    opacity: 0.5,
+  },
+  visuallyHidden: {
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    margin: '-1px',
+    padding: 0,
+    overflow: 'hidden',
+    clipPath: 'inset(50%)',
+    whiteSpace: 'nowrap',
   },
 };
 
@@ -320,53 +357,125 @@ const TASKS: BoardTask[] = [
   },
 ];
 
-function TaskCard({task}: {task: BoardTask}) {
+function TaskCard({
+  task,
+  columnId,
+  isDraggable,
+  isDragging,
+  onMove,
+  onDraggingChange,
+}: {
+  task: BoardTask;
+  columnId: string;
+  isDraggable: boolean;
+  isDragging: boolean;
+  onMove: (taskId: string, columnId: string) => void;
+  onDraggingChange: (taskId: string | null) => void;
+}) {
   const dot = PRIORITY_DOT[task.priority];
+  const moveTargets = COLUMNS.filter(column => column.id !== columnId);
   return (
-    <ClickableCard label={task.title} href="#" width="100%" padding={3}>
-      <VStack gap={2}>
-        <VStack gap={1}>
-          <Text type="body" maxLines={2}>
-            {task.title}
-          </Text>
-          <Text type="supporting" color="secondary" maxLines={1}>
-            {task.summary}
-          </Text>
+    // Draggable wrapper (pointer path). The MoreMenu below is the
+    // touch/keyboard path — ClickableCard's accessible trigger is a
+    // hidden sibling of the content, so the nested menu button stays a
+    // valid, independent interactive element (no button-in-link).
+    <div
+      draggable={isDraggable || undefined}
+      onDragStart={event => {
+        event.dataTransfer.setData('text/plain', task.id);
+        event.dataTransfer.effectAllowed = 'move';
+        onDraggingChange(task.id);
+      }}
+      onDragEnd={() => onDraggingChange(null)}
+      style={isDragging ? styles.cardDragging : undefined}>
+      <ClickableCard label={task.title} href="#" width="100%" padding={3}>
+        <VStack gap={2}>
+          <HStack gap={2} vAlign="start">
+            <StackItem size="fill">
+              <VStack gap={1}>
+                <Text type="body" maxLines={2}>
+                  {task.title}
+                </Text>
+                <Text type="supporting" color="secondary" maxLines={1}>
+                  {task.summary}
+                </Text>
+              </VStack>
+            </StackItem>
+            <MoreMenu
+              label={`Move ${task.id}`}
+              size="sm"
+              items={moveTargets.map(column => ({
+                label: `Move to ${column.title}`,
+                onClick: () => onMove(task.id, column.id),
+              }))}
+            />
+          </HStack>
+          <HStack gap={1}>
+            {task.labels.map(({label, color}) => (
+              <Token key={label} label={label} color={color} size="sm" />
+            ))}
+          </HStack>
+          <HStack gap={2} vAlign="center">
+            <StatusDot variant={dot.variant} label={dot.label} />
+            <Avatar name={task.assignee} size="xsmall" />
+            <StackItem size="fill" />
+            <Text type="supporting" color="secondary">
+              {task.id}
+            </Text>
+          </HStack>
         </VStack>
-        <HStack gap={1}>
-          {task.labels.map(({label, color}) => (
-            <Token key={label} label={label} color={color} size="sm" />
-          ))}
-        </HStack>
-        <HStack gap={2} vAlign="center">
-          <StatusDot variant={dot.variant} label={dot.label} />
-          <Avatar name={task.assignee} size="xsmall" />
-          <StackItem size="fill" />
-          <Text type="supporting" color="secondary">
-            {task.id}
-          </Text>
-        </HStack>
-      </VStack>
-    </ClickableCard>
+      </ClickableCard>
+    </div>
   );
 }
 
 function BoardColumn({
+  columnId,
   title,
   tasks,
   width,
   isSnapping,
+  isDraggable,
+  draggingTaskId,
+  onMove,
+  onDraggingChange,
 }: {
+  columnId: string;
   title: string;
   tasks: BoardTask[];
   width: string | number;
   isSnapping: boolean;
+  isDraggable: boolean;
+  draggingTaskId: string | null;
+  onMove: (taskId: string, columnId: string) => void;
+  onDraggingChange: (taskId: string | null) => void;
 }) {
+  const [isDropTarget, setIsDropTarget] = useState(false);
   return (
     <div
+      onDragOver={event => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        setIsDropTarget(true);
+      }}
+      onDragLeave={event => {
+        // Ignore leave events fired when the drag moves over children.
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setIsDropTarget(false);
+        }
+      }}
+      onDrop={event => {
+        event.preventDefault();
+        setIsDropTarget(false);
+        const taskId = event.dataTransfer.getData('text/plain');
+        if (taskId) {
+          onMove(taskId, columnId);
+        }
+      }}
       style={{
         ...styles.column,
         ...(isSnapping ? styles.columnSnap : undefined),
+        ...(isDropTarget ? styles.columnDropTarget : undefined),
         width,
       }}>
       <div style={styles.columnHeader}>
@@ -399,7 +508,15 @@ function BoardColumn({
         ) : (
           <VStack gap={2}>
             {tasks.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                columnId={columnId}
+                isDraggable={isDraggable}
+                isDragging={draggingTaskId === task.id}
+                onMove={onMove}
+                onDraggingChange={onDraggingChange}
+              />
             ))}
           </VStack>
         )}
@@ -411,8 +528,31 @@ function BoardColumn({
 export default function KanbanBoardTemplate() {
   const [filter, setFilter] = useState('all');
   const [sprint, setSprint] = useState('all');
+  // Task→column assignment lifted into state so moves re-render;
+  // seeded deterministically from the fixture data.
+  const [taskColumns, setTaskColumns] = useState(() =>
+    Object.fromEntries(TASKS.map(task => [task.id, task.column] as const)),
+  );
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState('');
   const isNarrow = useMediaQuery('(max-width: 768px)');
+  // Drag-and-drop only for hover-capable fine pointers; touch users
+  // move cards through each card's MoreMenu.
+  const canDrag = useMediaQuery('(hover: hover) and (pointer: fine)');
   const columnWidth = isNarrow ? '85vw' : 300;
+
+  const moveTask = useCallback(
+    (taskId: string, targetColumnId: string) => {
+      const task = TASKS.find(item => item.id === taskId);
+      const column = COLUMNS.find(item => item.id === targetColumnId);
+      if (!task || !column || taskColumns[taskId] === targetColumnId) {
+        return;
+      }
+      setTaskColumns(prev => ({...prev, [taskId]: targetColumnId}));
+      setAnnouncement(`Moved ${task.title} to ${column.title}`);
+    },
+    [taskColumns],
+  );
 
   const visibleTasks = useMemo(() => {
     return TASKS.filter(task => {
@@ -435,10 +575,10 @@ export default function KanbanBoardTemplate() {
       grouped.set(column.id, []);
     }
     for (const task of visibleTasks) {
-      grouped.get(task.column)?.push(task);
+      grouped.get(taskColumns[task.id] ?? task.column)?.push(task);
     }
     return grouped;
-  }, [visibleTasks]);
+  }, [visibleTasks, taskColumns]);
 
   return (
     <Layout
@@ -480,6 +620,9 @@ export default function KanbanBoardTemplate() {
       }
       content={
         <LayoutContent padding={0}>
+          <div aria-live="polite" style={styles.visuallyHidden}>
+            {announcement}
+          </div>
           <div
             style={{
               ...styles.board,
@@ -488,10 +631,15 @@ export default function KanbanBoardTemplate() {
             {COLUMNS.map(column => (
               <BoardColumn
                 key={column.id}
+                columnId={column.id}
                 title={column.title}
                 tasks={tasksByColumn.get(column.id) ?? []}
                 width={columnWidth}
                 isSnapping={isNarrow}
+                isDraggable={canDrag}
+                draggingTaskId={draggingTaskId}
+                onMove={moveTask}
+                onDraggingChange={setDraggingTaskId}
               />
             ))}
           </div>
