@@ -48,9 +48,10 @@ import {themeProps} from '../utils/themeProps';
 // Types
 // =============================================================================
 
-export interface BaseTypeaheadProps<
-  T extends SearchableItem,
-> extends Omit<BaseProps<HTMLElement>, 'onChange'> {
+export interface BaseTypeaheadProps<T extends SearchableItem> extends Omit<
+  BaseProps<HTMLElement>,
+  'onChange'
+> {
   ref?: React.Ref<HTMLInputElement>;
   /**
    * Search source providing items.
@@ -280,9 +281,7 @@ const itemSizeStyles = stylex.create({
  * />
  * ```
  */
-export const BaseTypeahead = function BaseTypeahead<
-  T extends SearchableItem,
->({
+export const BaseTypeahead = function BaseTypeahead<T extends SearchableItem>({
   searchSource,
   value,
   onChange,
@@ -539,6 +538,32 @@ export const BaseTypeahead = function BaseTypeahead<
     showLayer,
   ]);
 
+  // Handle blur — close the dropdown when focus leaves the input for an
+  // element that is neither inside the field wrapper (anchor) nor inside the
+  // dropdown popover. The native popover="auto" light-dismiss only fires on
+  // outside pointer clicks and Escape; it does not close when focus moves away
+  // via the keyboard (Tab) or programmatically, which would otherwise leave an
+  // orphaned open menu. Clicking a result moves focus onto the option (it is
+  // tabIndex={-1}, so it lives inside the popover) and selection re-focuses the
+  // input, so this only closes on a genuine focus-out of the whole field.
+  const handleBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      if (!popover.isOpen) {
+        return;
+      }
+      const next = e.relatedTarget as Node | null;
+      if (next) {
+        const anchorEl = anchorRef?.current ?? fallbackAnchorRef.current;
+        const popoverEl = document.getElementById(popover.id);
+        if (anchorEl?.contains(next) || popoverEl?.contains(next)) {
+          return;
+        }
+      }
+      popover.hide();
+    },
+    [popover, anchorRef],
+  );
+
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -657,6 +682,7 @@ export const BaseTypeahead = function BaseTypeahead<
           );
         }}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={isDisabled}
