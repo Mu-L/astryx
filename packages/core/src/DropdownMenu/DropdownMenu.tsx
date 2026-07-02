@@ -291,9 +291,18 @@ export function DropdownMenu({
         }
         return;
       }
+      // APG menu-button pattern: Tab closes the menu. Menu items are
+      // tabIndex={-1} so the focus trap has nothing trappable and Tab would
+      // otherwise leak into the page while the menu stayed open (menus-5).
+      // Do NOT preventDefault — closing restores focus to the trigger, and the
+      // browser's default Tab then continues from there to the next element.
+      if (e.key === 'Tab') {
+        closeMenu();
+        return;
+      }
       listNavKeyDown(e);
     },
-    [listNavKeyDown],
+    [listNavKeyDown, closeMenu],
   );
 
   const openAndFocus = useCallback(() => {
