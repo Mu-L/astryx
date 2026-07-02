@@ -76,8 +76,13 @@ console.log('Discovering...');
 const api = await import('../../packages/cli/src/api/index.mjs');
 
 const componentList = cliJson(['component', '--list']);
+// `component --list` data is package-qualified: each group value is an array
+// of { name, package } objects. Map to bare names for the per-component cases.
+// (Tolerate plain strings too, in case the shape is ever simplified.)
 const allComponents = componentList.data && !componentList.error
-  ? Object.values(componentList.data).flat()
+  ? Object.values(componentList.data)
+      .flat()
+      .map(c => (typeof c === 'string' ? c : c.name))
   : [];
 
 const docsList = cliJson(['docs']);
@@ -193,6 +198,14 @@ if (firstTemplate) {
 }
 add('template nonexistent', ['template', 'nonexistent99'],
   () => apiCall(api.template, 'nonexistent99'));
+
+// Theme add — list + error paths (read-only; never scaffolds files here).
+add('theme list', ['theme', 'list'],
+  () => apiCall(api.themeAdd, undefined, {list: true, cwd: ROOT}));
+add('theme add --list', ['theme', 'add', '--list'],
+  () => apiCall(api.themeAdd, undefined, {list: true, cwd: ROOT}));
+add('theme add nonexistent', ['theme', 'add', 'nonexistent99'],
+  () => apiCall(api.themeAdd, 'nonexistent99', {cwd: ROOT}));
 
 // Hook — list variants
 add('hook --list', ['hook', '--list'],

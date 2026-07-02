@@ -1,6 +1,6 @@
 {
   "name": "@astryxdesign/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "CLI",
   "description": "Scaffold projects, browse templates, generate themes, and get agent-ready docs from the command line.",
   "author": "Meta Open Source",
@@ -42,6 +42,18 @@
     "./config": {
       "types": "./src/types/config.d.ts",
       "import": "./src/config.mjs"
+    },
+    "./integration": {
+      "types": "./src/types/integration.d.ts",
+      "import": "./src/integration.mjs"
+    },
+    "./template": {
+      "types": "./src/types/template-api.d.ts",
+      "import": "./src/template.mjs"
+    },
+    "./codemod": {
+      "types": "./src/types/codemod.d.ts",
+      "import": "./src/codemod.mjs"
     },
     "./xle": {
       "types": "./src/lib/xle/browser.d.ts",
