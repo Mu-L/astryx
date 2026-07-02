@@ -59,10 +59,7 @@ describe('DropdownMenu', () => {
 
   it('does not wrap the menu in a role="dialog" aria-modal element', () => {
     render(
-      <DropdownMenu
-        button={{label: 'Actions'}}
-        items={[{label: 'Item 1'}]}
-      />,
+      <DropdownMenu button={{label: 'Actions'}} items={[{label: 'Item 1'}]} />,
     );
     // The popup exposes its own role="menu"; it must not be nested inside a
     // modal dialog, which would announce an unnamed dialog around the menu
@@ -132,6 +129,22 @@ describe('DropdownMenu', () => {
     const menu = screen.getByRole('menu', {hidden: true});
     fireEvent.keyDown(menu, {key: 'Tab'});
     expect(HTMLElement.prototype.hidePopover).toHaveBeenCalled();
+  });
+
+  it('typeahead focuses the item matching the typed character (menus-11)', async () => {
+    const user = userEvent.setup();
+    render(
+      <DropdownMenu
+        button={{label: 'Actions'}}
+        items={[{label: 'Cut'}, {label: 'Copy'}, {label: 'Delete'}]}
+      />,
+    );
+    await user.click(screen.getByRole('button', {name: /Actions/}));
+    const menu = screen.getByRole('menu', {hidden: true});
+    fireEvent.keyDown(menu, {key: 'd'});
+    expect(
+      screen.getByRole('menuitem', {name: 'Delete', hidden: true}),
+    ).toHaveFocus();
   });
 
   it('calls onClick callback when button is clicked', async () => {
