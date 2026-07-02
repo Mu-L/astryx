@@ -41,8 +41,9 @@ export interface RadioListContextValue {
   status?: InputStatus;
 }
 
-export const RadioListContext =
-  createContext<RadioListContextValue | null>(null);
+export const RadioListContext = createContext<RadioListContextValue | null>(
+  null,
+);
 RadioListContext.displayName = 'RadioListContext';
 
 const styles = stylex.create({
@@ -175,6 +176,7 @@ export function RadioList({
 }: RadioListProps) {
   const name = useId();
   const inputID = useId();
+  const labelID = useId();
   const descriptionID = useId();
   const statusMessageID = useId();
 
@@ -191,6 +193,8 @@ export function RadioList({
       isLabelHidden={isLabelHidden}
       description={description}
       inputID={inputID}
+      labelID={labelID}
+      isGroupLabel
       descriptionID={description ? descriptionID : undefined}
       isOptional={isOptional}
       isRequired={isRequired}
@@ -212,7 +216,7 @@ export function RadioList({
       style={style}>
       <div
         role="radiogroup"
-        aria-label={label}
+        aria-labelledby={labelID}
         aria-describedby={
           [
             description ? descriptionID : null,
@@ -230,9 +234,7 @@ export function RadioList({
             orientation === 'vertical' ? styles.vertical : styles.horizontal,
           ),
         )}>
-        <RadioListContext value={contextValue}>
-          {children}
-        </RadioListContext>
+        <RadioListContext value={contextValue}>{children}</RadioListContext>
       </div>
     </Field>
   );
