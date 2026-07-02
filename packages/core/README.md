@@ -43,7 +43,6 @@ npx astryx theme build                  # build theme CSS for production
 npx astryx swizzle Button               # eject component source for customization
 npx astryx upgrade --apply              # run codemods to migrate between versions
 npx astryx discover                     # discover external XDS packages
-npx astryx gap-report                   # report a missing capability
 ```
 
 ## Related Packages
