@@ -108,9 +108,7 @@ function mockSelectorRects() {
 
 describe('Selector', () => {
   it('renders with placeholder when no value', () => {
-    render(
-      <Selector label="Fruit" options={OPTIONS} placeholder="Pick one" />,
-    );
+    render(<Selector label="Fruit" options={OPTIONS} placeholder="Pick one" />);
     expect(screen.getByRole('combobox')).toHaveTextContent('Pick one');
   });
 
@@ -497,9 +495,7 @@ describe('Selector', () => {
     it('opens and selects an option with Enter (no mouse)', async () => {
       const user = userEvent.setup();
       const onChange = vi.fn();
-      render(
-        <Selector label="Fruit" options={OPTIONS} onChange={onChange} />,
-      );
+      render(<Selector label="Fruit" options={OPTIONS} onChange={onChange} />);
 
       await user.tab();
       await user.keyboard('{Enter}'); // open
@@ -521,6 +517,33 @@ describe('Selector', () => {
       );
       const clear = screen.getByRole('button', {name: 'Clear Fruit'});
       expect(clear).not.toHaveAttribute('tabIndex', '-1');
+    });
+
+    it('scrolls the highlighted option into view during arrow navigation', async () => {
+      const scrollIntoView = vi.fn();
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+        configurable: true,
+        value: scrollIntoView,
+      });
+      try {
+        const user = userEvent.setup();
+        const longOptions = Array.from(
+          {length: 20},
+          (_, i) => `Option ${i + 1}`,
+        );
+        render(<Selector label="Fruit" options={longOptions} />);
+
+        await user.tab();
+        await user.keyboard('{Enter}'); // open
+        scrollIntoView.mockClear();
+        await user.keyboard('{ArrowDown}'); // move highlight
+        await user.keyboard('{ArrowDown}');
+
+        expect(scrollIntoView).toHaveBeenCalledWith({block: 'nearest'});
+      } finally {
+        delete (HTMLElement.prototype as unknown as {scrollIntoView?: unknown})
+          .scrollIntoView;
+      }
     });
   });
 });

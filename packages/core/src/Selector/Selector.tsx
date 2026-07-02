@@ -474,34 +474,30 @@ type SelectorPropsNonClearable<
   changeAction?: (value: string) => void | Promise<void>;
 };
 
-type SelectorPropsClearable<
-  T extends SelectorOptionType = SelectorOptionType,
-> = SelectorPropsBase<T> & {
-  /**
-   * Whether to show a clear button when a value is selected.
-   * When clicked, resets the value to `null` and returns focus to the trigger.
-   *
-   * When enabled, `value` and `onChange` widen to include `null`.
-   */
-  hasClear: true;
-  value: string | null;
-  onChange?: (value: string | null) => void;
-  changeAction?: (value: string | null) => void | Promise<void>;
-};
+type SelectorPropsClearable<T extends SelectorOptionType = SelectorOptionType> =
+  SelectorPropsBase<T> & {
+    /**
+     * Whether to show a clear button when a value is selected.
+     * When clicked, resets the value to `null` and returns focus to the trigger.
+     *
+     * When enabled, `value` and `onChange` widen to include `null`.
+     */
+    hasClear: true;
+    value: string | null;
+    onChange?: (value: string | null) => void;
+    changeAction?: (value: string | null) => void | Promise<void>;
+  };
 
-export type SelectorProps<
-  T extends SelectorOptionType = SelectorOptionType,
-> = SelectorPropsNonClearable<T> | SelectorPropsClearable<T>;
+export type SelectorProps<T extends SelectorOptionType = SelectorOptionType> =
+  | SelectorPropsNonClearable<T>
+  | SelectorPropsClearable<T>;
 
 /**
  * Default option renderer
  */
 function DefaultOption({option}: {option: SelectorOptionData}) {
   return (
-    <SelectorOption
-      icon={option.icon}
-      label={option.label ?? option.value}
-    />
+    <SelectorOption icon={option.icon} label={option.label ?? option.value} />
   );
 }
 
@@ -692,6 +688,19 @@ export function Selector<T extends SelectorOptionType>(
     listboxId,
   });
 
+  // Keep the highlighted option visible during keyboard navigation. The
+  // listbox is a fixed-height scroll container, so without this the virtual
+  // cursor walks off-screen once navigation passes the visible window. Mirrors
+  // CommandPaletteItem's scrollIntoView({block: 'nearest'}) behavior.
+  useEffect(() => {
+    if (!popover.isOpen || highlightedIndex < 0) {
+      return;
+    }
+    document
+      .getElementById(getItemId(highlightedIndex))
+      ?.scrollIntoView?.({block: 'nearest'});
+  }, [popover.isOpen, highlightedIndex, getItemId]);
+
   // Handle clear button click
   const handleClear = useCallback(
     (e: React.MouseEvent) => {
@@ -812,9 +821,7 @@ export function Selector<T extends SelectorOptionType>(
       const option = options[i];
 
       if (isDivider(option)) {
-        elements.push(
-          <Divider key={`divider-${i}`} xstyle={styles.divider} />,
-        );
+        elements.push(<Divider key={`divider-${i}`} xstyle={styles.divider} />);
       } else if (isSection(option)) {
         const sectionItems: ReactNode[] = [];
         for (const opt of option.options) {
