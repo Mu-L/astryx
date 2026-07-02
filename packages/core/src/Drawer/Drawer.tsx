@@ -193,7 +193,11 @@ const styles = stylex.create({
     },
   },
   // Block-axis sheets (top/bottom): full width, pinned to one block edge.
+  // width must be explicit — the UA stylesheet gives <dialog>
+  // `width: fit-content`, which beats the insetInline: 0 stretch and
+  // would leave the sheet content-width in a corner.
   top: {
+    width: '100dvw',
     insetInlineStart: 0,
     insetInlineEnd: 0,
     insetBlockStart: 0,
@@ -210,6 +214,7 @@ const styles = stylex.create({
     },
   },
   bottom: {
+    width: '100dvw',
     insetInlineStart: 0,
     insetInlineEnd: 0,
     insetBlockEnd: 0,
@@ -327,6 +332,7 @@ const dynamicStyles = stylex.create({
   }),
   // Block-axis budget (top/bottom sheets): height caps at the budget,
   // full-height on shorter viewports — mirrors the inline-axis approach.
+  // (Full-bleed width lives in the static top/bottom side styles.)
   blockSize: (s: string) => ({
     height: '100dvh',
     maxHeight: s,

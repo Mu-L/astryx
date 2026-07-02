@@ -351,6 +351,21 @@ describe('Drawer', () => {
         '40dvh',
       );
     });
+
+    it('sheets stretch to full viewport width (regression: UA width: fit-content left the sheet content-width in a corner)', () => {
+      render(
+        <Drawer isOpen onClose={() => {}} label="Details" side="bottom">
+          Content
+        </Drawer>,
+      );
+      // The explicit width: 100dvw lives in the static bottom side style —
+      // insetInline: 0 alone loses to the dialog UA stylesheet's
+      // `width: fit-content`. jsdom can't resolve class-compiled CSS, so
+      // assert the side style class is applied; the declaration itself is
+      // covered by the source and visual verification.
+      const className = screen.getByRole('dialog').getAttribute('class') ?? '';
+      expect(className).toContain('Drawer__styles.bottom');
+    });
   });
 
   describe('close button', () => {
