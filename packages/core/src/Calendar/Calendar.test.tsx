@@ -482,6 +482,31 @@ describe('Calendar', () => {
     expect(document.activeElement).toHaveAttribute('data-date', '2026-01-01');
   });
 
+  it('cross-month arrow nav resolves the focused date from data-date (locale-safe)', async () => {
+    // Regression for complex-4: getFocusedDate must read the machine-readable
+    // data-date attribute, not parse the human-readable aria-label with
+    // new Date() (which is locale-dependent). We prove the resolution path by
+    // corrupting the aria-label to something new Date() cannot parse — cross-
+    // month navigation must still report the correct ISO date.
+    const user = userEvent.setup();
+    const handleFocusChange = vi.fn();
+
+    render(
+      <Calendar focusDate="2026-01-01" onFocusDateChange={handleFocusChange} />,
+    );
+
+    const day28 = getDayButton(28);
+    await user.click(day28);
+    day28.focus();
+    // Simulate a non-English/unparseable aria-label while keeping data-date.
+    day28.setAttribute('aria-label', '2026年1月28日 水曜日');
+
+    await user.keyboard('{ArrowDown}');
+
+    // Feb 4 (+7 days) — resolved via data-date despite the unparseable label.
+    expect(document.activeElement).toHaveAttribute('data-date', '2026-02-04');
+  });
+
   it('prev button is disabled when focusDate month contains min', () => {
     render(<Calendar focusDate="2026-01-01" min="2026-01-15" />);
 

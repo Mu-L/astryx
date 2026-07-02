@@ -46,7 +46,6 @@ import {
   plainDateFromISO,
   plainDateToISO,
   plainDateToDate,
-  plainDateFromDate,
   plainDateToday,
   plainDateSetFirstOfMonth,
   plainDateAddMonths,
@@ -564,24 +563,23 @@ function MonthGrid({
     selectedDate: selectedDateForTabindex,
   });
 
-  // Helper to get the focused date from the currently focused element
+  // Helper to get the focused date from the currently focused element.
+  // Reads the machine-readable `data-date` (ISO) attribute rather than parsing
+  // the human-readable `aria-label` with `new Date()`, which is locale/format
+  // dependent and returns Invalid Date in non-English locales (e.g. fr-FR,
+  // ja-JP), silently swallowing month-boundary arrow navigation (complex-4).
   const getFocusedDate = useCallback((): ISODateString | null => {
     const activeElement = document.activeElement as HTMLElement | null;
     if (!activeElement) {
       return null;
     }
 
-    const ariaLabel = activeElement.getAttribute('aria-label');
-    if (!ariaLabel) {
+    const iso = activeElement.getAttribute('data-date');
+    if (!iso) {
       return null;
     }
 
-    const parsed = new Date(ariaLabel);
-    if (isNaN(parsed.getTime())) {
-      return null;
-    }
-
-    return plainDateToISO(plainDateFromDate(parsed));
+    return iso as ISODateString;
   }, []);
 
   // Handle navigation to previous month
@@ -654,11 +652,11 @@ function MonthGrid({
     );
 
     const targetPd = plainDateFromISO(pendingFocus);
-    const targetLabel = plainDateFormat(targetPd, DATE_FORMAT_WITH_WEEKDAY);
+    const targetIso = plainDateToISO(targetPd);
 
     let targetButton: HTMLElement | null = null;
     for (const button of buttons) {
-      if (button.getAttribute('aria-label') === targetLabel) {
+      if (button.getAttribute('data-date') === targetIso) {
         targetButton = button;
         break;
       }
