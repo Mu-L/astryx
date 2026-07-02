@@ -672,6 +672,12 @@ export function FileInput({
         onKeyDown={handleKeyDown}
         aria-label={label}
         aria-busy={isLoading || undefined}
+        // These describe the operable control, so they belong on the focusable
+        // role="button" wrapper — not the hidden tabIndex={-1} file input the
+        // user never focuses (forms-6).
+        aria-describedby={ariaDescribedBy}
+        aria-required={isRequired ? 'true' : undefined}
+        aria-invalid={status?.type === 'error' ? 'true' : undefined}
         {...dragDropProps}
         {...mergeProps(
           themeProps('file-input', {mode, status: status?.type ?? null}),
@@ -696,9 +702,9 @@ export function FileInput({
           multiple={isMultiple}
           disabled={isDisabled}
           onChange={handleInputChange}
-          aria-describedby={ariaDescribedBy}
-          aria-required={isRequired ? 'true' : undefined}
-          aria-invalid={status?.type === 'error' ? 'true' : undefined}
+          // The visually-hidden native input is never focused (tabIndex={-1});
+          // its describedby/required/invalid live on the role="button" wrapper.
+          aria-hidden="true"
           tabIndex={-1}
           {...stylex.props(styles.hiddenInput)}
         />
