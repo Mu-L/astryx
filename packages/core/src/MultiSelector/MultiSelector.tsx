@@ -749,6 +749,9 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
     announceSelection,
   ]);
 
+  // Whether there is at least one selected value (clearing is meaningful).
+  const hasValue = optimisticValue.length > 0;
+
   const handleClear = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation(); // Don't open dropdown
@@ -882,7 +885,7 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
     onClose: popover.hide,
     onToggle: handleNavigableToggle,
     onClear: hasClear ? clearValues : undefined,
-    canClear: optimisticValue.length > 0,
+    canClear: hasValue,
     listboxId,
   });
 
