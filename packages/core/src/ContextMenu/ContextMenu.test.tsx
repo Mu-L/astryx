@@ -71,6 +71,48 @@ describe('ContextMenu', () => {
     expect(HTMLElement.prototype.showPopover).toHaveBeenCalled();
   });
 
+  it('closes on Escape even when opened without auto-focus', () => {
+    render(
+      <ContextMenu items={[{label: 'Item 1'}]} hasAutoFocus={false}>
+        <div>Right-click me</div>
+      </ContextMenu>,
+    );
+
+    fireEvent.contextMenu(screen.getByText('Right-click me'));
+    expect(HTMLElement.prototype.showPopover).toHaveBeenCalled();
+    // Focus is not inside the menu, so the Escape path must be document-level.
+    fireEvent.keyDown(document, {key: 'Escape'});
+    expect(HTMLElement.prototype.hidePopover).toHaveBeenCalled();
+  });
+
+  it('ignores Escape during IME composition', () => {
+    render(
+      <ContextMenu items={[{label: 'Item 1'}]} hasAutoFocus={false}>
+        <div>Right-click me</div>
+      </ContextMenu>,
+    );
+
+    fireEvent.contextMenu(screen.getByText('Right-click me'));
+    fireEvent.keyDown(document, {key: 'Escape', isComposing: true});
+    expect(HTMLElement.prototype.hidePopover).not.toHaveBeenCalled();
+  });
+
+  it('restores focus to the trigger on close', () => {
+    render(
+      <ContextMenu items={[{label: 'Item 1'}]} hasAutoFocus={false}>
+        <button type="button">Right-click me</button>
+      </ContextMenu>,
+    );
+
+    const trigger = screen.getByRole('button', {name: 'Right-click me'});
+    trigger.focus();
+    expect(trigger).toHaveFocus();
+
+    fireEvent.contextMenu(trigger);
+    fireEvent.keyDown(document, {key: 'Escape'});
+    expect(trigger).toHaveFocus();
+  });
+
   it('prevents default context menu on right-click', () => {
     render(
       <ContextMenu items={[{label: 'Item 1'}]}>

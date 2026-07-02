@@ -138,9 +138,7 @@ interface ContextMenuCompoundProps extends ContextMenuBaseProps {
   menuContent: ReactNode;
 }
 
-export type ContextMenuProps =
-  | ContextMenuDataProps
-  | ContextMenuCompoundProps;
+export type ContextMenuProps = ContextMenuDataProps | ContextMenuCompoundProps;
 
 // =============================================================================
 // ContextMenu
@@ -188,6 +186,9 @@ export function ContextMenu({
 
   const menuId = useId();
   const positionRef = useRef({x: 0, y: 0});
+  // Element focused before the menu opened, restored when it closes so focus
+  // does not fall to <body> after Escape or outside-click dismissal.
+  const triggerFocusRef = useRef<HTMLElement | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -196,6 +197,12 @@ export function ContextMenu({
     onHide: useCallback(() => {
       setIsOpen(false);
       onOpenChange?.(false);
+      // Restore focus to the element that was focused before opening.
+      const toRestore = triggerFocusRef.current;
+      triggerFocusRef.current = null;
+      if (toRestore && document.contains(toRestore)) {
+        toRestore.focus();
+      }
     }, [onOpenChange]),
     onShow: useCallback(() => {
       setIsOpen(true);
@@ -238,6 +245,31 @@ export function ContextMenu({
     };
   }, [isOpen, closeMenu, listRef]);
 
+  // Dismiss on Escape from anywhere while open. The menu div's own onKeyDown
+  // only fires when focus is inside the menu, which never happens when the
+  // menu is opened with hasAutoFocus={false} (e.g. table context menus), so a
+  // document-level listener is required for a reliable Escape path. Guards
+  // against IME composition-cancel.
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') {
+        return;
+      }
+      if (e.isComposing || e.keyCode === 229) {
+        return;
+      }
+      e.preventDefault();
+      closeMenu();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, closeMenu]);
+
   const listKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -260,6 +292,12 @@ export function ContextMenu({
       }
       e.preventDefault();
       positionRef.current = {x: e.clientX, y: e.clientY};
+      // Remember the element focused before opening so we can restore it on
+      // close (Escape or outside-click), instead of dropping focus to <body>.
+      triggerFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : (e.currentTarget as HTMLElement);
       layer.show();
       if (hasAutoFocus) {
         requestAnimationFrame(() => focusFirst());
