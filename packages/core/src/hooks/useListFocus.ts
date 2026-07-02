@@ -20,7 +20,7 @@ import {useCallback, useRef} from 'react';
 export interface UseListFocusOptions {
   /**
    * Selector for focusable items within the list.
-   * @default '[role="menuitem"]'
+   * @default '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]'
    */
   itemSelector?: string;
 
@@ -107,6 +107,19 @@ export function useListFocus<T extends HTMLElement = HTMLElement>(
   const listRef = useRef<T>(null);
 
   /**
+   * Whether an item is disabled and therefore cannot receive DOM focus.
+   * A `.focus()` call on such an element silently no-ops, so navigation must
+   * skip these to avoid freezing on a disabled item (menus-4, navigation-5).
+   */
+  const isItemDisabled = useCallback((el: HTMLElement): boolean => {
+    return (
+      el.getAttribute('aria-disabled') === 'true' ||
+      (el as HTMLButtonElement).disabled === true ||
+      el.hasAttribute('disabled')
+    );
+  }, []);
+
+  /**
    * Get all focusable items in the list.
    */
   const getItems = useCallback((): HTMLElement[] => {
@@ -117,6 +130,42 @@ export function useListFocus<T extends HTMLElement = HTMLElement>(
       listRef.current.querySelectorAll<HTMLElement>(itemSelector),
     );
   }, [itemSelector]);
+
+  /**
+   * Find the next enabled item index from `start`, moving by `step`, optionally
+   * wrapping. Returns -1 when no enabled item exists in range. Skipping
+   * disabled items here (rather than relying on the selector) keeps navigation
+   * from stalling on an item whose `.focus()` silently no-ops.
+   */
+  const findEnabledIndex = useCallback(
+    (
+      items: HTMLElement[],
+      start: number,
+      step: 1 | -1,
+      shouldWrap: boolean,
+    ): number => {
+      const count = items.length;
+      if (count === 0) {
+        return -1;
+      }
+      let index = start;
+      for (let i = 0; i < count; i++) {
+        if (index < 0 || index >= count) {
+          if (!shouldWrap) {
+            return -1;
+          }
+          index = (index + count) % count;
+        }
+        const item = items[index];
+        if (item && !isItemDisabled(item)) {
+          return index;
+        }
+        index += step;
+      }
+      return -1;
+    },
+    [isItemDisabled],
+  );
 
   /**
    * Get the currently focused item index.
@@ -143,20 +192,26 @@ export function useListFocus<T extends HTMLElement = HTMLElement>(
   );
 
   /**
-   * Focus the first item.
+   * Focus the first enabled item.
    */
   const focusFirst = useCallback(() => {
     const items = getItems();
-    items[0]?.focus();
-  }, [getItems]);
+    const index = findEnabledIndex(items, 0, 1, false);
+    if (index !== -1) {
+      items[index]?.focus();
+    }
+  }, [getItems, findEnabledIndex]);
 
   /**
-   * Focus the last item.
+   * Focus the last enabled item.
    */
   const focusLast = useCallback(() => {
     const items = getItems();
-    items[items.length - 1]?.focus();
-  }, [getItems]);
+    const index = findEnabledIndex(items, items.length - 1, -1, false);
+    if (index !== -1) {
+      items[index]?.focus();
+    }
+  }, [getItems, findEnabledIndex]);
 
   /**
    * Handle keyboard navigation.
@@ -172,22 +227,19 @@ export function useListFocus<T extends HTMLElement = HTMLElement>(
 
       switch (e.key) {
         case nextKey: {
-          if (currentIndex === -1) {
-            items[0]?.focus();
-          } else if (currentIndex < items.length - 1) {
-            items[currentIndex + 1]?.focus();
-          } else if (wrap) {
-            items[0]?.focus();
+          const from = currentIndex === -1 ? 0 : currentIndex + 1;
+          const next = findEnabledIndex(items, from, 1, wrap);
+          if (next !== -1) {
+            items[next]?.focus();
           }
           break;
         }
         case prevKey: {
-          if (currentIndex === -1) {
-            items[items.length - 1]?.focus();
-          } else if (currentIndex > 0) {
-            items[currentIndex - 1]?.focus();
-          } else if (wrap) {
-            items[items.length - 1]?.focus();
+          const from =
+            currentIndex === -1 ? items.length - 1 : currentIndex - 1;
+          const prev = findEnabledIndex(items, from, -1, wrap);
+          if (prev !== -1) {
+            items[prev]?.focus();
           }
           break;
         }
@@ -213,6 +265,7 @@ export function useListFocus<T extends HTMLElement = HTMLElement>(
       getItems,
       wrap,
       orientation,
+      findEnabledIndex,
       focusFirst,
       focusLast,
       onEscape,
