@@ -9,7 +9,6 @@ tags:
   - 'CLI'
   - 'AI'
   - 'Docs'
-draft: true
 relatedDocs:
   - title: 'How Astryx works'
     href: '/blog/how-astryx-works'
