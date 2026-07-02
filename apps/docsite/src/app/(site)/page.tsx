@@ -98,6 +98,14 @@ const styles = stylex.create({
     maxWidth: 420,
     marginInline: 'auto',
   },
+  // Top gap for the narrow-screen collage, set outside the reel's <Theme> so
+  // --hero-gap/--spacing resolve in the docsite scale (constant across swaps).
+  heroCollageGap: {
+    marginBlockStart: {
+      default: spacingVars['--spacing-10'],
+      '@media (min-width: 768px)': 'var(--hero-gap)',
+    },
+  },
   // On dark slides the hero text switches to a light ink (headline/links inherit).
   heroTextDark: {
     color: 'var(--hero-on-dark)',
@@ -238,11 +246,12 @@ function HeroContent({contentRef}: {contentRef: Ref<HTMLElement>}) {
           </Link>
         </Text>
       </VStack>
-      {/* Narrow-screen collage — rendered inside the (fixed) hero content so it's
-          pinned with the text and sits a consistent --hero-gap below it. The
-          desktop overlap layer (HeroReelCards) hides below 1024px; this
-          self-hides at ≥1024px. */}
-      <HeroReelStack />
+      {/* Narrow-screen collage. The wrapper's gap is non-themed so it stays
+          constant across theme swaps. Overlap layer (HeroReelCards) takes over
+          ≥1024px; this self-hides there. */}
+      <div {...stylex.props(styles.heroCollageGap)}>
+        <HeroReelStack />
+      </div>
       {/* DarkScope flips the dot ink to the active slide's light/dark mode. */}
       <DarkScope isDark={isDark}>
         <div data-home-page="true" {...stylex.props(styles.heroDots)}>
