@@ -13,9 +13,11 @@ import {describe, it, expect} from 'vitest';
 import {render, screen, fireEvent} from '@testing-library/react';
 import {useListFocus} from './useListFocus';
 
+const NO_DISABLED: string[] = [];
+
 function Menu({
   wrap = true,
-  disabledLabels = [],
+  disabledLabels = NO_DISABLED,
 }: {
   wrap?: boolean;
   disabledLabels?: string[];
