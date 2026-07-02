@@ -885,7 +885,7 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
     onClose: popover.hide,
     onToggle: handleNavigableToggle,
     onClear: hasClear ? clearValues : undefined,
-    canClear: hasValue,
+    hasValue,
     listboxId,
   });
 
