@@ -1,0 +1,114 @@
+{
+  "iterationId": "4a201121",
+  "createdAt": "2026-07-02T11:10:19.902Z",
+  "config": {
+    "target": "html",
+    "persona": "naive",
+    "holdout": false,
+    "degradation": false,
+    "cliRetrieval": false
+  },
+  "prompts": [
+    {
+      "id": "fwc-12",
+      "category": "feature-with-constraint",
+      "prompt": "Build an image thumbnail grid. When a user clicks a thumbnail, open a fullscreen lightbox showing the image with a caption and a close button.",
+      "expectedComponents": [
+        "XDSLightbox"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "wd-1",
+      "category": "workflow-description",
+      "prompt": "Build a checkout flow: cart summary → shipping → payment → confirmation",
+      "expectedComponents": [
+        "XDSCard",
+        "XDSButton",
+        "XDSTextInput"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "cwm-3",
+      "category": "clone-with-modification",
+      "prompt": "Like Notion's page header with icon picker and cover image",
+      "expectedComponents": [
+        "XDSCard",
+        "XDSButton"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "sd-1",
+      "category": "state-driven",
+      "prompt": "Show a dashboard widget with loading → error → data states",
+      "expectedComponents": [
+        "XDSCard",
+        "XDSSkeleton"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "dd-1",
+      "category": "data-display",
+      "prompt": "A table of users with sortable columns and search",
+      "expectedComponents": [
+        "XDSTextInput"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "rc-2",
+      "category": "responsive-context",
+      "prompt": "A sidebar that becomes a bottom sheet on mobile",
+      "expectedComponents": [
+        "XDSCard",
+        "XDSLayoutPanel"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "io-1",
+      "category": "integration-oriented",
+      "prompt": "A form that validates email and posts to /api/subscribe",
+      "expectedComponents": [
+        "XDSTextInput",
+        "XDSButton"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "ps-3",
+      "category": "page-setup",
+      "prompt": "Create an admin panel page layout with a fixed header, collapsible left sidebar, main content area, and a right panel for details. Wrap everything in the XDS theme.",
+      "expectedComponents": [
+        "Theme",
+        "XDSLayout",
+        "XDSLayoutHeader",
+        "XDSLayoutContent",
+        "XDSLayoutPanel"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "ty-3",
+      "category": "typography",
+      "prompt": "Build a metrics dashboard card that shows a label like 'Total Revenue', a large numeric value like '$12,340.56', and a small supporting line that says '+12% from last month'",
+      "expectedComponents": [
+        "XDSCard",
+        "XDSText"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "tc-9",
+      "category": "theme-customization",
+      "prompt": "Create two custom XDS themes that share the same spacing and typography tokens but have different color palettes. The first theme ('ocean') should use blue tones (#0077B6 accent) and the second ('sunset') should use warm orange tones (#E76F51 accent). Keep it DRY — don't duplicate the shared token values.",
+      "expectedComponents": [
+        "XDSTheme"
+      ],
+      "status": "pending"
+    }
+  ]
+}

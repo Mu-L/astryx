@@ -1,0 +1,114 @@
+{
+  "cwm-3": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 66,
+        "message": "Type '\"below-start\"' is not assignable to type 'LayerPlacement | undefined'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 1,
+    "buildSuccess": false
+  },
+  "dd-1": {
+    "target": "astryx",
+    "errors": [],
+    "errorCount": 0,
+    "buildSuccess": true
+  },
+  "fwc-12": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 4,
+        "message": "Module '\"@astryxdesign/core/Dialog\"' has no exported member 'DialogBody'.",
+        "code": "TS2305"
+      }
+    ],
+    "errorCount": 1,
+    "buildSuccess": false
+  },
+  "io-1": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 53,
+        "message": "Type '{ variant: string; title: string; description: string; }' is not assignable to type 'IntrinsicAttributes & BannerProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 1,
+    "buildSuccess": false
+  },
+  "ps-3": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 45,
+        "message": "Type '{ title: string; }' is not assignable to type 'IntrinsicAttributes & TopNavProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 49,
+        "message": "Property 'heading' is missing in type '{ children: string; }' but required in type 'SideNavHeadingProps'.",
+        "code": "TS2741"
+      }
+    ],
+    "errorCount": 2,
+    "buildSuccess": false
+  },
+  "rc-2": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 63,
+        "message": "Property 'heading' is missing in type '{ children: string; }' but required in type 'SideNavHeadingProps'.",
+        "code": "TS2741"
+      }
+    ],
+    "errorCount": 1,
+    "buildSuccess": false
+  },
+  "sd-1": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 55,
+        "message": "Type '{ variant: string; title: string; }' is not assignable to type 'IntrinsicAttributes & BannerProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 1,
+    "buildSuccess": false
+  },
+  "tc-9": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 39,
+        "message": "Object literal may only specify known properties, and ''--color-accent-hover'' does not exist in type 'Partial<Record<TokenName, TokenValue>>'.",
+        "code": "TS2353"
+      },
+      {
+        "line": 50,
+        "message": "Object literal may only specify known properties, and ''--color-accent-hover'' does not exist in type 'Partial<Record<TokenName, TokenValue>>'.",
+        "code": "TS2353"
+      }
+    ],
+    "errorCount": 2,
+    "buildSuccess": false
+  },
+  "ty-3": {
+    "target": "astryx",
+    "errors": [],
+    "errorCount": 0,
+    "buildSuccess": true
+  },
+  "wd-1": {
+    "target": "astryx",
+    "errors": [],
+    "errorCount": 0,
+    "buildSuccess": true
+  }
+}
