@@ -25,13 +25,16 @@ describe('InputGroup', () => {
     );
 
     // The group is named by the field label via aria-labelledby (not a
-    // duplicated aria-label), and the label is not an orphaned htmlFor.
+    // duplicated aria-label). The label is rendered as a <span> (not a literal
+    // <label>, which can't name a group) and carries no orphaned htmlFor.
     const group = screen.getByRole('group', {name: 'Price'});
     expect(group).toBeInTheDocument();
     expect(group).not.toHaveAttribute('aria-label');
-    const label = screen.getByText('Price').closest('label');
+    const label = screen.getByText('Price');
+    expect(label.tagName).toBe('SPAN');
+    expect(label.closest('label')).toBeNull();
     expect(label).not.toHaveAttribute('for');
-    expect(group.getAttribute('aria-labelledby')).toBe(label?.id);
+    expect(group.getAttribute('aria-labelledby')).toBe(label.id);
   });
 
   it('renders the visible label', () => {
