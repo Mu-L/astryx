@@ -342,18 +342,23 @@ export function TreeListItem({
   );
 
   const chevron = hasChildren ? (
-    handleClick != null && onClick != null ? (
-      // Separate toggle button when item has its own onClick
+    handleToggle != null ? (
+      // Real toggle button whenever expand/collapse is supported, so the row
+      // can be expanded from the keyboard even when the item has no onClick/href
+      // (row-level onClick is the only click path in that case, but there is no
+      // focusable element to receive Enter/Space). The row's handleClick ignores
+      // clicks originating inside a <button>, so this never double-toggles.
       <button
         type="button"
         aria-expanded={isExpanded}
         aria-label="Toggle children"
+        disabled={isDisabled}
         onClick={handleToggle}
         {...stylex.props(styles.chevronButton)}>
         {chevronIcon}
       </button>
     ) : (
-      // Non-interactive chevron when clicking the row toggles
+      // Non-interactive chevron only when toggling is not wired up at all
       <span {...stylex.props(styles.chevronContainer)}>{chevronIcon}</span>
     )
   ) : null;

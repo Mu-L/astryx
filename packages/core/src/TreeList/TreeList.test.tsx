@@ -160,6 +160,26 @@ describe('TreeList', () => {
     expect(item).not.toHaveAttribute('aria-expanded');
   });
 
+  it('renders a keyboard-focusable toggle button for parents without onClick/href', () => {
+    render(<TreeList items={nestedItems} />);
+    const toggle = screen.getByRole('button', {name: 'Toggle children'});
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('expands a parent from the keyboard via the toggle button', async () => {
+    const user = userEvent.setup();
+    render(<TreeList items={nestedItems} />);
+    // Collapsed: children are not rendered.
+    expect(screen.queryByText('Child 1')).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button', {name: 'Toggle children'});
+    toggle.focus();
+    expect(toggle).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByText('Child 1')).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('renders group role for nested children', () => {
     render(<TreeList items={nestedItemsExpanded} />);
     const groups = document.querySelectorAll('[role="group"]');
@@ -210,18 +230,14 @@ describe('TreeList', () => {
   it('fires onClick when invisible button is clicked', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    const items: TreeListItemData[] = [
-      {id: 'a', label: 'Clickable', onClick},
-    ];
+    const items: TreeListItemData[] = [{id: 'a', label: 'Clickable', onClick}];
     render(<TreeList items={items} />);
     await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
   it('renders an invisible anchor when href is provided', () => {
-    const items: TreeListItemData[] = [
-      {id: 'a', label: 'Link', href: '/docs'},
-    ];
+    const items: TreeListItemData[] = [{id: 'a', label: 'Link', href: '/docs'}];
     const {container} = render(<TreeList items={items} />);
     const anchor = container.querySelector('a');
     expect(anchor).toBeInTheDocument();
