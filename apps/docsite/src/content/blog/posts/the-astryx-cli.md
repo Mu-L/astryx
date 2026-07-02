@@ -44,6 +44,6 @@ Here is the fun part. You do not really need any of it. Your agent will know it 
 
 We enforce a JSON interface across every command. We enforce stable error codes too. Agents can rely on both and work programmatically. A manifest describes the whole tool in one call if an agent needs it. Most commands describe themselves. An agent can find its way through on its own. And there is a dense mode for fewer tokens.
 
-## More to come
+## The whole point
 
-An agent building with Astryx should not have to guess. Everything is one command away. Next in the series we get into the part we are proudest of. Docs that cannot go stale. And why building the CLI first is what makes that true.
+An agent building with Astryx should not have to guess. Everything is one command away.
