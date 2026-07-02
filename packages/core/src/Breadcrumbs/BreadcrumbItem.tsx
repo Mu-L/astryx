@@ -184,6 +184,10 @@ export function BreadcrumbItem({
   const LinkComponent = useLinkComponent(as);
   const isSupporting = ctx.variant === 'supporting';
   const liRef = useRef<HTMLLIElement>(null);
+  // Points at the element we render to hold the item's content (the
+  // link/button/span in the auto-candidate path). Auto-current detection sets
+  // aria-current on this instead of guessing the <li>'s last child.
+  const contentRef = useRef<HTMLElement>(null);
 
   const isCurrent = isCurrentProp === true;
   const isAutoCandidate = isCurrentProp == null;
@@ -215,9 +219,11 @@ export function BreadcrumbItem({
     const hasExplicit = ol.querySelector('[aria-current="page"]');
 
     if (isLast && !hasExplicit) {
-      // The content element is the last child of the <li> (the separator span
-      // is first). Fall back to the <li> if it can't be resolved.
-      const target = (li.lastElementChild as HTMLElement | null) ?? li;
+      // We control the element that holds the content (see the auto-candidate
+      // render path below), so set aria-current on that ref rather than
+      // assuming a positional last child. Fall back to the <li> only if the
+      // ref is somehow unresolved.
+      const target = contentRef.current ?? li;
       target.setAttribute('aria-current', 'page');
       return () => {
         target.removeAttribute('aria-current');
@@ -286,6 +292,7 @@ export function BreadcrumbItem({
       </span>
       {href != null ? (
         <LinkComponent
+          ref={contentRef}
           href={href}
           onClick={onClick}
           {...stylex.props(
@@ -296,6 +303,7 @@ export function BreadcrumbItem({
         </LinkComponent>
       ) : onClick != null ? (
         <button
+          ref={contentRef as React.RefObject<HTMLButtonElement | null>}
           type="button"
           onClick={onClick}
           {...stylex.props(
@@ -307,6 +315,7 @@ export function BreadcrumbItem({
         </button>
       ) : (
         <span
+          ref={contentRef}
           {...stylex.props(
             itemStyles.contentWrapper,
             itemStyles.current,
