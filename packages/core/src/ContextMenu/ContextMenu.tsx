@@ -125,12 +125,6 @@ interface ContextMenuBaseProps extends BaseProps {
    * @default 'Context menu'
    */
   label?: string;
-  /**
-   * Whether to auto-focus the first menu item when the menu opens.
-   * Set to `false` for inline showcases or documentation previews.
-   * @default true
-   */
-  hasAutoFocus?: boolean;
   /** When true, right-click shows the native browser context menu instead. */
   isDisabled?: boolean;
   /** Called when the menu opens or closes. */
@@ -184,7 +178,6 @@ export function ContextMenu({
   menuWidth,
   size = 'md',
   label = 'Context menu',
-  hasAutoFocus = true,
   isDisabled = false,
   onOpenChange,
   ref,
@@ -282,10 +275,9 @@ export function ContextMenu({
   }, [isOpen, closeMenu, listRef]);
 
   // Dismiss on Escape from anywhere while open. The menu div's own onKeyDown
-  // only fires when focus is inside the menu, which never happens when the
-  // menu is opened with hasAutoFocus={false} (e.g. table context menus), so a
-  // document-level listener is required for a reliable Escape path. Guards
-  // against IME composition-cancel.
+  // only fires when focus is inside the menu; a document-level listener is
+  // kept as a reliable fallback Escape path (e.g. if focus has moved out of
+  // the menu). Guards against IME composition-cancel.
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -350,11 +342,9 @@ export function ContextMenu({
           ? document.activeElement
           : (e.currentTarget as HTMLElement);
       layer.show();
-      if (hasAutoFocus) {
-        requestAnimationFrame(() => focusFirst());
-      }
+      requestAnimationFrame(() => focusFirst());
     },
-    [isDisabled, layer, hasAutoFocus, focusFirst],
+    [isDisabled, layer, focusFirst],
   );
 
   // Touch long-press invocation (menus-8). iOS Safari never synthesizes a
@@ -367,11 +357,9 @@ export function ContextMenu({
       (point: {x: number; y: number}) => {
         positionRef.current = {x: point.x, y: point.y};
         layer.show();
-        if (hasAutoFocus) {
-          requestAnimationFrame(() => focusFirst());
-        }
+        requestAnimationFrame(() => focusFirst());
       },
-      [layer, hasAutoFocus, focusFirst],
+      [layer, focusFirst],
     ),
   });
 
