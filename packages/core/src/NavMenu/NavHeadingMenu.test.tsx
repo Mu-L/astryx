@@ -204,6 +204,51 @@ describe('keyboard navigation', () => {
     await user.keyboard('{End}');
     expect(document.activeElement).toBe(items[2]);
   });
+
+  it('activates a focused onClick-only item with Enter', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <NavHeadingMenu>
+        <NavHeadingMenuItem label="Action" onClick={onClick} />
+      </NavHeadingMenu>,
+    );
+    const item = screen.getByRole('menuitem');
+    item.focus();
+
+    await user.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('activates a focused onClick-only item with Space', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <NavHeadingMenu>
+        <NavHeadingMenuItem label="Action" onClick={onClick} />
+      </NavHeadingMenu>,
+    );
+    const item = screen.getByRole('menuitem');
+    item.focus();
+
+    await user.keyboard('{ }');
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('does not activate a disabled item with Enter', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <NavHeadingMenu>
+        <NavHeadingMenuItem label="Action" onClick={onClick} isDisabled />
+      </NavHeadingMenu>,
+    );
+    const item = screen.getByRole('menuitem');
+    item.focus();
+
+    await user.keyboard('{Enter}');
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });
 
 describe('context forwarding', () => {

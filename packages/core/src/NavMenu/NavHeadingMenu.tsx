@@ -12,7 +12,7 @@
  * - /packages/core/src/NavMenu/index.ts
  */
 
-import React, {useMemo, type ReactNode} from 'react';
+import React, {useCallback, useMemo, type ReactNode} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {spacingVars} from '../theme/tokens.stylex';
 import {mergeProps, mergeRefs} from '../utils';
@@ -102,6 +102,25 @@ export function NavHeadingMenu({
     onEscape: closeMenu,
   });
 
+  // Extend useListFocus with Enter/Space activation. Items rendered without an
+  // `href` are `<div role="menuitem">` elements, which have no native keyboard
+  // activation — without this, Enter/Space on a focused onClick-only item does
+  // nothing. Anchor items (with `href`) already activate on Enter natively.
+  const listKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const focused = document.activeElement as HTMLElement | null;
+        if (focused?.getAttribute('role') === 'menuitem') {
+          e.preventDefault();
+          focused.click();
+          return;
+        }
+      }
+      handleKeyDown(e);
+    },
+    [handleKeyDown],
+  );
+
   const ctx = useMemo(
     () => ({
       closeMenu: closeMenu ?? (() => {}),
@@ -117,7 +136,7 @@ export function NavHeadingMenu({
       <div
         ref={mergeRefs(ref, listRef)}
         role="menu"
-        onKeyDown={handleKeyDown}
+        onKeyDown={listKeyDown}
         data-testid={testId}
         {...mergeProps(
           themeProps('nav-heading-menu', {size}),
