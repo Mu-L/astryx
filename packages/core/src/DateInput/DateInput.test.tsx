@@ -280,6 +280,28 @@ describe('DateInput', () => {
     );
   });
 
+  it('opens the calendar popover on ArrowDown (keyboard, forms-13)', () => {
+    render(<DateInput label="Date" onChange={() => {}} />);
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.keyDown(input, {key: 'ArrowDown'});
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('opens the calendar popover on Alt+ArrowDown (keyboard, forms-13)', () => {
+    render(<DateInput label="Date" onChange={() => {}} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, {key: 'ArrowDown', altKey: true});
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('does not open on ArrowDown when disabled', () => {
+    render(<DateInput label="Date" isDisabled onChange={() => {}} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.keyDown(input, {key: 'ArrowDown'});
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('input has aria-haspopup="dialog"', () => {
     render(<DateInput label="Date" onChange={() => {}} />);
     expect(screen.getByRole('combobox')).toHaveAttribute(

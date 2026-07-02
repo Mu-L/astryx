@@ -20,6 +20,25 @@ describe('DateTimeInput', () => {
     expect(screen.getByLabelText('Meeting time')).toBeInTheDocument();
   });
 
+  it('derives the time input label from the field label (forms-15)', () => {
+    render(<DateTimeInput label="Meeting time" onChange={() => {}} />);
+    // Not a hardcoded "Time" — tied to the field label so it is localizable
+    // and unambiguous when multiple date-time fields share a page.
+    expect(screen.getByLabelText('Meeting time time')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument();
+  });
+
+  it('uses an explicit timeLabel when provided', () => {
+    render(
+      <DateTimeInput
+        label="Meeting time"
+        timeLabel="Start time"
+        onChange={() => {}}
+      />,
+    );
+    expect(screen.getByLabelText('Start time')).toBeInTheDocument();
+  });
+
   it('renders with placeholder', () => {
     render(
       <DateTimeInput
@@ -56,7 +75,7 @@ describe('DateTimeInput', () => {
   it('renders both date and time inputs', () => {
     render(<DateTimeInput label="Meeting" onChange={() => {}} />);
     expect(screen.getByRole('combobox')).toBeInTheDocument();
-    expect(screen.getByLabelText('Time')).toBeInTheDocument();
+    expect(screen.getByLabelText('Meeting time')).toBeInTheDocument();
   });
 
   it('displays formatted date in date input when value is provided', () => {
@@ -134,13 +153,13 @@ describe('DateTimeInput', () => {
   it('sets disabled on both inputs when isDisabled is true', () => {
     render(<DateTimeInput label="Meeting" isDisabled onChange={() => {}} />);
     expect(screen.getByRole('combobox')).toBeDisabled();
-    expect(screen.getByLabelText('Time')).toBeDisabled();
+    expect(screen.getByLabelText('Meeting time')).toBeDisabled();
   });
 
   it('is not disabled by default', () => {
     render(<DateTimeInput label="Meeting" onChange={() => {}} />);
     expect(screen.getByRole('combobox')).not.toBeDisabled();
-    expect(screen.getByLabelText('Time')).not.toBeDisabled();
+    expect(screen.getByLabelText('Meeting time')).not.toBeDisabled();
   });
 
   it('date input has role="combobox"', () => {
@@ -180,7 +199,7 @@ describe('DateTimeInput', () => {
   it('disables inputs and button when isLoading is true', () => {
     render(<DateTimeInput label="Meeting" isLoading onChange={() => {}} />);
     expect(screen.getByRole('combobox')).toBeDisabled();
-    expect(screen.getByLabelText('Time')).toBeDisabled();
+    expect(screen.getByLabelText('Meeting time')).toBeDisabled();
     expect(screen.getByRole('button', {name: 'Open calendar'})).toBeDisabled();
   });
 
@@ -304,7 +323,7 @@ describe('DateTimeInput', () => {
     const onChange = vi.fn();
     render(<DateTimeInput label="Meeting" onChange={onChange} />);
 
-    const timeInput = screen.getByLabelText('Time');
+    const timeInput = screen.getByLabelText('Meeting time');
     fireEvent.change(timeInput, {target: {value: '3:45 pm'}});
 
     expect(onChange).not.toHaveBeenCalled();
@@ -320,7 +339,7 @@ describe('DateTimeInput', () => {
       />,
     );
 
-    const timeInput = screen.getByLabelText('Time');
+    const timeInput = screen.getByLabelText('Meeting time');
     fireEvent.change(timeInput, {target: {value: '3:45 pm'}});
 
     expect(onChange).toHaveBeenCalledWith('2026-03-15T15:45');
