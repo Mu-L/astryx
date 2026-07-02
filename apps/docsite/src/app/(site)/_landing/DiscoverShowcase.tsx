@@ -90,7 +90,13 @@ const styles = stylex.create({
     transitionDuration: 'var(--duration-slow-max)',
     transitionTimingFunction: 'var(--ease-standard)',
     zIndex: 2,
-    display: 'block',
+    // Desktop-only decoration. Below 960px there isn't room to spread the
+    // images to the stage corners, so they overlap and cover the CTA card's
+    // heading/body text — hide them and let the card stand on its own.
+    display: {
+      default: 'none',
+      '@media (min-width: 960px)': 'block',
+    },
   },
   // Starting "clumped" pose — all four images near the center of the
   // card but with slight offsets and rotations so they fan out as an
