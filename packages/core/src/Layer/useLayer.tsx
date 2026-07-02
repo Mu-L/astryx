@@ -15,6 +15,7 @@
 
 import React, {
   useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -367,16 +368,62 @@ export function useLayer(
     [onHide],
   );
 
-  // Ref callback for popover element — sets up toggle listener
+  // Ref callback for popover element — sets up the `toggle` listener.
+  // Tracks the element + handler currently bound so the listener is removed
+  // when the element detaches or when `handleToggle`'s identity changes (a new
+  // `onHide` prop), preventing stale-closure listeners from accumulating on the
+  // same element (infra-10).
+  const listenedElRef = useRef<HTMLElement | null>(null);
+  const listenedHandlerRef = useRef<((e: Event) => void) | null>(null);
+
+  const bindToggleListener = useCallback(
+    (el: HTMLElement | null, handler: (e: Event) => void) => {
+      if (
+        listenedElRef.current &&
+        listenedHandlerRef.current &&
+        (listenedElRef.current !== el || listenedHandlerRef.current !== handler)
+      ) {
+        listenedElRef.current.removeEventListener(
+          'toggle',
+          listenedHandlerRef.current,
+        );
+        listenedElRef.current = null;
+        listenedHandlerRef.current = null;
+      }
+      if (el && listenedElRef.current !== el) {
+        el.addEventListener('toggle', handler);
+        listenedElRef.current = el;
+        listenedHandlerRef.current = handler;
+      }
+    },
+    [],
+  );
+
   const popoverRefCallback = useCallback(
     (el: HTMLElement | null) => {
       popoverRef.current = el;
-      if (el) {
-        el.addEventListener('toggle', handleToggle);
-      }
+      bindToggleListener(el, handleToggle);
     },
-    [handleToggle],
+    [handleToggle, bindToggleListener],
   );
+
+  // Re-bind when the handler identity changes while the element stays mounted,
+  // and detach on unmount.
+  useEffect(() => {
+    if (popoverRef.current) {
+      bindToggleListener(popoverRef.current, handleToggle);
+    }
+    return () => {
+      if (listenedElRef.current && listenedHandlerRef.current) {
+        listenedElRef.current.removeEventListener(
+          'toggle',
+          listenedHandlerRef.current,
+        );
+        listenedElRef.current = null;
+        listenedHandlerRef.current = null;
+      }
+    };
+  }, [handleToggle, bindToggleListener]);
 
   // Render function for context mode
   const renderContext = useCallback(
