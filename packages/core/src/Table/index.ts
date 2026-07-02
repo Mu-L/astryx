@@ -24,6 +24,7 @@ export {useTableSelectionState} from './plugins/selection';
 export {useTableSortable} from './plugins/sortable';
 export {useTableSortableState} from './plugins/sortable';
 export {useTablePagination, paginateData} from './plugins/pagination';
+export {useTableTreeData, useTableTreeState} from './plugins/tree';
 export {useTableColumnSettings} from './plugins/columnSettings';
 export {useTableColumnSettingsState} from './plugins/columnSettings';
 export {useTableColumnResize} from './plugins/columnResize';
@@ -89,6 +90,13 @@ export type {
 } from './plugins/sortable';
 export type {TableSortableColumnConfig} from './types';
 export type {UseTablePaginationConfig} from './plugins/pagination';
+export type {
+  UseTableTreeDataConfig,
+  UseTableTreeStateConfig,
+  UseTableTreeStateResult,
+  TableTreeRowMeta,
+  TableTreeIndent,
+} from './plugins/tree';
 export type {
   UseTableColumnSettingsConfig,
   ColumnSettingsOption,
