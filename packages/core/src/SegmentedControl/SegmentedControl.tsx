@@ -4,7 +4,7 @@
 
 /**
  * @file SegmentedControl.tsx
- * @input Uses React, StyleX, SegmentedControlContext
+ * @input Uses React, StyleX, SegmentedControlContext, useListFocus
  * @output Exports SegmentedControl component and SegmentedControlProps type
  * @position Container wrapper; provides context to SegmentedControlItem children
  *
@@ -15,11 +15,11 @@
  * - /packages/cli/templates/blocks/components/SegmentedControl/ (showcase blocks)
  */
 
-import React, {useMemo, useRef, useCallback, type ReactNode} from 'react';
+import React, {useMemo, useCallback, type ReactNode} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {colorVars, spacingVars, radiusVars} from '../theme/tokens.stylex';
 import {SegmentedControlContext} from './SegmentedControlContext';
-import {useIsomorphicLayoutEffect} from '../hooks/useIsomorphicLayoutEffect';
+import {useListFocus} from '../hooks/useListFocus';
 import type {
   SegmentedControlSize,
   SegmentedControlLayout,
@@ -134,63 +134,44 @@ export function SegmentedControl({
   style,
 }: SegmentedControlProps) {
   const size = useSize(sizeProp, 'md');
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+  // Roving tabindex + arrow/Home/End navigation is owned by the shared
+  // useListFocus primitive: it stamps a single tab stop (tabIndex 0/-1) across
+  // the radios, skips disabled ones, wraps at the ends, handles Home/End, and
+  // repairs the tab stop on mount and whenever items mount/disable — replacing
+  // the component's former inline keyboard handler and tab-stop repair effect.
+  const {listRef, handleKeyDown, handleFocus} = useListFocus<HTMLDivElement>({
+    itemSelector: '[role="radio"]:not([aria-disabled="true"])',
+    hasRovingTabIndex: true,
+    wrap: true,
+    orientation: 'horizontal',
+  });
+
+  // Selection-follows-focus (APG radiogroup): useListFocus only *moves* focus,
+  // so whenever it lands focus on a new radio (arrow/Home/End, or a click) we
+  // select that radio's value. Reading the focused element's data-value here
+  // keeps selection in lockstep with focus without duplicating the navigation
+  // logic. Disabled radios are ignored (they should never become the value),
+  // and the already-selected value is skipped so an initial Tab-in (or a click
+  // on the current segment) is a no-op, matching click behavior.
+  const handleContainerFocus = useCallback(
+    (e: React.FocusEvent) => {
+      handleFocus(e);
       if (isDisabled) {
         return;
       }
-
-      const container = containerRef.current;
-      if (!container) {
+      const focused = (e.target as HTMLElement | null)?.closest<HTMLElement>(
+        '[role="radio"][data-value]',
+      );
+      if (!focused || focused.getAttribute('aria-disabled') === 'true') {
         return;
       }
-
-      const items = Array.from(
-        container.querySelectorAll<HTMLButtonElement>(
-          '[role="radio"]:not([aria-disabled="true"])',
-        ),
-      );
-      if (items.length === 0) {
-        return;
-      }
-
-      const currentIndex = items.findIndex(
-        item => item === document.activeElement,
-      );
-      let nextIndex: number;
-
-      switch (e.key) {
-        case 'ArrowRight':
-          nextIndex =
-            currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
-          break;
-        case 'ArrowLeft':
-          nextIndex =
-            currentIndex === -1
-              ? items.length - 1
-              : (currentIndex - 1 + items.length) % items.length;
-          break;
-        case 'Home':
-          nextIndex = 0;
-          break;
-        case 'End':
-          nextIndex = items.length - 1;
-          break;
-        default:
-          return;
-      }
-
-      e.preventDefault();
-      const nextItem = items[nextIndex];
-      nextItem.focus();
-      const nextValue = nextItem.dataset.value;
-      if (nextValue != null) {
+      const nextValue = focused.dataset.value;
+      if (nextValue != null && nextValue !== value) {
         onChange(nextValue);
       }
     },
-    [isDisabled, onChange],
+    [handleFocus, isDisabled, onChange, value],
   );
 
   const contextValue = useMemo(
@@ -198,39 +179,15 @@ export function SegmentedControl({
     [value, onChange, size, layout, isDisabled],
   );
 
-  // Tab-stop repair (navigation-6): each item sets tabIndex=0 only when its
-  // value matches the group value, so a stale/unmatched `value` (or a disabled
-  // selected item) can leave every segment at tabIndex=-1 — making the whole
-  // radiogroup unreachable by Tab. After render, if no enabled radio is
-  // tabbable, promote the first enabled radio to tabIndex=0 so the group always
-  // has exactly one tab stop. Mirrors Base UI's Composite tab-stop repair.
-  useIsomorphicLayoutEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-    const enabled = Array.from(
-      container.querySelectorAll<HTMLButtonElement>(
-        '[role="radio"]:not([aria-disabled="true"])',
-      ),
-    );
-    if (enabled.length === 0) {
-      return;
-    }
-    const hasTabStop = enabled.some(el => el.tabIndex === 0);
-    if (!hasTabStop) {
-      enabled[0].tabIndex = 0;
-    }
-  });
-
   return (
     <SegmentedControlContext value={contextValue}>
       <div
-        ref={mergeRefs(ref, containerRef)}
+        ref={mergeRefs(ref, listRef)}
         role="radiogroup"
         aria-label={label}
         aria-disabled={isDisabled || undefined}
         onKeyDown={handleKeyDown}
+        onFocus={handleContainerFocus}
         {...mergeProps(
           themeProps('segmented-control', {size}),
           stylex.props(
