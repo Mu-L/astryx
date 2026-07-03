@@ -11,6 +11,8 @@ import {Search, HeartHandshake, Sun, Moon} from 'lucide-react';
 import {GITHUB_REPO} from '../constants';
 import {AstryxIcon} from './logos';
 import {SearchPalette} from './SearchPalette';
+import {DocsVersionSwitcher} from './DocsVersionSwitcher';
+import {CanaryBanner} from './CanaryBanner';
 import {components} from '../generated/componentRegistry';
 import {packages} from '../generated/packageRegistry';
 import {docTopics} from '../generated/docsRegistry';
@@ -134,6 +136,7 @@ export function SharedTopNav() {
         }
         endContent={
           <HStack gap={2}>
+            <DocsVersionSwitcher />
             <HStack gap={0.5}>
               <Button
                 label="Search"
@@ -191,6 +194,7 @@ export function SharedTopNav() {
           </HStack>
         }
       />
+      <CanaryBanner />
       <SearchPalette
         isOpen={isSearchOpen}
         onOpenChange={setIsSearchOpen}
