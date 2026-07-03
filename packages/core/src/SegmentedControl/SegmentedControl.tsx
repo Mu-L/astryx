@@ -4,7 +4,7 @@
 
 /**
  * @file SegmentedControl.tsx
- * @input Uses React, StyleX, SegmentedControlContext, useListFocus
+ * @input Uses React, StyleX, SegmentedControlContext, useListFocus, useKeyboardHint
  * @output Exports SegmentedControl component and SegmentedControlProps type
  * @position Container wrapper; provides context to SegmentedControlItem children
  *
@@ -20,6 +20,7 @@ import * as stylex from '@stylexjs/stylex';
 import {colorVars, spacingVars, radiusVars} from '../theme/tokens.stylex';
 import {SegmentedControlContext} from './SegmentedControlContext';
 import {useListFocus} from '../hooks/useListFocus';
+import {useKeyboardHint} from '../hooks/useKeyboardHint';
 import type {
   SegmentedControlSize,
   SegmentedControlLayout,
@@ -147,6 +148,19 @@ export function SegmentedControl({
     orientation: 'horizontal',
   });
 
+  const hint = useKeyboardHint({
+    orientation: 'horizontal',
+    isEnabled: !isDisabled,
+  });
+
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      hint.onKeyDown(e);
+      handleKeyDown(e);
+    },
+    [hint, handleKeyDown],
+  );
+
   // Selection-follows-focus (APG radiogroup): useListFocus only *moves* focus,
   // so whenever it lands focus on a new radio (arrow/Home/End, or a click) we
   // select that radio's value. Reading the focused element's data-value here
@@ -156,6 +170,7 @@ export function SegmentedControl({
   // on the current segment) is a no-op, matching click behavior.
   const handleContainerFocus = useCallback(
     (e: React.FocusEvent) => {
+      hint.onFocus(e);
       handleFocus(e);
       if (isDisabled) {
         return;
@@ -171,7 +186,7 @@ export function SegmentedControl({
         onChange(nextValue);
       }
     },
-    [handleFocus, isDisabled, onChange, value],
+    [hint, handleFocus, isDisabled, onChange, value],
   );
 
   const contextValue = useMemo(
@@ -186,8 +201,9 @@ export function SegmentedControl({
         role="radiogroup"
         aria-label={label}
         aria-disabled={isDisabled || undefined}
-        onKeyDown={handleKeyDown}
+        onKeyDown={handleContainerKeyDown}
         onFocus={handleContainerFocus}
+        onBlur={hint.onBlur}
         {...mergeProps(
           themeProps('segmented-control', {size}),
           stylex.props(
@@ -201,6 +217,7 @@ export function SegmentedControl({
           style,
         )}>
         {children}
+        {hint.hintElement}
       </div>
     </SegmentedControlContext>
   );

@@ -4,7 +4,7 @@
 
 /**
  * @file TabList.tsx
- * @input Uses React, StyleX, TabListContext, useListFocus
+ * @input Uses React, StyleX, TabListContext, useListFocus, useKeyboardHint
  * @output Exports TabList component and TabListProps type
  * @position Nav wrapper; provides TabListContext to Tab and TabMenu children.
  *   Owns roving-tabindex keyboard navigation (Arrow/Home/End) across the tab
@@ -17,7 +17,7 @@
  * - /packages/cli/templates/blocks/components/TabList/ (showcase blocks)
  */
 
-import React, {useMemo, type ReactNode} from 'react';
+import React, {useCallback, useMemo, type ReactNode} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {borderVars, colorVars, spacingVars} from '../theme/tokens.stylex';
 import type {BaseProps} from '../BaseProps';
@@ -26,6 +26,7 @@ import type {TabListOrientation, TabListSize} from './TabListContext';
 import {useSize} from '../SizeContext/SizeContext';
 import {mergeProps, mergeRefs} from '../utils';
 import {useListFocus} from '../hooks/useListFocus';
+import {useKeyboardHint} from '../hooks/useKeyboardHint';
 import {EDGE_COMP_ATTR} from '../Layout/edgeCompensation.stylex';
 import {themeProps} from '../utils/themeProps';
 
@@ -125,6 +126,12 @@ export function TabList({
   className,
   style,
   children,
+  onKeyDown: onKeyDownProp,
+  onFocus: onFocusProp,
+  onBlur: onBlurProp,
+  'aria-label': ariaLabel = 'Tabs',
+  'aria-orientation': _ariaOrientation,
+  [EDGE_COMP_ATTR]: _edgeCompAttr,
   ...restProps
 }: TabListProps) {
   const size = useSize(sizeProp, 'md');
@@ -148,21 +155,64 @@ export function TabList({
     hasRovingTabIndex: true,
   });
 
+  const {
+    hintElement,
+    onKeyDown: onHintKeyDown,
+    onFocus: onHintFocus,
+    onBlur: onHintBlur,
+  } = useKeyboardHint({orientation});
+
   const contextValue = useMemo(
     () => ({value, onChange, size, layout}),
     [value, onChange, size, layout],
+  );
+
+  const handleRootKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLElement>) => {
+      onKeyDownProp?.(e);
+      if (e.defaultPrevented) {
+        return;
+      }
+      onHintKeyDown(e);
+      handleKeyDown(e);
+    },
+    [onKeyDownProp, onHintKeyDown, handleKeyDown],
+  );
+
+  const handleRootFocus = useCallback(
+    (e: React.FocusEvent<HTMLElement>) => {
+      onFocusProp?.(e);
+      if (e.defaultPrevented) {
+        return;
+      }
+      onHintFocus(e);
+      handleFocus(e);
+    },
+    [onFocusProp, onHintFocus, handleFocus],
+  );
+
+  const handleRootBlur = useCallback(
+    (e: React.FocusEvent<HTMLElement>) => {
+      onBlurProp?.(e);
+      if (e.defaultPrevented) {
+        return;
+      }
+      onHintBlur(e);
+    },
+    [onBlurProp, onHintBlur],
   );
 
   return (
     <TabListContext value={contextValue}>
       <nav
         ref={mergeRefs(ref, listRef)}
-        aria-label="Tabs"
-        aria-orientation={orientation}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        {...{[EDGE_COMP_ATTR]: ''}}
         {...restProps}
+        aria-label={ariaLabel}
+        aria-orientation={orientation}
+        onKeyDown={handleRootKeyDown}
+        onFocus={handleRootFocus}
+        onBlur={handleRootBlur}
+        {...{[EDGE_COMP_ATTR]: ''}}
         {...mergeProps(
           themeProps('tab-list', {size}),
           stylex.props(
@@ -175,6 +225,7 @@ export function TabList({
           style,
         )}>
         {children}
+        {hintElement}
       </nav>
     </TabListContext>
   );

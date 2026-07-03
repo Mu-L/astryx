@@ -4,7 +4,7 @@
 
 /**
  * @file Toolbar.tsx
- * @input Uses Section, SizeContext, useListFocus, StyleX, spacingVars, sizeVars
+ * @input Uses Section, SizeContext, useListFocus, useKeyboardHint, StyleX, spacingVars, sizeVars
  * @output Exports Toolbar component and ToolbarProps
  * @position Core implementation; consumed by index.ts
  *
@@ -26,6 +26,7 @@ import {spacingVars, sizeVars} from '../theme/tokens.stylex';
 import {mergeProps} from '../utils';
 import {Section} from '../Section/Section';
 import {useListFocus} from '../hooks/useListFocus';
+import {useKeyboardHint} from '../hooks/useKeyboardHint';
 import {SizeProvider} from '../SizeContext/SizeContext';
 import {edgeCompSlot} from '../Layout/edgeCompensation.stylex';
 import {themeProps} from '../utils/themeProps';
@@ -242,6 +243,8 @@ export function Toolbar({
     hasCaretGuard: true,
   });
 
+  const hint = useKeyboardHint({orientation});
+
   return (
     <SizeProvider value={size}>
       <Section
@@ -257,8 +260,15 @@ export function Toolbar({
           role="toolbar"
           aria-label={label}
           aria-orientation={orientation}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
+          onKeyDown={e => {
+            hint.onKeyDown(e);
+            handleKeyDown(e);
+          }}
+          onFocus={e => {
+            hint.onFocus(e);
+            handleFocus(e);
+          }}
+          onBlur={hint.onBlur}
           {...mergeProps(
             themeProps('toolbar', {size}),
             stylex.props(
@@ -323,6 +333,7 @@ export function Toolbar({
               )}
             </>
           )}
+          {hint.hintElement}
         </div>
       </Section>
     </SizeProvider>
