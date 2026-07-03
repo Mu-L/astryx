@@ -1,0 +1,246 @@
+{
+  "cwm-2": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 50,
+        "message": "Type '{ search: (query: string) => Label[]; bootstrap: () => Label[]; }' is not assignable to type 'SearchSource<SearchableItem<unknown>>'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 51,
+        "message": "Type 'Label | null' is not assignable to type 'SearchableItem<unknown> | null'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 54,
+        "message": "Argument of type '(prev: Label[]) => (SearchableItem<unknown> | Label)[]' is not assignable to parameter of type 'SetStateAction<Label[]>'.",
+        "code": "TS2345"
+      },
+      {
+        "line": 62,
+        "message": "Property 'color' does not exist on type 'SearchableItem<unknown>'.",
+        "code": "TS2339"
+      },
+      {
+        "line": 63,
+        "message": "Property 'name' does not exist on type 'SearchableItem<unknown>'.",
+        "code": "TS2339"
+      },
+      {
+        "line": 69,
+        "message": "Type '{ children: (string | Element)[]; key: string; color: string; }' is not assignable to type 'IntrinsicAttributes & BadgeProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 6,
+    "buildSuccess": false
+  },
+  "dd-5": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 61,
+        "message": "Property 'label' is missing in type '{ children: Element[]; }' but required in type 'ButtonGroupProps'.",
+        "code": "TS2741"
+      },
+      {
+        "line": 62,
+        "message": "Type '\"outlined\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 63,
+        "message": "Type '\"outlined\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 64,
+        "message": "Type '\"outlined\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 82,
+        "message": "Type '{ label: string; isLabelHidden: true; isChecked: boolean; onChange: () => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxInputProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 5,
+    "buildSuccess": false
+  },
+  "fwc-8": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 14,
+        "message": "Type 'DateRange | null' is not assignable to type 'import(\"/vercel/sandbox/repos/xds-worktrees/3080c27a/packages/core/src/utils/dateTypes\").DateRange | null'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 16,
+        "message": "Type 'string' is not assignable to type '`${number}${number}${number}${number}-${number}${number}-${number}${number}`'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 2,
+    "buildSuccess": false
+  },
+  "io-2": {
+    "target": "astryx",
+    "errors": [],
+    "errorCount": 0,
+    "buildSuccess": true
+  },
+  "ps-1": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 22,
+        "message": "Type '{ children: Element[]; label: string; }' is not assignable to type 'IntrinsicAttributes & SideNavSectionProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 34,
+        "message": "Type '{ children: string; variant: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 2,
+    "buildSuccess": false
+  },
+  "rc-2": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 13,
+        "message": "Type '{ children: Element[]; label: string; }' is not assignable to type 'IntrinsicAttributes & SideNavSectionProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 18,
+        "message": "Type '{ children: Element[]; label: string; }' is not assignable to type 'IntrinsicAttributes & SideNavSectionProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 2,
+    "buildSuccess": false
+  },
+  "sd-1": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 35,
+        "message": "Type '{ children: string; variant: string; }' is not assignable to type 'IntrinsicAttributes & BannerProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 36,
+        "message": "Type '\"outlined\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 43,
+        "message": "Type '{ children: number; variant: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 3,
+    "buildSuccess": false
+  },
+  "tc-7": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 11,
+        "message": "Argument of type '{ tokens: { '--color-background-surface': string; '--color-text-primary': string; '--color-text-secondary': string; }; }' is not assignable to parameter of type 'DefineThemeInput'.",
+        "code": "TS2345"
+      },
+      {
+        "line": 25,
+        "message": "Type '{ children: Element[]; label: string; }' is not assignable to type 'IntrinsicAttributes & SideNavSectionProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 36,
+        "message": "Type '{ children: string; variant: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 3,
+    "buildSuccess": false
+  },
+  "ty-9": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 42,
+        "message": "Type '{ children: string; variant: string; size: \"lg\"; }' is not assignable to type 'IntrinsicAttributes & TextProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 44,
+        "message": "Type '\"md\"' is not assignable to type 'TextSize | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 46,
+        "message": "Type '\"lg\" | \"md\"' is not assignable to type 'TextSize | undefined'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 3,
+    "buildSuccess": false
+  },
+  "wd-1": {
+    "target": "astryx",
+    "errors": [
+      {
+        "line": 22,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & TabProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 23,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & TabProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 24,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & TabProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 25,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & TabProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 32,
+        "message": "Type '\"filled\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 42,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & RadioListItemProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 43,
+        "message": "Type '{ children: string; value: string; }' is not assignable to type 'IntrinsicAttributes & RadioListItemProps'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 45,
+        "message": "Type '\"filled\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      },
+      {
+        "line": 54,
+        "message": "Type '\"filled\"' is not assignable to type 'keyof ButtonVariantMap | undefined'.",
+        "code": "TS2322"
+      }
+    ],
+    "errorCount": 9,
+    "buildSuccess": false
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "iterationId": "4e0b5b89",
+  "createdAt": "2026-07-03T11:04:52.645Z",
+  "config": {
+    "target": "baseline",
+    "persona": "naive",
+    "holdout": false,
+    "degradation": false,
+    "cliRetrieval": false
+  },
+  "prompts": [
+    {
+      "id": "fwc-8",
+      "category": "feature-with-constraint",
+      "prompt": "Create a date range picker for booking a hotel stay. Users should pick check-in and check-out dates. Past dates should be disabled.",
+      "expectedComponents": [
+        "DateInput",
+        "Calendar"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "wd-1",
+      "category": "workflow-description",
+      "prompt": "Build a checkout flow: cart summary → shipping → payment → confirmation",
+      "expectedComponents": [
+        "Card",
+        "Button",
+        "TextInput"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "cwm-2",
+      "category": "clone-with-modification",
+      "prompt": "A GitHub-style issue label picker with color dots and search",
+      "expectedComponents": [
+        "TextInput",
+        "Button",
+        "Card"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "sd-1",
+      "category": "state-driven",
+      "prompt": "Show a dashboard widget with loading → error → data states",
+      "expectedComponents": [
+        "Card",
+        "Skeleton"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "dd-5",
+      "category": "data-display",
+      "prompt": "Build an email inbox view with a table showing sender, subject, date, and a preview snippet. Add row selection with checkboxes and a bulk actions bar that appears when items are selected.",
+      "expectedComponents": [
+        "Table",
+        "CheckboxInput",
+        "DropdownMenu",
+        "Button"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "rc-2",
+      "category": "responsive-context",
+      "prompt": "A sidebar that becomes a bottom sheet on mobile",
+      "expectedComponents": [
+        "Card",
+        "LayoutPanel"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "io-2",
+      "category": "integration-oriented",
+      "prompt": "An autocomplete input that fetches suggestions from an API as you type",
+      "expectedComponents": [
+        "TextInput",
+        "Card",
+        "Typeahead"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "ps-1",
+      "category": "page-setup",
+      "prompt": "Create a new page for a settings dashboard. It should have a header with the app title, a sidebar for navigation, and a main content area. Use the Astryx theme system.",
+      "expectedComponents": [
+        "Theme",
+        "Layout",
+        "LayoutHeader",
+        "LayoutContent",
+        "LayoutPanel"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "ty-9",
+      "category": "typography",
+      "prompt": "Build a comparison table header where each column has a plan name heading and a price. The 'Enterprise' plan should have visually larger display-style typography compared to the other plans.",
+      "expectedComponents": [
+        "Heading",
+        "Text"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "tc-7",
+      "category": "theme-customization",
+      "prompt": "I have a section of my app that needs a different theme than the rest — like a dark sidebar next to a light content area. How do I nest themes in Astryx?",
+      "expectedComponents": [
+        "Theme",
+        "Layout",
+        "LayoutPanel",
+        "LayoutContent"
+      ],
+      "status": "pending"
+    }
+  ]
+}
