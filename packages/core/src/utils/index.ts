@@ -79,9 +79,5 @@ export {groupItems, getItemGroup} from './groupItems';
 export type {ItemGroup} from './groupItems';
 export {observeResize, unobserveResize} from './sharedResizeObserver';
 export {isRenderable} from './isRenderable';
-export {getInputGroupInputAria} from './inputGroupAria';
-export type {
-  InputGroupAriaSource,
-  InputGroupInputAria,
-  InputGroupInputAriaOptions,
-} from './inputGroupAria';
+export {getInputARIA} from './inputAria';
+export type {InputARIA, InputARIAInputGroup} from './inputAria';
