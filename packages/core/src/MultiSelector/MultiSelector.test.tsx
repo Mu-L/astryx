@@ -894,7 +894,7 @@ describe('MultiSelector', () => {
     });
   });
 
-  describe('disabledReason', () => {
+  describe('disabledMessage', () => {
     it('shows the reason tooltip on hover when disabled with a reason', async () => {
       render(
         <MultiSelector
@@ -903,7 +903,7 @@ describe('MultiSelector', () => {
           value={[]}
           onChange={() => {}}
           isDisabled
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
           data-testid="fruit-multi-selector"
         />,
       );
@@ -932,7 +932,7 @@ describe('MultiSelector', () => {
           value={[]}
           onChange={() => {}}
           isDisabled
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
         />,
       );
 
@@ -951,7 +951,7 @@ describe('MultiSelector', () => {
           options={defaultOptions}
           value={[]}
           onChange={() => {}}
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
         />,
       );
       expect(screen.queryByRole('tooltip', h)).not.toBeInTheDocument();
@@ -978,7 +978,7 @@ describe('MultiSelector', () => {
           value={[]}
           onChange={() => {}}
           isDisabled
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
         />,
       );
       const trigger = screen.getByRole('combobox');
@@ -995,7 +995,7 @@ describe('MultiSelector', () => {
           value={[]}
           onChange={() => {}}
           isDisabled
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
         />,
       );
       const trigger = screen.getByRole('combobox');
@@ -1013,7 +1013,7 @@ describe('MultiSelector', () => {
           value={[]}
           onChange={onChange}
           isDisabled
-          disabledReason="Select a table first"
+          disabledMessage="Select a table first"
         />,
       );
 

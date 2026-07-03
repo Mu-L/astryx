@@ -386,11 +386,11 @@ interface SelectorPropsBase<
    *   label="Owner"
    *   options={owners}
    *   isDisabled
-   *   disabledReason="You need the Editor role to change this"
+   *   disabledMessage="You need the Editor role to change this"
    * />
    * ```
    */
-  disabledReason?: string;
+  disabledMessage?: string;
 
   /**
    * The options to display in the selector.
@@ -548,7 +548,7 @@ export function Selector<T extends SelectorOptionType>(
     isOptional = false,
     isRequired = false,
     isDisabled = false,
-    disabledReason,
+    disabledMessage,
     options,
     value,
     onChange,
@@ -596,13 +596,13 @@ export function Selector<T extends SelectorOptionType>(
   // and the trigger button stays perceivable via aria-disabled instead of the
   // disabled attribute. Activation is blocked by the isDisabled guards in
   // useCombobox (onTriggerClick / onKeyDown).
-  const showsDisabledReason = isDisabled && !!disabledReason;
-  const disabledReasonTooltip = useTooltip({
+  const showsDisabledMessage = isDisabled && !!disabledMessage;
+  const disabledMessageTooltip = useTooltip({
     placement: 'above',
     // The container div is not naturally focusable; focusin bubbles up from
     // the trigger button, so always attach focus listeners.
     focusTrigger: 'always',
-    isEnabled: showsDisabledReason,
+    isEnabled: showsDisabledMessage,
   });
 
   // Build aria-describedby
@@ -610,7 +610,7 @@ export function Selector<T extends SelectorOptionType>(
     [
       description ? descriptionId : null,
       status?.message ? statusMessageId : null,
-      showsDisabledReason ? disabledReasonTooltip.describedBy : null,
+      showsDisabledMessage ? disabledMessageTooltip.describedBy : null,
     ]
       .filter(Boolean)
       .join(' ') || undefined;
@@ -941,10 +941,10 @@ export function Selector<T extends SelectorOptionType>(
       <div
         ref={el => {
           popover.triggerRef(el);
-          // Anchor + hover/focus listeners for the disabled-reason tooltip.
+          // Anchor + hover/focus listeners for the disabled-message tooltip.
           // Handlers are gated internally by isEnabled, and anchor names
           // compose, so attaching unconditionally is safe.
-          disabledReasonTooltip.ref(el);
+          disabledMessageTooltip.ref(el);
         }}
         onClick={onTriggerClick}
         data-testid={testId}
@@ -986,13 +986,13 @@ export function Selector<T extends SelectorOptionType>(
           aria-required={isRequired ? 'true' : undefined}
           aria-invalid={status?.type === 'error' ? 'true' : undefined}
           aria-busy={isBusy || undefined}
-          // With a disabledReason the trigger keeps focusability via
+          // With a disabledMessage the trigger keeps focusability via
           // aria-disabled so the reason is focus-discoverable; activation is
           // still blocked by the isDisabled guards in useCombobox.
-          disabled={isDisabled && !showsDisabledReason}
-          aria-disabled={showsDisabledReason ? 'true' : undefined}
+          disabled={isDisabled && !showsDisabledMessage}
+          aria-disabled={showsDisabledMessage ? 'true' : undefined}
           onKeyDown={onKeyDown}
-          tabIndex={isDisabled && !showsDisabledReason ? -1 : 0}
+          tabIndex={isDisabled && !showsDisabledMessage ? -1 : 0}
           {...stylex.props(styles.trigger)}>
           <span {...stylex.props(styles.triggerLabel)}>
             {selectedItem?.label ?? placeholder}
@@ -1060,8 +1060,8 @@ export function Selector<T extends SelectorOptionType>(
         },
       )}
 
-      {showsDisabledReason &&
-        disabledReasonTooltip.renderTooltip(disabledReason)}
+      {showsDisabledMessage &&
+        disabledMessageTooltip.renderTooltip(disabledMessage)}
     </Field>
   );
 }

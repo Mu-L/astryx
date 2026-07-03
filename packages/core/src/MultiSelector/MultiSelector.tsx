@@ -417,11 +417,11 @@ export interface MultiSelectorProps<
    *   value={selected}
    *   onChange={setSelected}
    *   isDisabled
-   *   disabledReason="Select a table first"
+   *   disabledMessage="Select a table first"
    * />
    * ```
    */
-  disabledReason?: string;
+  disabledMessage?: string;
 
   /**
    * The options to display in the selector.
@@ -571,7 +571,7 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
   isOptional = false,
   isRequired = false,
   isDisabled = false,
-  disabledReason,
+  disabledMessage,
   options,
   value,
   onChange,
@@ -624,13 +624,13 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
   // and the trigger button stays perceivable via aria-disabled instead of the
   // disabled attribute. Activation is blocked by the isDisabled guards in
   // useMultiCombobox (onTriggerClick / onKeyDown).
-  const showsDisabledReason = isDisabled && !!disabledReason;
-  const disabledReasonTooltip = useTooltip({
+  const showsDisabledMessage = isDisabled && !!disabledMessage;
+  const disabledMessageTooltip = useTooltip({
     placement: 'above',
     // The container div is not naturally focusable; focusin bubbles up from
     // the trigger button, so always attach focus listeners.
     focusTrigger: 'always',
-    isEnabled: showsDisabledReason,
+    isEnabled: showsDisabledMessage,
   });
 
   // Build aria-describedby
@@ -638,7 +638,7 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
     [
       description ? descriptionId : null,
       status?.message ? statusMessageId : null,
-      showsDisabledReason ? disabledReasonTooltip.describedBy : null,
+      showsDisabledMessage ? disabledMessageTooltip.describedBy : null,
     ]
       .filter(Boolean)
       .join(' ') || undefined;
@@ -1231,10 +1231,10 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
       <div
         ref={el => {
           popover.triggerRef(el);
-          // Anchor + hover/focus listeners for the disabled-reason tooltip.
+          // Anchor + hover/focus listeners for the disabled-message tooltip.
           // Handlers are gated internally by isEnabled, and anchor names
           // compose, so attaching unconditionally is safe.
-          disabledReasonTooltip.ref(el);
+          disabledMessageTooltip.ref(el);
         }}
         onClick={onTriggerClick}
         data-testid={testId}
@@ -1275,13 +1275,13 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
           aria-required={isRequired ? 'true' : undefined}
           aria-invalid={status?.type === 'error' ? 'true' : undefined}
           aria-busy={isBusy || undefined}
-          // With a disabledReason the trigger keeps focusability via
+          // With a disabledMessage the trigger keeps focusability via
           // aria-disabled so the reason is focus-discoverable; activation is
           // still blocked by the isDisabled guards in useMultiCombobox.
-          disabled={isDisabled && !showsDisabledReason}
-          aria-disabled={showsDisabledReason ? 'true' : undefined}
+          disabled={isDisabled && !showsDisabledMessage}
+          aria-disabled={showsDisabledMessage ? 'true' : undefined}
           onKeyDown={onKeyDown}
-          tabIndex={isDisabled && !showsDisabledReason ? -1 : 0}
+          tabIndex={isDisabled && !showsDisabledMessage ? -1 : 0}
           {...stylex.props(styles.trigger)}>
           <span {...stylex.props(styles.triggerContent)}>
             {renderTriggerContent()}
@@ -1333,8 +1333,8 @@ export function MultiSelector<T extends MultiSelectorOptionType>({
         },
       )}
 
-      {showsDisabledReason &&
-        disabledReasonTooltip.renderTooltip(disabledReason)}
+      {showsDisabledMessage &&
+        disabledMessageTooltip.renderTooltip(disabledMessage)}
     </Field>
   );
 }

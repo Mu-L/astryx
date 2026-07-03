@@ -653,14 +653,14 @@ describe('Selector', () => {
     });
   });
 
-  describe('disabledReason', () => {
+  describe('disabledMessage', () => {
     it('shows the reason tooltip on hover when disabled with a reason', async () => {
       render(
         <Selector
           label="Fruit"
           options={OPTIONS}
           isDisabled
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
           data-testid="fruit-selector"
         />,
       );
@@ -687,7 +687,7 @@ describe('Selector', () => {
           label="Fruit"
           options={OPTIONS}
           isDisabled
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
         />,
       );
 
@@ -704,7 +704,7 @@ describe('Selector', () => {
         <Selector
           label="Fruit"
           options={OPTIONS}
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
         />,
       );
       expect(screen.queryByRole('tooltip', h)).not.toBeInTheDocument();
@@ -721,7 +721,7 @@ describe('Selector', () => {
           label="Fruit"
           options={OPTIONS}
           isDisabled
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
         />,
       );
       const trigger = screen.getByRole('combobox');
@@ -736,7 +736,7 @@ describe('Selector', () => {
           label="Fruit"
           options={OPTIONS}
           isDisabled
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
         />,
       );
       const trigger = screen.getByRole('combobox');
@@ -753,7 +753,7 @@ describe('Selector', () => {
           options={OPTIONS}
           onChange={onChange}
           isDisabled
-          disabledReason="You need the Editor role"
+          disabledMessage="You need the Editor role"
         />,
       );
 
