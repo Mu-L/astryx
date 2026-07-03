@@ -27,6 +27,7 @@ import {
   radiusVars,
   shadowVars,
   spacingVars,
+  textSizeVars,
   typeScaleVars,
 } from '../theme/tokens.stylex';
 import {addAnchorName, removeAnchorName} from '../Layer/anchorName';
@@ -143,9 +144,9 @@ const styles = stylex.create({
     padding: `0 ${spacingVars['--spacing-0-5']}`,
     borderRadius: radiusVars['--radius-element'],
     backgroundColor: colorVars['--color-background-muted'],
-    fontSize: '11px',
+    fontSize: textSizeVars['--font-size-xs'],
     fontFamily: 'inherit',
-    lineHeight: 1,
+    lineHeight: typeScaleVars['--text-supporting-leading'],
   },
 });
 
@@ -189,36 +190,6 @@ export function useKeyboardHint(
   const anchoredElRef = useRef<HTMLElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Show the popover (top layer)
-  const show = useCallback(
-    (anchor: HTMLElement) => {
-      if (dismissedRef.current || !isEnabled) {return;}
-      // Anchor to the focused element
-      if (anchoredElRef.current && anchoredElRef.current !== anchor) {
-        removeAnchorName(anchoredElRef.current, anchorId);
-      }
-      addAnchorName(anchor, anchorId);
-      anchoredElRef.current = anchor;
-
-      setIsVisible(true);
-      const el = popoverRef.current;
-      if (el && typeof el.showPopover === 'function') {
-        try {
-          el.showPopover();
-        } catch {
-          // already showing or unsupported
-        }
-      }
-
-      // Auto-dismiss timeout
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-      timeoutRef.current = setTimeout(() => {
-        dismiss();
-      }, dismissAfterMs);
-    },
-    [anchorId, dismissAfterMs, isEnabled],
-  );
-
   // Hide + mark dismissed (won't re-show for this instance)
   const dismiss = useCallback(() => {
     dismissedRef.current = true;
@@ -241,10 +212,46 @@ export function useKeyboardHint(
     }
   }, [anchorId]);
 
+  // Show the popover (top layer)
+  const show = useCallback(
+    (anchor: HTMLElement) => {
+      if (dismissedRef.current || !isEnabled) {
+        return;
+      }
+      // Anchor to the focused element
+      if (anchoredElRef.current && anchoredElRef.current !== anchor) {
+        removeAnchorName(anchoredElRef.current, anchorId);
+      }
+      addAnchorName(anchor, anchorId);
+      anchoredElRef.current = anchor;
+
+      setIsVisible(true);
+      const el = popoverRef.current;
+      if (el && typeof el.showPopover === 'function') {
+        try {
+          el.showPopover();
+        } catch {
+          // already showing or unsupported
+        }
+      }
+
+      // Auto-dismiss timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        dismiss();
+      }, dismissAfterMs);
+    },
+    [anchorId, dismiss, dismissAfterMs, isEnabled],
+  );
+
   // Cleanup on unmount
   useEffect(
     () => () => {
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       if (anchoredElRef.current) {
         removeAnchorName(anchoredElRef.current, anchorId);
       }
@@ -256,10 +263,14 @@ export function useKeyboardHint(
 
   const onFocus = useCallback(
     (e: React.FocusEvent) => {
-      if (dismissedRef.current || !isEnabled) {return;}
+      if (dismissedRef.current || !isEnabled) {
+        return;
+      }
       // Only show on keyboard focus (focus-visible)
       const target = e.target as HTMLElement;
-      if (!target.matches(':focus-visible')) {return;}
+      if (!target.matches(':focus-visible')) {
+        return;
+      }
       // Only show when focus enters from outside the container
       const container = e.currentTarget as HTMLElement;
       if (
@@ -275,7 +286,9 @@ export function useKeyboardHint(
 
   const onBlur = useCallback(
     (e: React.FocusEvent) => {
-      if (!isVisible) {return;}
+      if (!isVisible) {
+        return;
+      }
       const container = e.currentTarget as HTMLElement;
       // Only dismiss when focus leaves the container entirely
       if (
@@ -299,7 +312,9 @@ export function useKeyboardHint(
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!isVisible) {return;}
+      if (!isVisible) {
+        return;
+      }
       if (ARROW_KEYS.has(e.key)) {
         dismiss();
       }
