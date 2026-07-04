@@ -124,7 +124,7 @@ function ListDayHeading({
 }) {
   return (
     <Heading
-      level={4}
+      level={3}
       color="secondary"
       display="block"
       aria-label={formatFullDate(day, timezoneID)}

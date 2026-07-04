@@ -131,6 +131,11 @@ export interface CodeEditorProps extends Omit<
   onChange: (value: string) => void;
   /** Language for highlighting. @default "plaintext" */
   language?: string;
+  /**
+   * Accessible name for the editable region. Defaults to a name derived from
+   * `language` (e.g. "typescript code editor") or "Code editor".
+   */
+  ariaLabel?: string;
   /** Show line numbers. @default false */
   hasLineNumbers?: boolean;
   /** Read-only mode. @default false */
@@ -199,6 +204,7 @@ export function CodeEditor({
   maxHeight,
   size = 'md',
   tokenizer: customTokenizer,
+  ariaLabel,
   xstyle,
   className,
   style,
@@ -447,6 +453,7 @@ export function CodeEditor({
             contentEditable={isReadOnly ? false : ('plaintext-only' as any)}
             role="textbox"
             aria-multiline="true"
+            aria-label={ariaLabel ?? (language ? `${language} code editor` : 'Code editor')}
             aria-readonly={isReadOnly}
             spellCheck={false}
             onInput={handleInput}

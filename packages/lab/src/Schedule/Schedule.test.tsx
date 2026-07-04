@@ -99,6 +99,48 @@ describe('Schedule', () => {
     expect(screen.queryByText('Outside range')).not.toBeInTheDocument();
   });
 
+  it('renders monthly weekday headings at level 3 so heading levels do not skip', async () => {
+    render(
+      <Schedule
+        view={createScheduleMonthlyView()}
+        events={events}
+        categories={categories}
+        date={Date.UTC(2026, 4, 13)}
+        focusDate={Date.UTC(2026, 4, 13)}
+        timezoneID="UTC"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Visible sync')).toBeInTheDocument();
+    });
+    // Frame title is an h2; weekday headings must be h3 (not h4) to avoid a skip.
+    expect(screen.queryByRole('heading', {level: 4})).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('heading', {level: 3}).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('renders list day headings at level 3 so heading levels do not skip', async () => {
+    render(
+      <Schedule
+        view={createScheduleListView({days: 7})}
+        events={events}
+        categories={categories}
+        date={Date.UTC(2026, 4, 13)}
+        timezoneID="UTC"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Visible sync')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('heading', {level: 4})).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('heading', {level: 3}).length,
+    ).toBeGreaterThan(0);
+  });
+
   it('loads async events with Instant range boundaries', async () => {
     const loader = vi.fn(
       async (_start: Instant, _end: Instant) =>

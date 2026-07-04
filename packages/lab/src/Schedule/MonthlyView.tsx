@@ -86,7 +86,7 @@ function ScheduleMonthlyView(
               aria-colindex={index + 1}
               {...stylex.props(styles.weekdayLabel)}>
               <Heading
-                level={4}
+                level={3}
                 color="secondary"
                 display="block"
                 xstyle={styles.weekdayHeading}>
