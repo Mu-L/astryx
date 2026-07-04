@@ -92,7 +92,7 @@ export const docs = {
       content: [
         {
           type: 'prose',
-          text: 'Card is a widget container, not a list-item wrapper. The fastest way to make an app look like a generic AI prototype is to wrap every record in a Card with a Badge. Dense data — anything the user scans, filters, or selects — belongs in rows: Table for columnar data, List/Item for single-line records, edge-to-edge with dividers and 32–40px row height.',
+          text: 'Card is a widget container, not a list-item wrapper. The fastest way to make an app look like a generic AI prototype is to wrap every record in a Card with a Badge. Dense data (anything the user scans, filters, or selects) belongs in rows: Table for columnar data, List/Item for single-line records, edge-to-edge with dividers and 32–40px row height.',
         },
         {
           type: 'list',
@@ -111,7 +111,7 @@ export const docs = {
             'Wrapping each list item in a Card (card soup)',
             'Stacking full-width Cards as a substitute for page structure',
             'Nesting Cards inside Cards',
-            'Using Badge as decoration — reserve it for counts and enumerated states; use StatusDot or Token for status and metadata',
+            'Using Badge as decoration: reserve it for counts and enumerated states; use StatusDot or Token for status and metadata',
           ],
         },
       ],

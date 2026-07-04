@@ -116,7 +116,7 @@ export const docs = {
           name: 'disabledMessage',
           type: 'string',
           description:
-            'Explains why the selector is disabled. With isDisabled, shows a tooltip on hover/keyboard focus and keeps the trigger focusable via aria-disabled (activation stays blocked). Use this instead of wrapping a disabled MultiSelector in Tooltip — disabled controls swallow the hover events an external Tooltip needs.',
+            'Explains why the selector is disabled. With isDisabled, shows a tooltip on hover/keyboard focus and keeps the trigger focusable via aria-disabled (activation stays blocked). Use this instead of wrapping a disabled MultiSelector in Tooltip. Disabled controls swallow the hover events an external Tooltip needs.',
         },
         {
           name: 'isLabelHidden',
