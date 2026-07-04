@@ -27,7 +27,7 @@ export interface CheckboxListContextValue {
    * `disabled` attribute) so the group's disabled-reason tooltip is keyboard-
    * and AT-discoverable; toggling is still blocked.
    */
-  showsDisabledMessage?: boolean;
+  hasDisabledMessage?: boolean;
   isReadOnly: boolean;
   /**
    * The value of the item with a pending `changeAction`, or null when idle.

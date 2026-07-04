@@ -223,7 +223,14 @@ export function SegmentedControl({
   );
 
   const contextValue = useMemo(
-    () => ({value, onChange, size, layout, isDisabled, showsDisabledMessage}),
+    () => ({
+      value,
+      onChange,
+      size,
+      layout,
+      isDisabled,
+      hasDisabledMessage: showsDisabledMessage,
+    }),
     [value, onChange, size, layout, isDisabled, showsDisabledMessage],
   );
 

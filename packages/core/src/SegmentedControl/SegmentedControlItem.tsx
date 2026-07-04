@@ -178,7 +178,7 @@ export function SegmentedControlItem({
   // Per-item disabling (`isDisabled` on the item) always drops out of the tab
   // order. Activation stays blocked by the isItemDisabled guard in handleClick.
   const keepsSelectedFocusable =
-    isSelected && (ctx.showsDisabledMessage ?? false) && !isDisabled;
+    isSelected && (ctx.hasDisabledMessage ?? false) && !isDisabled;
   const size: SegmentedControlSize = ctx.size;
   const isFill = ctx.layout === 'fill';
 

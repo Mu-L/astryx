@@ -28,7 +28,7 @@ export interface SegmentedControlContextValue {
    * rather than being dropped from the tab order) so the group's disabled-reason
    * tooltip is keyboard-discoverable; selection is still blocked.
    */
-  showsDisabledMessage?: boolean;
+  hasDisabledMessage?: boolean;
 }
 
 export const SegmentedControlContext =

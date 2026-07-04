@@ -50,7 +50,7 @@ export interface RadioListContextValue {
    * `disabled` attribute) so the disabled-reason tooltip is keyboard- and
    * AT-discoverable; selection is still blocked in the item's onChange guard.
    */
-  showsDisabledMessage: boolean;
+  hasDisabledMessage: boolean;
   isRequired: boolean;
   size: RadioListSize;
   status?: InputStatus;
@@ -229,7 +229,7 @@ export function RadioList({
       value,
       onChange,
       isDisabled,
-      showsDisabledMessage,
+      hasDisabledMessage: showsDisabledMessage,
       isRequired,
       size,
       status,

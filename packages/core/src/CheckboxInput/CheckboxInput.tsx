@@ -19,6 +19,7 @@
 import {
   useId,
   useCallback,
+  use,
   useOptimistic,
   useTransition,
   type ChangeEvent,
@@ -48,6 +49,7 @@ import {useTooltip} from '../Tooltip';
 import {mergeProps, mergeRefs} from '../utils';
 import {checkboxScope} from './checkbox.markers.stylex';
 import {themeProps} from '../utils/themeProps';
+import {CheckboxListContext} from '../CheckboxList/CheckboxListContext';
 
 const styles = stylex.create({
   container: {
@@ -292,15 +294,6 @@ export interface CheckboxInputProps extends Omit<BaseProps, 'onChange'> {
    */
   disabledMessage?: string;
   /**
-   * Internal: keep the checkbox focusable via `aria-disabled` while disabled,
-   * without rendering its own reason tooltip. Used by `CheckboxList` so a
-   * whole-group `disabledMessage` (shown on the group container) stays
-   * keyboard-discoverable through the individual checkboxes. Toggling is still
-   * blocked by the `isDisabled` guard in `onChange`.
-   * @default false
-   */
-  isFocusableWhenDisabled?: boolean;
-  /**
    * Whether the checkbox is read-only.
    * Displays the current state at full opacity but prevents interaction.
    * Unlike `isDisabled`, read-only checkboxes are not visually dimmed.
@@ -382,7 +375,6 @@ export function CheckboxInput({
   value,
   isDisabled = false,
   disabledMessage,
-  isFocusableWhenDisabled = false,
   isReadOnly = false,
   isOptional = false,
   isRequired = false,
@@ -411,10 +403,15 @@ export function CheckboxInput({
   // attribute. Value mutation is blocked by the isDisabled guard in onChange.
   const showsDisabledMessage = isDisabled && !!disabledMessage;
   // Keep the native checkbox focusable via aria-disabled either when it renders
-  // its own reason tooltip, or when a parent (CheckboxList) owns the reason
-  // tooltip and just needs the control to stay keyboard-perceivable.
+  // its own reason tooltip, or when it sits in a CheckboxList whose whole-group
+  // `disabledMessage` (shown on the group container) needs each checkbox to
+  // stay keyboard-perceivable. The group signals this through context rather
+  // than a public prop.
+  const checkboxListContext = use(CheckboxListContext);
   const isFocusableDisabled =
-    isDisabled && (showsDisabledMessage || isFocusableWhenDisabled);
+    isDisabled &&
+    (showsDisabledMessage ||
+      (checkboxListContext?.hasDisabledMessage ?? false));
   const disabledMessageTooltip = useTooltip({
     placement: 'above',
     // The container row is not naturally focusable; focusin bubbles up from the
@@ -465,10 +462,13 @@ export function CheckboxInput({
       )}>
       <div
         ref={el => {
-          // Anchor + hover/focus listeners for the disabled-message tooltip.
+          // Interaction (hover/focus) listeners for the disabled-message
+          // tooltip attach to the whole row for a larger trigger target;
+          // positioning anchors on the checkbox itself (below) so the tooltip
+          // appears next to the control, not the far edge of the row.
           // Handlers are gated internally by isEnabled, so attaching
           // unconditionally is safe.
-          disabledMessageTooltip.ref(el);
+          disabledMessageTooltip.interactionRef(el);
         }}
         {...stylex.props(
           styles.container,
@@ -477,7 +477,11 @@ export function CheckboxInput({
         )}>
         <div {...stylex.props(styles.checkboxWrapper, wrapperSizeStyles[size])}>
           <input
-            ref={mergeRefs(ref, indeterminateRef)}
+            ref={mergeRefs(
+              ref,
+              indeterminateRef,
+              disabledMessageTooltip.positionRef,
+            )}
             id={id}
             type="checkbox"
             checked={isChecked}

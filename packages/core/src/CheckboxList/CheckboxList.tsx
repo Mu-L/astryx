@@ -217,7 +217,7 @@ export function CheckboxList({
       value: isCollectionMode ? optimisticValue : undefined,
       onChange: isCollectionMode ? handleChange : undefined,
       isDisabled,
-      showsDisabledMessage,
+      hasDisabledMessage: showsDisabledMessage,
       isReadOnly,
       loadingValue,
     }),

@@ -40,7 +40,7 @@ import type {IconType} from '../Icon';
 import type {InputStatus} from '../Field/types';
 import {Spinner} from '../Spinner';
 import {useTooltip} from '../Tooltip';
-import {mergeProps} from '../utils';
+import {mergeProps, mergeRefs} from '../utils';
 import {switchScope} from './switch.markers.stylex';
 import type {BaseProps} from '../BaseProps';
 import type {SizeValue} from '../utils/types';
@@ -391,7 +391,7 @@ export function Switch({
   const switchElement = (
     <div {...stylex.props(styles.switchWrapper)}>
       <input
-        ref={ref}
+        ref={mergeRefs(ref, disabledMessageTooltip.positionRef)}
         id={id}
         type="checkbox"
         role="switch"
@@ -483,10 +483,13 @@ export function Switch({
       )}>
       <div
         ref={el => {
-          // Anchor + hover/focus listeners for the disabled-message tooltip.
+          // Interaction (hover/focus) listeners for the disabled-message
+          // tooltip attach to the whole row for a larger trigger target;
+          // positioning anchors on the switch itself (above) so the tooltip
+          // appears next to the control, not the far edge of the row.
           // Handlers are gated internally by isEnabled, so attaching
           // unconditionally is safe.
-          disabledMessageTooltip.ref(el);
+          disabledMessageTooltip.interactionRef(el);
         }}
         {...stylex.props(
           styles.container,

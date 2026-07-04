@@ -235,7 +235,7 @@ export function RadioListItem({
   // reason tooltip is keyboard-discoverable. Per-item disabling is unaffected
   // and always uses the native disabled attribute.
   const keepsFocusableForMessage =
-    context.showsDisabledMessage && !isItemDisabled;
+    context.hasDisabledMessage && !isItemDisabled;
   const isChecked = context.value === value;
   const size = context.size;
 
