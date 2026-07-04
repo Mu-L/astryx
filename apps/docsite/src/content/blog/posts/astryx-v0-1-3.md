@@ -57,6 +57,6 @@ A new **Kanban Board** template, plus a **blog RSS feed and plaintext (`.txt`) p
 
 Huge thanks to everyone who contributed this release: [@AKnassa](https://github.com/AKnassa), [@arham766](https://github.com/arham766), [@athz](https://github.com/athz), [@cixzhang](https://github.com/cixzhang), [@durvesh1992](https://github.com/durvesh1992), [@ejhammond](https://github.com/ejhammond), [@ernestt](https://github.com/ernestt), [@harshavardhan194](https://github.com/harshavardhan194), [@humbertovirtudes](https://github.com/humbertovirtudes), [@IFAKA](https://github.com/IFAKA), [@imdreamrunner](https://github.com/imdreamrunner), [@josephfarina](https://github.com/josephfarina), [@kentonquatman](https://github.com/kentonquatman), [@mohitWeb-lab](https://github.com/mohitWeb-lab), [@pollychen-lab](https://github.com/pollychen-lab), and [@thedjpetersen](https://github.com/thedjpetersen).
 
-Also thank you to [@aarongarciah](https://github.com/aarongarciah) for feedback on accessibility and [@aurorascharff](https://github.com/aurorascharff) for help optimizing the docsite on the latest Next.js features.
+Also thank you to [@aarongarciah](https://github.com/aarongarciah) for feedback on accessibility, and to [@aurorascharff](https://github.com/aurorascharff), who drove the work to optimize the docsite on the latest Next.js features.
 
 The full changelog is on the [v0.1.3 release page](https://github.com/facebook/astryx/releases/tag/v0.1.3).
