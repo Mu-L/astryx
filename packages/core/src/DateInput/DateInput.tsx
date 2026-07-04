@@ -4,7 +4,7 @@
 
 /**
  * @file DateInput.tsx
- * @input Uses React, useId, useState, useCallback, useRef, Field, Icon, Calendar, usePopover
+ * @input Uses React, useId, useState, useCallback, useRef, Field, Icon, Calendar, usePopover, InputGroupContext
  * @output Exports DateInput component, DateInputProps
  * @position Core implementation; consumed by index.ts, tested by DateInput.test.tsx
  *
@@ -45,12 +45,15 @@ import {
 } from '../Field';
 import {Icon} from '../Icon';
 import {VisuallyHidden} from '../VisuallyHidden';
+import {useInputGroup} from '../InputGroup/InputGroupContext';
+import {groupStyles} from '../InputGroup/groupStyles';
+import {useSize} from '../SizeContext/SizeContext';
 import {Spinner} from '../Spinner';
 import {Calendar, type ISODateString, type CalendarHandle} from '../Calendar';
 import {useCalendarConstraints} from '../Calendar/hooks';
 import {usePopover} from '../Popover';
 import {useTooltip} from '../Tooltip';
-import {parseDateInput} from '../utils';
+import {getInputARIA, parseDateInput} from '../utils';
 import {
   plainDateFromISO,
   plainDateToISO,
@@ -309,7 +312,7 @@ export function DateInput({
   max,
   dateConstraints,
   placeholder = 'Select a date',
-  size = 'md',
+  size: sizeProp,
   status,
   labelTooltip,
   hasClear = false,
@@ -321,12 +324,15 @@ export function DateInput({
   ref,
   ...rest
 }: DateInputProps) {
+  const size = useSize(sizeProp, 'md');
   const id = useId();
+  const inputLabelID = useId();
   const descriptionID = useId();
   const statusMessageID = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const calendarRef = useRef<CalendarHandle | null>(null);
   const lastFiredValueRef = useRef<ISODateString | undefined>(undefined);
+  const inputGroup = useInputGroup();
 
   const [, startTransition] = useTransition();
   const [optimisticValue, setOptimisticValue] = useOptimistic(value);
@@ -368,14 +374,15 @@ export function DateInput({
   // Constraint checking for text input validation (reuses calendar logic)
   const {isDateDisabled} = useCalendarConstraints({min, max, dateConstraints});
 
-  const ariaDescribedBy =
+  const {ariaLabelledBy, ariaDescribedBy} = getInputARIA(
+    inputLabelID,
     [
       description ? descriptionID : null,
       status?.message ? statusMessageID : null,
       showsDisabledMessage ? disabledMessageTooltip.describedBy : null,
-    ]
-      .filter(Boolean)
-      .join(' ') || undefined;
+    ],
+    inputGroup,
+  );
 
   // Pending input while user is typing (null = show formatted value)
   const [pendingInput, setPendingInput] = useState<string | null>(null);
@@ -545,6 +552,126 @@ export function DateInput({
     [popover, commitPendingInput, isEffectivelyDisabled],
   );
 
+  const inputWrapper = (
+    <div
+      ref={el => {
+        popover.triggerRef(el);
+        // Anchor + hover/focus listeners for the disabled-message tooltip.
+        // Handlers are gated internally by isEnabled, and anchor names
+        // compose, so attaching unconditionally is safe.
+        disabledMessageTooltip.ref(el);
+      }}
+      {...rest}
+      {...mergeProps(
+        themeProps('date-input', {size, status: status?.type ?? null}),
+        stylex.props(
+          inputWrapperStyles.base,
+          sizeStyles[size],
+          isEffectivelyDisabled && inputWrapperStyles.disabled,
+          status && inputStatusBorderStyles[status.type],
+          status && inputStatusHoverShadowStyles[status.type],
+          status && inputStatusFocusWithinStyles[status.type],
+          inputGroup && groupStyles.inGroup,
+          xstyle,
+        ),
+        className,
+        style,
+      )}>
+      {inputGroup && <VisuallyHidden id={inputLabelID}>{label}</VisuallyHidden>}
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={isEffectivelyDisabled}
+        aria-label={popover.isOpen ? 'Close calendar' : 'Open calendar'}
+        {...stylex.props(
+          styles.iconButton,
+          isEffectivelyDisabled && styles.iconButtonDisabled,
+        )}>
+        <Icon icon="calendar" size="sm" color="secondary" />
+      </button>
+      <input
+        ref={mergeRefs(ref, inputRef)}
+        id={id}
+        type="text"
+        role="combobox"
+        value={displayValue}
+        onChange={handleInputChange}
+        onBlur={handleBlur}
+        onClick={handleInputClick}
+        onKeyDown={handleInputKeyDown}
+        placeholder={placeholder}
+        // With a disabledMessage the input keeps focusability via
+        // aria-disabled so the reason is focus-discoverable; typing is
+        // blocked with readOnly and the mutation guards, and calendar
+        // activation is blocked by the isEffectivelyDisabled guards.
+        disabled={isEffectivelyDisabled && !showsDisabledMessage}
+        aria-disabled={showsDisabledMessage ? 'true' : undefined}
+        readOnly={showsDisabledMessage || undefined}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-required={isRequired === true ? 'true' : undefined}
+        aria-invalid={
+          status?.type === 'error' || !isInputValid ? 'true' : undefined
+        }
+        aria-busy={isBusy || undefined}
+        aria-expanded={popover.isOpen}
+        aria-haspopup="dialog"
+        aria-controls={popover.isOpen ? popover.id : undefined}
+        aria-autocomplete="none"
+        autoComplete="off"
+        {...stylex.props(
+          styles.input,
+          isEffectivelyDisabled && styles.inputDisabled,
+          !isInputValid && styles.inputInvalid,
+        )}
+      />
+      {/*
+          Live region announcing invalid typed input to assistive technology.
+          The value silently reverts on blur, so without this a screen-reader
+          user would get no feedback that their entry was rejected (WCAG 3.3.1).
+        */}
+      <VisuallyHidden as="div" role="alert" aria-live="assertive">
+        {!isInputValid ? 'Invalid date' : ''}
+      </VisuallyHidden>
+      {hasClear && value !== undefined && !isEffectivelyDisabled && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label={`Clear ${label}`}
+          {...stylex.props(styles.iconButton)}>
+          <Icon icon="close" size="sm" color="secondary" />
+        </button>
+      )}
+      {isBusy && <Spinner size="sm" />}
+      {status && !inputGroup && (
+        <Icon
+          icon={statusIconMap[status.type]}
+          size="md"
+          color={statusIconColorMap[status.type]}
+        />
+      )}
+      {popover.render(
+        <Calendar
+          handleRef={calendarRef}
+          mode="single"
+          value={optimisticValue}
+          onChange={handleDateSelect}
+          min={min}
+          max={max}
+          dateConstraints={dateConstraints}
+          numberOfMonths={numberOfMonths}
+        />,
+        {placement: 'below', alignment: 'start'},
+      )}
+      {showsDisabledMessage &&
+        disabledMessageTooltip.renderTooltip(disabledMessage)}
+    </div>
+  );
+
+  if (inputGroup) {
+    return inputWrapper;
+  }
+
   return (
     <Field
       label={label}
@@ -566,117 +693,7 @@ export function DateInput({
       }
       labelTooltip={labelTooltip}
       width={width}>
-      <div
-        ref={el => {
-          popover.triggerRef(el);
-          // Anchor + hover/focus listeners for the disabled-message tooltip.
-          // Handlers are gated internally by isEnabled, and anchor names
-          // compose, so attaching unconditionally is safe.
-          disabledMessageTooltip.ref(el);
-        }}
-        {...rest}
-        {...mergeProps(
-          themeProps('date-input', {size, status: status?.type ?? null}),
-          stylex.props(
-            inputWrapperStyles.base,
-            sizeStyles[size],
-            isEffectivelyDisabled && inputWrapperStyles.disabled,
-            status && inputStatusBorderStyles[status.type],
-            status && inputStatusHoverShadowStyles[status.type],
-            status && inputStatusFocusWithinStyles[status.type],
-            xstyle,
-          ),
-          className,
-          style,
-        )}>
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={isEffectivelyDisabled}
-          aria-label={popover.isOpen ? 'Close calendar' : 'Open calendar'}
-          {...stylex.props(
-            styles.iconButton,
-            isEffectivelyDisabled && styles.iconButtonDisabled,
-          )}>
-          <Icon icon="calendar" size="sm" color="secondary" />
-        </button>
-        <input
-          ref={mergeRefs(ref, inputRef)}
-          id={id}
-          type="text"
-          role="combobox"
-          value={displayValue}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          onClick={handleInputClick}
-          onKeyDown={handleInputKeyDown}
-          placeholder={placeholder}
-          // With a disabledMessage the input keeps focusability via
-          // aria-disabled so the reason is focus-discoverable; typing is
-          // blocked with readOnly and the mutation guards, and calendar
-          // activation is blocked by the isEffectivelyDisabled guards.
-          disabled={isEffectivelyDisabled && !showsDisabledMessage}
-          aria-disabled={showsDisabledMessage ? 'true' : undefined}
-          readOnly={showsDisabledMessage || undefined}
-          aria-describedby={ariaDescribedBy}
-          aria-required={isRequired === true ? 'true' : undefined}
-          aria-invalid={
-            status?.type === 'error' || !isInputValid ? 'true' : undefined
-          }
-          aria-busy={isBusy || undefined}
-          aria-expanded={popover.isOpen}
-          aria-haspopup="dialog"
-          aria-controls={popover.isOpen ? popover.id : undefined}
-          aria-autocomplete="none"
-          autoComplete="off"
-          {...stylex.props(
-            styles.input,
-            isEffectivelyDisabled && styles.inputDisabled,
-            !isInputValid && styles.inputInvalid,
-          )}
-        />
-        {/*
-          Live region announcing invalid typed input to assistive technology.
-          The value silently reverts on blur, so without this a screen-reader
-          user would get no feedback that their entry was rejected (WCAG 3.3.1).
-        */}
-        <VisuallyHidden as="div" role="alert" aria-live="assertive">
-          {!isInputValid ? 'Invalid date' : ''}
-        </VisuallyHidden>
-        {hasClear && value !== undefined && !isEffectivelyDisabled && (
-          <button
-            type="button"
-            onClick={handleClear}
-            aria-label={`Clear ${label}`}
-            {...stylex.props(styles.iconButton)}>
-            <Icon icon="close" size="sm" color="secondary" />
-          </button>
-        )}
-        {isBusy && <Spinner size="sm" />}
-        {status && (
-          <Icon
-            icon={statusIconMap[status.type]}
-            size="md"
-            color={statusIconColorMap[status.type]}
-          />
-        )}
-      </div>
-      {popover.render(
-        <Calendar
-          handleRef={calendarRef}
-          mode="single"
-          value={optimisticValue}
-          onChange={handleDateSelect}
-          min={min}
-          max={max}
-          dateConstraints={dateConstraints}
-          numberOfMonths={numberOfMonths}
-        />,
-        {placement: 'below', alignment: 'start'},
-      )}
-
-      {showsDisabledMessage &&
-        disabledMessageTooltip.renderTooltip(disabledMessage)}
+      {inputWrapper}
     </Field>
   );
 }

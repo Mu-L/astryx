@@ -13,6 +13,8 @@ import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {DateInput} from './DateInput';
+import {InputGroup} from '../InputGroup';
+import {InputGroupText} from '../InputGroup/InputGroupText';
 
 describe('DateInput', () => {
   it('renders with label', () => {
@@ -645,6 +647,64 @@ describe('DateInput', () => {
       expect(input).toHaveValue('March 20, 2026');
     });
   });
+
+  describe('InputGroup', () => {
+    it('uses group ARIA and skips standalone Field chrome when grouped', () => {
+      render(
+        <InputGroup
+          label="Availability"
+          description="Choose a start date"
+          status={{type: 'error', message: 'Date is required'}}>
+          <InputGroupText>Starts</InputGroupText>
+          <DateInput label="Date" isLabelHidden onChange={() => {}} />
+        </InputGroup>,
+      );
+
+      const group = screen.getByRole('group', {name: 'Availability'});
+      const input = screen.getByRole('combobox', {
+        name: 'Availability Date',
+      });
+
+      expect(document.querySelectorAll('.astryx-field')).toHaveLength(1);
+      expect(input).toHaveAttribute('aria-labelledby');
+      expect(input.getAttribute('aria-labelledby')).toContain(
+        group.getAttribute('aria-labelledby'),
+      );
+      expect(input).toHaveAttribute(
+        'aria-describedby',
+        group.getAttribute('aria-describedby'),
+      );
+      expect(input).not.toHaveAttribute('aria-invalid');
+      expect(screen.getByText('Date is required')).toBeInTheDocument();
+    });
+
+    it('preserves disabledMessage tooltip wiring when grouped', () => {
+      render(
+        <InputGroup label="Availability">
+          <InputGroupText>Starts</InputGroupText>
+          <DateInput
+            label="Date"
+            isLabelHidden
+            isDisabled
+            disabledMessage="Scheduling is locked"
+            onChange={() => {}}
+          />
+        </InputGroup>,
+      );
+
+      const input = screen.getByRole('combobox', {name: 'Availability Date'});
+      const tooltip = screen.getByRole('tooltip', {hidden: true});
+
+      expect(input).not.toBeDisabled();
+      expect(input).toHaveAttribute('aria-disabled', 'true');
+      expect(input.getAttribute('aria-describedby')).toContain(tooltip.id);
+      expect(tooltip).toHaveTextContent('Scheduling is locked');
+      expect(
+        screen.getByRole('button', {name: 'Open calendar'}),
+      ).toBeDisabled();
+    });
+  });
+
   describe('disabledMessage', () => {
     // jsdom does not implement the Popover API used by the tooltip, so mock
     // showPopover/hidePopover to toggle a `popover-open` attribute the tests
