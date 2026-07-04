@@ -6,6 +6,7 @@ import {
   computeRangeRounding,
   computePreviewRounding,
   isEndpoint,
+  isRangeHighlighted,
   type DayCellStateInput,
 } from './dayCellUtils';
 import {plainDateFromISO} from '../utils/plainDate';
@@ -203,6 +204,96 @@ describe('computeRangeRounding', () => {
     );
     const rounding = computeRangeRounding(state);
     expect(rounding.roundRight).toBe(true);
+  });
+
+  // #2715 follow-up: cap the highlight where the range meets a disabled or
+  // adjacent-month (outside) day. A mid-range day (neither endpoint nor grid
+  // edge) gets an end cap on the side whose neighbour breaks the run.
+  it('caps the right edge when the next day breaks the range (e.g. disabled)', () => {
+    const state = computeDayCellState(
+      makeInput({
+        date: plainDateFromISO('2024-03-17'),
+        dayIndex: 3,
+        mode: 'range',
+        rangeStart: plainDateFromISO('2024-03-15'),
+        rangeEnd: plainDateFromISO('2024-03-20'),
+      }),
+    );
+    const rounding = computeRangeRounding(state, {
+      prevInRange: true,
+      nextInRange: false,
+    });
+    expect(rounding.roundLeft).toBe(false);
+    expect(rounding.roundRight).toBe(true);
+  });
+
+  it('caps the left edge when the previous day breaks the range', () => {
+    const state = computeDayCellState(
+      makeInput({
+        date: plainDateFromISO('2024-03-17'),
+        dayIndex: 3,
+        mode: 'range',
+        rangeStart: plainDateFromISO('2024-03-15'),
+        rangeEnd: plainDateFromISO('2024-03-20'),
+      }),
+    );
+    const rounding = computeRangeRounding(state, {
+      prevInRange: false,
+      nextInRange: true,
+    });
+    expect(rounding.roundLeft).toBe(true);
+    expect(rounding.roundRight).toBe(false);
+  });
+
+  it('does not cap a mid-range day when both neighbours continue the range', () => {
+    const state = computeDayCellState(
+      makeInput({
+        date: plainDateFromISO('2024-03-17'),
+        dayIndex: 3,
+        mode: 'range',
+        rangeStart: plainDateFromISO('2024-03-15'),
+        rangeEnd: plainDateFromISO('2024-03-20'),
+      }),
+    );
+    const rounding = computeRangeRounding(state, {
+      prevInRange: true,
+      nextInRange: true,
+    });
+    expect(rounding.roundLeft).toBe(false);
+    expect(rounding.roundRight).toBe(false);
+  });
+});
+
+describe('isRangeHighlighted', () => {
+  const base = {
+    date: plainDateFromISO('2024-03-17'),
+    mode: 'range' as const,
+    rangeStart: plainDateFromISO('2024-03-15'),
+    rangeEnd: plainDateFromISO('2024-03-20'),
+    isDisabled: false,
+    isOutside: false,
+  };
+
+  it('true for an enabled in-month day inside the range', () => {
+    expect(isRangeHighlighted(base)).toBe(true);
+  });
+
+  it('false for a disabled day (breaks continuity)', () => {
+    expect(isRangeHighlighted({...base, isDisabled: true})).toBe(false);
+  });
+
+  it('false for an adjacent-month (outside) day', () => {
+    expect(isRangeHighlighted({...base, isOutside: true})).toBe(false);
+  });
+
+  it('false outside the range bounds', () => {
+    expect(
+      isRangeHighlighted({...base, date: plainDateFromISO('2024-03-25')}),
+    ).toBe(false);
+  });
+
+  it('false in single mode', () => {
+    expect(isRangeHighlighted({...base, mode: 'single'})).toBe(false);
   });
 });
 

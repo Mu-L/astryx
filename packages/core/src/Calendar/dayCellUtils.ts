@@ -103,11 +103,28 @@ export function computeDayCellState(input: DayCellStateInput): DayCellState {
   };
 }
 
-/** Edge rounding for range background (rounds at grid edges and range endpoints). */
-export function computeRangeRounding(state: DayCellState) {
+/**
+ * Rounding for the range background.
+ *
+ * Rounds at the range endpoints and the grid row edges, and also caps the
+ * highlight where the range meets a break in continuity — a neighbouring cell
+ * that is disabled or an adjacent-month (outside) day. Without a cap the
+ * highlight would run with a hard square edge straight into the disabled/gap
+ * cell; capping it reads as a proper end of the highlighted run (#2715).
+ *
+ * `neighbors` describes whether the day immediately before/after (in the same
+ * week row) continues the highlighted range. When omitted, only the endpoint
+ * and grid-edge rounding applies (backwards compatible).
+ */
+export function computeRangeRounding(
+  state: DayCellState,
+  neighbors?: {prevInRange?: boolean; nextInRange?: boolean},
+) {
+  const prevBreaks = neighbors ? neighbors.prevInRange === false : false;
+  const nextBreaks = neighbors ? neighbors.nextInRange === false : false;
   return {
-    roundLeft: state.isRangeStart || state.isFirstColumn,
-    roundRight: state.isRangeEnd || state.isLastColumn,
+    roundLeft: state.isRangeStart || state.isFirstColumn || prevBreaks,
+    roundRight: state.isRangeEnd || state.isLastColumn || nextBreaks,
   };
 }
 
@@ -122,4 +139,29 @@ export function computePreviewRounding(state: DayCellState) {
 /** Whether a day is a selection endpoint (selected, range start, or range end). */
 export function isEndpoint(state: DayCellState): boolean {
   return state.isSelected || state.isRangeStart || state.isRangeEnd;
+}
+
+/**
+ * Whether a day participates in the continuous range highlight — i.e. it is a
+ * range day whose background actually paints. Outside (adjacent-month) and
+ * disabled days break the run, so the highlighted day beside them gets an end
+ * cap (see `computeRangeRounding`). Used to derive a neighbour's continuity.
+ */
+export function isRangeHighlighted(input: {
+  date: PlainDate;
+  mode: 'single' | 'range';
+  rangeStart: PlainDate | null;
+  rangeEnd: PlainDate | null;
+  isDisabled: boolean;
+  isOutside: boolean;
+}): boolean {
+  const {date, mode, rangeStart, rangeEnd, isDisabled, isOutside} = input;
+  return !!(
+    mode === 'range' &&
+    !isOutside &&
+    !isDisabled &&
+    rangeStart &&
+    rangeEnd &&
+    plainDateIsInRange(date, [rangeStart, rangeEnd])
+  );
 }
