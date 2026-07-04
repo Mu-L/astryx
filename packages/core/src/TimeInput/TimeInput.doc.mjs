@@ -26,7 +26,7 @@ export const docs = {
       {
         guidance: true,
         description:
-          'Choose the hour format (12h or 24h) that matches your audience\'s locale; 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
+          'Choose the hour format (12h or 24h) that matches your audience\'s locale: 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
       },
       {
         guidance: true,
@@ -41,7 +41,7 @@ export const docs = {
       {
         guidance: true,
         description:
-          'Use the status prop to surface validation errors inline; show a message like "Time must be during business hours" so users know exactly what to fix.',
+          'Use the status prop to surface validation errors inline: show a message like "Time must be during business hours" so users know exactly what to fix.',
       },
       {
         guidance: true,
@@ -146,7 +146,7 @@ export const docs = {
       name: 'disabledMessage',
       type: 'string',
       description:
-        'Explains why the input is disabled. With isDisabled, shows a tooltip on hover/keyboard focus and keeps the field focusable via aria-disabled (activation stays blocked). Use this instead of wrapping a disabled TimeInput in Tooltip — disabled controls swallow the hover events an external Tooltip needs.',
+        'Explains why the input is disabled. With isDisabled, shows a tooltip on hover/keyboard focus and keeps the field focusable via aria-disabled (activation stays blocked). Use this instead of wrapping a disabled TimeInput in Tooltip. Disabled controls swallow the hover events an external Tooltip needs.',
     },
     {
       name: 'value',
@@ -396,7 +396,7 @@ export const docsZh = {
       {
         guidance: true,
         description:
-          'Choose the hour format (12h or 24h) that matches your audience\'s locale; 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
+          'Choose the hour format (12h or 24h) that matches your audience\'s locale: 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
       },
       {
         guidance: true,
@@ -411,7 +411,7 @@ export const docsZh = {
       {
         guidance: true,
         description:
-          'Use the status prop to surface validation errors inline; show a message like "Time must be during business hours" so users know exactly what to fix.',
+          'Use the status prop to surface validation errors inline: show a message like "Time must be during business hours" so users know exactly what to fix.',
       },
       {
         guidance: true,
@@ -480,7 +480,7 @@ export const docsDense = {
       {
         guidance: true,
         description:
-          'Choose hour format (12h/24h) to match locale; 12h for US, 24h for international.',
+          'Choose hour format (12h/24h) to match locale: 12h for US, 24h for international.',
       },
       {
         guidance: true,
@@ -498,14 +498,19 @@ export const docsDense = {
       },
       {guidance: true, description: 'Enable hasClear for optional fields.'},
       {
-        guidance: false,
+        guidance: true,
         description:
-          'Don\'t use for date-and-time; pair with DateInput instead.',
+          'Place inside InputGroup for a single-line prefix or suffix addon, like a label or timezone marker.',
       },
       {
         guidance: false,
         description:
-          'Don\'t hide the label; keep it visible for clarity.',
+          'Don\u2019t use for date-and-time; pair with DateInput instead.',
+      },
+      {
+        guidance: false,
+        description:
+          'Don\u2019t hide the label; keep it visible for clarity.',
       },
       {
         guidance: false,
