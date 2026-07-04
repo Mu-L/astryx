@@ -112,6 +112,11 @@ const styles = stylex.create({
     flex: 1,
   },
   rootScrollable: {
+    // Column flex so the message area grows into the space left by the
+    // in-flow dock instead of being forced to the container's full height,
+    // which would overflow by the dock height (phantom scrollbar).
+    display: 'flex',
+    flexDirection: 'column',
     overflowY: 'auto',
     overflowX: 'hidden',
     // Hide scrollbar during programmatic scroll animation
@@ -126,11 +131,16 @@ const styles = stylex.create({
     display: 'flex',
     flexDirection: 'column',
     marginInline: 'auto',
-    minHeight: '100%',
     paddingBlockEnd: spacingVars['--spacing-6'],
     width: '100%',
     maxWidth: '100%',
     paddingInline: 0,
+  },
+  // Self-scroll only: fill the space above the dock without forcing the
+  // container's full height (which would overflow by the dock height).
+  messageAreaSelfScroll: {
+    flexGrow: 1,
+    minHeight: 0,
   },
 
   emptyState: {
@@ -340,7 +350,12 @@ export function ChatLayout({
           style,
         )}>
         {/* Message area */}
-        <div {...stylex.props(styles.messageArea, currentDensity.messageArea)}>
+        <div
+          {...stylex.props(
+            styles.messageArea,
+            isSelfScrolling && styles.messageAreaSelfScroll,
+            currentDensity.messageArea,
+          )}>
           {showEmpty && emptyState ? (
             <div {...stylex.props(styles.emptyState)}>{emptyState}</div>
           ) : (

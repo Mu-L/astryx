@@ -99,3 +99,45 @@ describe('ChatLayout', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
+
+describe('ChatLayout self-scroll overflow (#2573)', () => {
+  it('does not force the message area to full container height', () => {
+    const {container} = render(
+      <ChatLayout composer={<div data-testid="composer">c</div>}>
+        <div>short message</div>
+      </ChatLayout>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    const messageArea = root.firstElementChild as HTMLElement;
+    const dock = root.children[1] as HTMLElement;
+
+    // Self-scroll mode: root is the scroll container.
+    expect(getComputedStyle(root).overflowY).toBe('auto');
+    // The dock sits in normal flow (sticky), so it occupies layout height.
+    expect(getComputedStyle(dock).position).toBe('sticky');
+
+    // Bug: message area is forced to 100% of the scroll container while the
+    // in-flow sticky dock adds its full height on top, guaranteeing overflow
+    // by the dock height even when content is short. The message area should
+    // instead flex to fill the space left after the dock.
+    expect(getComputedStyle(messageArea).minHeight).not.toBe('100%');
+  });
+
+  it('lays the self-scroll root out as a flex column so the dock shares height', () => {
+    const {container} = render(
+      <ChatLayout composer={<div>c</div>}>
+        <div>short message</div>
+      </ChatLayout>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    const messageArea = root.firstElementChild as HTMLElement;
+
+    // Root must be a flex column in self-scroll mode so the message area can
+    // flex-grow into the leftover space rather than overflowing.
+    expect(getComputedStyle(root).display).toBe('flex');
+    expect(getComputedStyle(root).flexDirection).toBe('column');
+    // Message area grows to fill remaining space and can shrink to 0.
+    expect(getComputedStyle(messageArea).flexGrow).toBe('1');
+    expect(parseInt(getComputedStyle(messageArea).minHeight, 10)).toBe(0);
+  });
+});
