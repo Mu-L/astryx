@@ -11,6 +11,7 @@ import {DateInput} from '@astryxdesign/core/DateInput';
 import type {ISODateString} from '@astryxdesign/core/Calendar';
 import {Typeahead} from '@astryxdesign/core/Typeahead';
 import type {SearchableItem, SearchSource} from '@astryxdesign/core/Typeahead';
+import {Selector} from '@astryxdesign/core/Selector';
 import {Icon} from '@astryxdesign/core/Icon';
 import type {ISOTimeString} from '@astryxdesign/core';
 
@@ -49,6 +50,8 @@ const meta: Meta<typeof InputGroup> = {
 
 export default meta;
 type Story = StoryObj<typeof InputGroup>;
+
+const TEAM_OPTIONS = ['Design Systems', 'Infrastructure', 'Product'];
 
 export const WithPrefix: Story = {
   render: args => {
@@ -230,6 +233,28 @@ export const WithDateInput: Story = {
   },
 };
 
+export const WithSelector: Story = {
+  render: args => {
+    const [value, setValue] = useState<string | undefined>(undefined);
+    return (
+      <InputGroup {...args}>
+        <InputGroupText>Team</InputGroupText>
+        <Selector
+          label="Owner"
+          isLabelHidden
+          options={TEAM_OPTIONS}
+          value={value}
+          onChange={setValue}
+          placeholder="Choose owner"
+        />
+      </InputGroup>
+    );
+  },
+  args: {
+    label: 'Default owner',
+  },
+};
+
 export const WithDescription: Story = {
   render: args => {
     const [value, setValue] = useState('');
@@ -355,6 +380,7 @@ export const AllVariations: Story = {
     const [v3, setV3] = useState('');
     const [v4, setV4] = useState('');
     const [v5, setV5] = useState<SearchableItem | null>(null);
+    const [v6, setV6] = useState<string | undefined>(undefined);
 
     return (
       <div
@@ -417,6 +443,17 @@ export const AllVariations: Story = {
             value={v4}
             onChange={setV4}
             placeholder="0.00"
+          />
+        </InputGroup>
+        <InputGroup label="Default owner">
+          <InputGroupText>Team</InputGroupText>
+          <Selector
+            label="Owner"
+            isLabelHidden
+            options={TEAM_OPTIONS}
+            value={v6}
+            onChange={setV6}
+            placeholder="Choose owner"
           />
         </InputGroup>
       </div>

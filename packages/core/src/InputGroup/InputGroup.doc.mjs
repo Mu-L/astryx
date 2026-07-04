@@ -29,7 +29,7 @@ export const docs = {
       name: 'children',
       type: 'ReactNode',
       description:
-        'InputGroupText and compatible input children: TextInput, NumberInput, TimeInput, DateInput, or Typeahead.',
+        'InputGroupText and compatible input children: TextInput, NumberInput, TimeInput, DateInput, Typeahead, or Selector.',
       required: true,
     },
     {
@@ -112,7 +112,7 @@ export const docs = {
       {
         guidance: true,
         description:
-          'Use InputGroup with compatible single-line inputs: TextInput, NumberInput, TimeInput, DateInput, and Typeahead.',
+          'Use InputGroup with compatible single-line inputs: TextInput, NumberInput, TimeInput, DateInput, Typeahead, and Selector.',
       },
       {
         guidance: true,
@@ -183,7 +183,7 @@ export const docsDense = {
       {
         guidance: true,
         description:
-          'Use InputGroup with compatible single-line inputs: TextInput, NumberInput, TimeInput, DateInput, and Typeahead.',
+          'Use InputGroup with compatible single-line inputs: TextInput, NumberInput, TimeInput, DateInput, Typeahead, and Selector.',
       },
       {
         guidance: true,

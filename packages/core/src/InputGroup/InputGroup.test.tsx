@@ -18,6 +18,7 @@ import {NumberInput} from '../NumberInput';
 import {DateInput} from '../DateInput';
 import {Typeahead} from '../Typeahead';
 import type {SearchableItem, SearchSource} from '../Typeahead';
+import {Selector} from '../Selector';
 
 const fruits: SearchableItem[] = [
   {id: '1', label: 'Apple'},
@@ -185,6 +186,39 @@ describe('InputGroup', () => {
     expect(document.getElementById(labelledByIDs[1])).toHaveTextContent('Date');
     expect(input).toHaveAttribute('aria-haspopup', 'dialog');
     expect(input).toHaveAttribute(
+      'aria-describedby',
+      group.getAttribute('aria-describedby'),
+    );
+  });
+
+  it('labels grouped Selector from the group and selector labels', () => {
+    render(
+      <InputGroup label="Destination" description="Where alerts are sent">
+        <InputGroupText>#</InputGroupText>
+        <Selector
+          label="Channel"
+          isLabelHidden
+          options={['General', 'Support']}
+          placeholder="Choose channel"
+        />
+      </InputGroup>,
+    );
+
+    const group = screen.getByRole('group', {name: 'Destination'});
+    const groupLabelID = group.getAttribute('aria-labelledby');
+    const trigger = screen.getByRole('combobox', {
+      name: 'Destination Channel',
+    });
+    const labelledByIDs =
+      trigger.getAttribute('aria-labelledby')?.split(' ') ?? [];
+
+    expect(labelledByIDs).toHaveLength(2);
+    expect(labelledByIDs[0]).toBe(groupLabelID);
+    expect(document.getElementById(labelledByIDs[1])).toHaveTextContent(
+      'Channel',
+    );
+    expect(trigger).not.toHaveAttribute('aria-label');
+    expect(trigger).toHaveAttribute(
       'aria-describedby',
       group.getAttribute('aria-describedby'),
     );
