@@ -5,6 +5,7 @@
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {VStack, HStack} from '@astryxdesign/core/Layout';
 import {Section} from '@astryxdesign/core/Section';
+import {Card} from '@astryxdesign/core/Card';
 import {Table, pixel} from '@astryxdesign/core/Table';
 import {Badge} from '@astryxdesign/core/Badge';
 import type {PropDoc} from '../../generated/componentRegistry';
@@ -40,50 +41,52 @@ export function PropsTable({props, heading}: PropsTableProps) {
 
   return (
     <Section>
-      <VStack gap={2}>
-        {heading && <Heading level={4}>{heading}</Heading>}
-        <Table
-          data={data}
-          columns={[
-            {
-              key: 'name',
-              header: 'Prop',
-              width: pixel(180),
-              renderCell: (item: Record<string, unknown>) => (
-                <HStack gap={1} vAlign="center">
-                  <Text type="code" weight="bold">
-                    {item.name as string}
+      <Card>
+        <VStack gap={2}>
+          {heading && <Heading level={4}>{heading}</Heading>}
+          <Table
+            data={data}
+            columns={[
+              {
+                key: 'name',
+                header: 'Prop',
+                width: pixel(280),
+                renderCell: (item: Record<string, unknown>) => (
+                  <HStack gap={1} vAlign="center">
+                    <Text type="code" weight="bold">
+                      {item.name as string}
+                    </Text>
+                    {item.required === true && (
+                      <Badge label="required" variant="info" />
+                    )}
+                  </HStack>
+                ),
+              },
+              {
+                key: 'type',
+                header: 'Type',
+                width: pixel(240),
+                renderCell: (item: Record<string, unknown>) => (
+                  <Text type="code" color="secondary">
+                    {item.type as string}
                   </Text>
-                  {item.required === true && (
-                    <Badge label="required" variant="info" />
-                  )}
-                </HStack>
-              ),
-            },
-            {
-              key: 'type',
-              header: 'Type',
-              width: pixel(240),
-              renderCell: (item: Record<string, unknown>) => (
-                <Text type="code" color="secondary">
-                  {item.type as string}
-                </Text>
-              ),
-            },
-            {
-              key: 'description',
-              header: 'Description',
-              renderCell: (item: Record<string, unknown>) => (
-                <MarkdownText type="body">
-                  {item.description as string}
-                </MarkdownText>
-              ),
-            },
-          ]}
-          density="spacious"
-          dividers="rows"
-        />
-      </VStack>
+                ),
+              },
+              {
+                key: 'description',
+                header: 'Description',
+                renderCell: (item: Record<string, unknown>) => (
+                  <MarkdownText type="body">
+                    {item.description as string}
+                  </MarkdownText>
+                ),
+              },
+            ]}
+            density="spacious"
+            dividers="rows"
+          />
+        </VStack>
+      </Card>
     </Section>
   );
 }
