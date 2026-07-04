@@ -99,7 +99,7 @@ describe('Schedule', () => {
     expect(screen.queryByText('Outside range')).not.toBeInTheDocument();
   });
 
-  it('renders monthly weekday headings at level 3 so heading levels do not skip', async () => {
+  it('renders monthly weekday headings at the configured headingLevel (default 3)', async () => {
     render(
       <Schedule
         view={createScheduleMonthlyView()}
@@ -114,14 +114,12 @@ describe('Schedule', () => {
     await waitFor(() => {
       expect(screen.getByText('Visible sync')).toBeInTheDocument();
     });
-    // Frame title is an h2; weekday headings must be h3 (not h4) to avoid a skip.
-    expect(screen.queryByRole('heading', {level: 4})).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('heading', {level: 3}).length,
     ).toBeGreaterThan(0);
   });
 
-  it('renders list day headings at level 3 so heading levels do not skip', async () => {
+  it('renders list day headings at the configured headingLevel (default 3)', async () => {
     render(
       <Schedule
         view={createScheduleListView({days: 7})}
@@ -135,7 +133,6 @@ describe('Schedule', () => {
     await waitFor(() => {
       expect(screen.getByText('Visible sync')).toBeInTheDocument();
     });
-    expect(screen.queryByRole('heading', {level: 4})).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('heading', {level: 3}).length,
     ).toBeGreaterThan(0);

@@ -118,6 +118,7 @@ function StressTestImpl() {
         )}
       </div>
       <CodeEditor
+        label="Code editor"
         value={code}
         onChange={setCode}
         language="typescript"

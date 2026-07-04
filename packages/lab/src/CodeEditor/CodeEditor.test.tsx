@@ -5,22 +5,13 @@ import {render, screen} from '@testing-library/react';
 import {CodeEditor} from './CodeEditor';
 
 describe('CodeEditor', () => {
-  it('gives the editable region an accessible name derived from language', () => {
-    render(
-      <CodeEditor value="" onChange={() => {}} language="typescript" />,
-    );
-    expect(
-      screen.getByRole('textbox', {name: 'typescript code editor'}),
-    ).toBeInTheDocument();
-  });
-
-  it('honors an explicit ariaLabel over the language-derived name', () => {
+  it('uses the label prop as the accessible name', () => {
     render(
       <CodeEditor
         value=""
         onChange={() => {}}
         language="typescript"
-        ariaLabel="Edit snippet"
+        label="Edit snippet"
       />,
     );
     expect(
