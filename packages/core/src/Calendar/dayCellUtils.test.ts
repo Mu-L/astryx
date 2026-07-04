@@ -118,6 +118,49 @@ describe('computeDayCellState', () => {
     expect(stateLast.isFirstColumn).toBe(false);
     expect(stateLast.isLastColumn).toBe(true);
   });
+
+  // Regression (#2715): outside (adjacent-month) days must not receive
+  // selection/range/preview state. In the two-month layout the same date
+  // renders in both panes, so highlighting the spillover copy would duplicate
+  // the selection onto the wrong month's pane.
+  it('does not apply range state to outside days', () => {
+    const state = computeDayCellState(
+      makeInput({
+        date: plainDateFromISO('2024-03-17'),
+        isOutside: true,
+        mode: 'range',
+        rangeStart: plainDateFromISO('2024-03-15'),
+        rangeEnd: plainDateFromISO('2024-03-20'),
+      }),
+    );
+    expect(state.isInRange).toBe(false);
+    expect(state.isRangeStart).toBe(false);
+    expect(state.isRangeEnd).toBe(false);
+  });
+
+  it('does not apply preview state to outside days', () => {
+    const state = computeDayCellState(
+      makeInput({
+        date: plainDateFromISO('2024-03-17'),
+        isOutside: true,
+        previewStart: plainDateFromISO('2024-03-15'),
+        previewEnd: plainDateFromISO('2024-03-20'),
+      }),
+    );
+    expect(state.isInPreview).toBe(false);
+    expect(state.isPreviewStart).toBe(false);
+    expect(state.isPreviewEnd).toBe(false);
+  });
+
+  it('does not mark an outside day as selected', () => {
+    const state = computeDayCellState(
+      makeInput({
+        isOutside: true,
+        selectedDate: plainDateFromISO('2024-03-15'),
+      }),
+    );
+    expect(state.isSelected).toBe(false);
+  });
 });
 
 describe('computeRangeRounding', () => {

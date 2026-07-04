@@ -31,7 +31,14 @@ export interface DayCellStateInput {
   isOutside: boolean;
 }
 
-/** Derives all visual/interaction states for a single day cell. */
+/**
+ * Derives all visual/interaction states for a single day cell.
+ *
+ * Outside (adjacent-month) days never receive selection, range, or preview
+ * state: in the two-month layout the same date renders in both panes, and
+ * highlighting the spillover copy would duplicate the selection onto the wrong
+ * month's pane (#2715).
+ */
 export function computeDayCellState(input: DayCellStateInput): DayCellState {
   const {
     date,
@@ -51,33 +58,46 @@ export function computeDayCellState(input: DayCellStateInput): DayCellState {
     effectivelyDisabled: isDisabled || isOutside,
     isToday: plainDateIsEqual(date, today),
     isSelected: !!(
+      !isOutside &&
       mode === 'single' &&
       selectedDate &&
       plainDateIsEqual(date, selectedDate)
     ),
     isInRange: !!(
+      !isOutside &&
       mode === 'range' &&
       rangeStart &&
       rangeEnd &&
       plainDateIsInRange(date, [rangeStart, rangeEnd])
     ),
     isRangeStart: !!(
+      !isOutside &&
       mode === 'range' &&
       rangeStart &&
       plainDateIsEqual(date, rangeStart)
     ),
     isRangeEnd: !!(
+      !isOutside &&
       mode === 'range' &&
       rangeEnd &&
       plainDateIsEqual(date, rangeEnd)
     ),
     isInPreview: !!(
+      !isOutside &&
       previewStart &&
       previewEnd &&
       plainDateIsInRange(date, [previewStart, previewEnd])
     ),
-    isPreviewStart: !!(previewStart && plainDateIsEqual(date, previewStart)),
-    isPreviewEnd: !!(previewEnd && plainDateIsEqual(date, previewEnd)),
+    isPreviewStart: !!(
+      !isOutside &&
+      previewStart &&
+      plainDateIsEqual(date, previewStart)
+    ),
+    isPreviewEnd: !!(
+      !isOutside &&
+      previewEnd &&
+      plainDateIsEqual(date, previewEnd)
+    ),
     isFirstColumn: dayIndex === 0,
     isLastColumn: dayIndex === 6,
   };
