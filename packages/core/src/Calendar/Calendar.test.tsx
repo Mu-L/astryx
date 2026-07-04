@@ -97,7 +97,11 @@ describe('Calendar', () => {
     render(<Calendar value="2026-01-15" focusDate="2026-01-01" />);
 
     const day15 = getDayButton(15);
-    expect(day15).toHaveAttribute('aria-selected', 'true');
+    // In an ARIA grid, selection state lives on the gridcell, not the button
+    // (a plain button role does not permit aria-selected).
+    const gridcell15 = day15.closest('[role="gridcell"]');
+    expect(gridcell15).toHaveAttribute('aria-selected', 'true');
+    expect(day15).not.toHaveAttribute('aria-selected');
   });
 
   it('calls onChange when date is selected', async () => {
@@ -310,9 +314,22 @@ describe('Calendar', () => {
     const day12 = getDayButton(12);
     const day15 = getDayButton(15);
 
-    expect(day10).toHaveAttribute('aria-selected', 'true');
-    expect(day12).toHaveAttribute('aria-selected', 'true');
-    expect(day15).toHaveAttribute('aria-selected', 'true');
+    // Selection state lives on the gridcell wrapper, not the day button.
+    expect(day10.closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(day12.closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(day15.closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(day10).not.toHaveAttribute('aria-selected');
+    expect(day12).not.toHaveAttribute('aria-selected');
+    expect(day15).not.toHaveAttribute('aria-selected');
   });
 
   // ─── Accessibility ───────────────────────────────────────────
