@@ -14,6 +14,18 @@ interface ShowcasePreviewProps {
   name: string;
 }
 
+// Components that render a full-height sidebar (`height: 100%`) and anchor
+// their content to the top. In the centered, fixed-ratio preview box they
+// stretch to fill the box, which reads as "top-aligned with empty space
+// below". These are previewed top-anchored at their intrinsic height instead.
+const FULL_HEIGHT_COMPONENTS = new Set([
+  'SideNav',
+  'SideNavItem',
+  'SideNavSection',
+  'SideNavCollapseButton',
+  'SideNavHeading',
+]);
+
 export function ShowcasePreview({name}: ShowcasePreviewProps) {
   const [Component, setComponent] = useState<ComponentType | null>(null);
   const [error, setError] = useState(false);
@@ -30,8 +42,10 @@ export function ShowcasePreview({name}: ShowcasePreviewProps) {
       .catch(() => setError(true));
   }, [name]);
 
-  const previewNavigationProps =
-    name === 'SideNav' ? {onClickCapture: preventPreviewNavigation} : {};
+  const isFullHeight = FULL_HEIGHT_COMPONENTS.has(name);
+  const previewNavigationProps = isFullHeight
+    ? {onClickCapture: preventPreviewNavigation}
+    : {};
 
   const placeholderStyle = isSmall
     ? {minHeight: 160, width: '100%'}
@@ -63,7 +77,7 @@ export function ShowcasePreview({name}: ShowcasePreviewProps) {
           overflow: 'auto',
           minHeight: 160,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: isFullHeight ? 'flex-start' : 'center',
           justifyContent: 'center',
         }}
         {...previewNavigationProps}>
@@ -74,14 +88,23 @@ export function ShowcasePreview({name}: ShowcasePreviewProps) {
     );
   }
 
+  // Full-height components (`height: 100%`) stretch to fill a fixed-ratio box
+  // and read as top-aligned with empty space below. Let the box grow to the
+  // sidebar's intrinsic height instead: with an auto container height,
+  // `height: 100%` on the child resolves to `auto` (content-sized), and
+  // top-anchoring keeps the sidebar reading as built.
+  const containerSizing = isFullHeight
+    ? {maxHeight: 480}
+    : {aspectRatio: '16 / 9'};
+
   return (
     <div
       style={{
         width: '100%',
-        aspectRatio: '16 / 9',
+        ...containerSizing,
         overflow: 'auto',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isFullHeight ? 'flex-start' : 'center',
         justifyContent: 'center',
       }}
       {...previewNavigationProps}>
