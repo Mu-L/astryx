@@ -331,5 +331,20 @@ describe('TimeInput', () => {
       expect(input).toBeDisabled();
       expect(input).not.toHaveAttribute('aria-disabled');
     });
+
+    it('does not swap in the format-hint placeholder on focus while disabled', () => {
+      render(
+        <TimeInput
+          label="Time"
+          isDisabled
+          disabledMessage="You need the Editor role"
+          placeholder="Select a time"
+        />,
+      );
+      const input = screen.getByLabelText('Time');
+      input.focus();
+      fireEvent.focus(input);
+      expect(input).toHaveAttribute('placeholder', 'Select a time');
+    });
   });
 });

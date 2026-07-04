@@ -473,8 +473,14 @@ export function TimeInput({
 
   // Handle focus
   const handleFocus = useCallback(() => {
+    // A disabled input stays focusable (via aria-disabled) so its reason is
+    // discoverable, but it must not present editing affordances — keep the
+    // static placeholder rather than swapping in the format hint.
+    if (isDisabled) {
+      return;
+    }
     setIsFocused(true);
-  }, []);
+  }, [isDisabled]);
 
   // Handle blur - validate and clear pending input
   const handleBlur = useCallback(

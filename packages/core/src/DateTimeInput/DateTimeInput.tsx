@@ -758,7 +758,15 @@ export function DateTimeInput({
     ],
   );
 
-  const handleTimeFocus = useCallback(() => setIsTimeFocused(true), []);
+  const handleTimeFocus = useCallback(() => {
+    // A disabled/busy input stays focusable (via aria-disabled) so its reason
+    // is discoverable, but it must not present editing affordances — keep the
+    // static placeholder rather than swapping in the format hint.
+    if (isEffectivelyDisabled) {
+      return;
+    }
+    setIsTimeFocused(true);
+  }, [isEffectivelyDisabled]);
 
   const handleTimeBlur = useCallback(() => {
     setIsTimeFocused(false);
