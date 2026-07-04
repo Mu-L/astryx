@@ -7,6 +7,8 @@ import {InputGroupText} from '@astryxdesign/core/InputGroup';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {NumberInput} from '@astryxdesign/core/NumberInput';
 import {TimeInput} from '@astryxdesign/core/TimeInput';
+import {DateInput} from '@astryxdesign/core/DateInput';
+import type {ISODateString} from '@astryxdesign/core/Calendar';
 import {Icon} from '@astryxdesign/core/Icon';
 import type {ISOTimeString} from '@astryxdesign/core';
 
@@ -161,6 +163,28 @@ export const WithTimeInput: Story = {
   args: {
     label: 'Schedule',
     description: 'Use local time',
+  },
+};
+
+export const WithDateInput: Story = {
+  render: args => {
+    const [value, setValue] = useState<ISODateString | undefined>(undefined);
+    return (
+      <InputGroup {...args}>
+        <InputGroupText>Due</InputGroupText>
+        <DateInput
+          label="Date"
+          isLabelHidden
+          value={value}
+          onChange={setValue}
+          placeholder="Select date"
+        />
+      </InputGroup>
+    );
+  },
+  args: {
+    label: 'Deadline',
+    description: 'Pick the due date',
   },
 };
 

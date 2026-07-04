@@ -2,7 +2,7 @@
 
 /**
  * @file InputGroup.test.tsx
- * @input Uses vitest, @testing-library/react, InputGroup and TextInput components
+ * @input Uses vitest, @testing-library/react, InputGroup, TextInput, NumberInput, DateInput components
  * @output Unit tests for InputGroup
  * @position Testing; validates InputGroup component implementation
  *
@@ -15,6 +15,7 @@ import {InputGroup} from './InputGroup';
 import {InputGroupText} from './InputGroupText';
 import {TextInput} from '../TextInput';
 import {NumberInput} from '../NumberInput';
+import {DateInput} from '../DateInput';
 
 describe('InputGroup', () => {
   it('names the group via the label element (forms-14)', () => {
@@ -115,6 +116,46 @@ describe('InputGroup', () => {
       'aria-describedby',
       group.getAttribute('aria-describedby'),
     );
+  });
+
+  it('labels grouped DateInput from the group and inner input labels', () => {
+    render(
+      <InputGroup label="Deadline" description="Use business days">
+        <InputGroupText>Due</InputGroupText>
+        <DateInput label="Date" isLabelHidden onChange={() => {}} />
+      </InputGroup>,
+    );
+
+    const group = screen.getByRole('group', {name: 'Deadline'});
+    const groupLabelID = group.getAttribute('aria-labelledby');
+    const input = screen.getByRole('combobox', {name: 'Deadline Date'});
+    const labelledByIDs =
+      input.getAttribute('aria-labelledby')?.split(' ') ?? [];
+
+    expect(labelledByIDs).toHaveLength(2);
+    expect(labelledByIDs[0]).toBe(groupLabelID);
+    expect(document.getElementById(labelledByIDs[1])).toHaveTextContent('Date');
+    expect(input).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(input).toHaveAttribute(
+      'aria-describedby',
+      group.getAttribute('aria-describedby'),
+    );
+  });
+
+  it('keeps grouped DateInput calendar button and popover semantics', () => {
+    render(
+      <InputGroup label="Deadline">
+        <InputGroupText>Due</InputGroupText>
+        <DateInput label="Date" isLabelHidden onChange={() => {}} />
+      </InputGroup>,
+    );
+
+    expect(
+      screen.getByRole('button', {name: 'Open calendar'}),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', {name: 'Deadline Date'}),
+    ).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('renders the visible label', () => {
