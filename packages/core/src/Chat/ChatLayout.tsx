@@ -112,11 +112,15 @@ const styles = stylex.create({
     flex: 1,
   },
   rootScrollable: {
-    // Column flex so the message area grows into the space left by the
-    // in-flow dock instead of being forced to the container's full height,
-    // which would overflow by the dock height (phantom scrollbar).
-    display: 'flex',
-    flexDirection: 'column',
+    // Single-cell grid: the message area and the sticky dock occupy the SAME
+    // grid cell (both `grid-row/column: 1`), so the dock overlaps the tail of
+    // the messages instead of adding its own flow height on top. That removes
+    // the phantom scrollbar (previously the container overflowed by exactly the
+    // dock height) while keeping the dock `position: sticky` so the composer
+    // stays pinned to the bottom as messages stream in (#2573).
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gridTemplateRows: '1fr',
     overflowY: 'auto',
     overflowX: 'hidden',
     // Hide scrollbar during programmatic scroll animation
@@ -136,11 +140,13 @@ const styles = stylex.create({
     maxWidth: '100%',
     paddingInline: 0,
   },
-  // Self-scroll only: fill the space above the dock without forcing the
-  // container's full height (which would overflow by the dock height).
+  // Self-scroll only: share the single grid cell with the dock and fill it, so
+  // short content still pushes the composer to the bottom (empty space sits
+  // above it) without stacking full height on top of the in-flow dock.
   messageAreaSelfScroll: {
-    flexGrow: 1,
-    minHeight: 0,
+    gridRow: 1,
+    gridColumn: 1,
+    minHeight: '100%',
   },
 
   emptyState: {
@@ -164,7 +170,14 @@ const styles = stylex.create({
     position: 'fixed',
   },
   dockContainerSticky: {
+    // Shares the single grid cell with the message area (same row/column) and
+    // aligns to the bottom, so it overlaps the tail of the messages rather than
+    // adding flow height. `position: sticky` keeps it pinned to the bottom of
+    // the scroll viewport as content grows (#2573).
     position: 'sticky',
+    gridRow: 1,
+    gridColumn: 1,
+    alignSelf: 'end',
   },
 
   blurLayer: {
