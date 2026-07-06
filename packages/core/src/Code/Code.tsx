@@ -73,13 +73,13 @@ export function Code({
   return (
     <code
       ref={ref}
+      {...props}
       {...mergeProps(
         themeProps('code'),
         stylex.props(styles.base, xstyle),
         className,
         style,
-      )}
-      data-testid={props['data-testid']}>
+      )}>
       {children}
     </code>
   );
