@@ -1,0 +1,5 @@
+import{a2 as r}from"./iframe-BGOI6B5l.js";import{C as e}from"./ChartLegend-BQeti9DZ.js";import"./preload-helper-Ct5FWWRu.js";import"./ChartSwatch-zljs0-NU.js";import"./HStack-CIxrV--z.js";import"./Stack-yImuWZte.js";import"./stack.stylex-BlarxY2N.js";import"./padding.stylex-Dl2_Pyt1.js";import"./VStack-C63INgba.js";const n=[{label:"Revenue",color:"#3b82f6",type:"bar"},{label:"Costs",color:"#ef4444",type:"bar"},{label:"Trend",color:"#f59e0b",type:"line"}],g={title:"Lab/ChartV2Legend",component:e,argTypes:{position:{control:"inline-radio",options:["top","bottom","start","end"]},alignment:{control:"inline-radio",options:["start","center","end"]},items:{table:{disable:!0}}},args:{items:n,alignment:"start"},render:o=>r.jsx(e,{...o})},t={args:{position:"bottom"}};t.parameters={...t.parameters,docs:{...t.parameters?.docs,source:{originalSource:`{
+  args: {
+    position: 'bottom'
+  }
+}`,...t.parameters?.docs?.source},description:{story:"Standalone chart legend. Use the Controls panel to switch position and alignment.",...t.parameters?.docs?.description}}};const u=["Legend"];export{t as Legend,u as __namedExportsOrder,g as default};
