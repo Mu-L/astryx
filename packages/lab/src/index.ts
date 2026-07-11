@@ -30,6 +30,7 @@ export {
   ChatReasoning,
   type ChatReasoningProps,
 } from './ChatReasoning/ChatReasoning';
+export * from './Chat';
 
 // Drawer — experimental overlay panel
 export {Drawer, type DrawerProps} from './Drawer';
