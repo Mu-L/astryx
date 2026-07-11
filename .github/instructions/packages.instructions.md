@@ -121,6 +121,49 @@ express the same capability, and push to converge on the existing shape:
   vibe-tested rather than settled in the PR (route naming disputes to
   [API Arbitration](https://github.com/facebook/astryx/wiki/API-Arbitration)).
 
+### Plugins & hooks that extend a host component
+
+Some components expose a plugin/hook surface (e.g. `Table` with
+`useTable*` plugins). These extend a host, so review them for consistency *with
+that host*, not in isolation — recurring issues seen in real review:
+
+- **Mirror the host's API shape, in and out.** A plugin should accept and return
+  the same shapes the host already uses. If `Table` accepts `idKey` (a key that
+  may be a string *or* a getter, so callers avoid writing callbacks), a plugin
+  should accept the same rather than forcing a bespoke callback — and should
+  **name its outputs to match the host's props** so they compose directly.
+  Prefer `const {idKey} = usePlugin(); <Table idKey={idKey} />` over exporting
+  `getRowKey` that the caller has to remember maps to `idKey`. Flag renamed
+  or reshaped equivalents.
+- **Semantic values first, arbitrary as the escape hatch.** When a plugin/prop
+  takes a visual value (color, status, tone), the first-class API is the
+  system's **semantic tokens** (`color: 'accent'` / `'success'`), not raw values.
+  Allowing arbitrary values is fine as an escape hatch, but the *default* shape
+  should be system semantics — flag an API where the raw/arbitrary form is the
+  primary one.
+- **Decide host-level vs plugin-level deliberately** — especially for
+  accessibility. If an option affects host semantics (e.g. a row `startFrom`
+  index that changes `aria-rowindex`), it likely belongs on the **host** so the
+  semantics are correct even when nothing visible renders. Flag a11y-affecting
+  config buried in a plugin when the host is the right owner (and note
+  interactions like pagination).
+
+### Hook stability & reuse of existing data
+
+For hooks (plugins or otherwise), watch two things that bit real Table PRs:
+
+- **Dependency-set stability.** A hook whose memoized output depends on a
+  frequently-changing value (e.g. the whole `data` array) will re-compute and
+  hand consumers a new reference on every update, destabilizing everything
+  downstream. Flag dependency sets that make the return value churn; prefer
+  stable keys/refs.
+- **Don't re-derive what's already available.** If the host or the DOM already
+  exposes a value, read it instead of recomputing. Real case: a row-index plugin
+  looped over `data` to compute indices the table row already carried as
+  `aria-rowindex` — the loop (and the extra API surface) was avoidable. Flag
+  redundant full-collection loops and per-item rescans when an existing
+  value/source would do (ties into the complexity/perf smell in Judgment).
+
 ## Design review
 
 Some package changes are also *design* changes. When a diff affects how a
@@ -253,6 +296,21 @@ and the Design review section above), or to add `hidden: true` until it does.
   form controls — never `stylex.defaultMarker()`.
 - **Semantic tokens only** — no hardcoded color/spacing/radius/shadow;
   theme-agnostic output.
+- **Avoid unnecessary wrapper elements — prefer props and hooks.** Astryx favors
+  attaching behavior/style to existing elements over adding a new wrapper node.
+  Flag an added wrapper when a lighter path exists:
+  - *Styling:* components extend `BaseProps` (they take `xstyle`), so apply style
+    directly — `<Divider xstyle={hasOutline && styles.titleDivider} />` — instead
+    of wrapping the component in a styled `<div>`.
+  - *Behavior:* reach for the behavior **hook** or **prop** the system already
+    exposes rather than a wrapper component. E.g. a tooltip is available via the
+    `tooltip` prop / `useTooltip` hook, and there are hooks for many behaviors
+    (`useHoverCard`, `useClickableContainer`, `useCollapsible`, `useFocusTrap`,
+    `useEntryAnimation`, `useInteractiveRole`, …). Prefer composing the hook onto
+    the real element over introducing a wrapper that exists only to host the
+    behavior. A wrapper adds a DOM node, can break layout/flex/grid parent-child
+    relationships, and often complicates focus/ARIA — call it out when a hook or
+    prop would avoid it.
 - **Navigation** uses `useLinkComponent()`, never a hardcoded `<a>`.
 - **Docs in sync** — JSDoc file headers, `SYNC:` reminders, and `.doc.mjs`.
   `@example` fences in JSDoc must be plain ` ``` ` (never language-tagged), or
@@ -302,6 +360,15 @@ checks, flag it.
   key, a container query, or a prop instead of JS observing the DOM? Prefer the
   simpler mechanism; call out the complexity and the regression risk when the
   heavy approach isn't justified.
+- **Silent breaking changes to shared types/context.** Adding a **required**
+  field to a shared type, context value, or component API is a breaking change
+  for every existing consumer — even when the PR's own feature doesn't need them
+  to change. The **tell**: unrelated tests, examples, or call sites had to be
+  updated just to satisfy the new field. When you see that, flag it and ask
+  whether the field should be **optional** (applied internally with a default)
+  instead — and whether the breaking change is worth it. (Real case: a new
+  required `aria-controls` id on a mobile-nav context forced edits to surfaces
+  that didn't otherwise need it.)
 - **Other smells.** State expressed by unmounting focusable elements (toggle
   visibility so focus/a11y survive), unnecessary `useState` (prefer derived
   values or refs, especially from interaction handlers), and excessive comments.
