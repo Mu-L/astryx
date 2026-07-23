@@ -785,7 +785,10 @@ export function FileInput({
         />
         {isDropzone ? renderDropzoneContent() : renderCompactContent()}
         {hasFiles && !isDisabled && !isLoading && (
-          <InputClearButton label={t('@astryx.fileInput.clearLabel', {label})} onClick={handleClear} />
+          <InputClearButton
+            label={t('@astryx.fileInput.clearLabel', {label})}
+            onClick={handleClear}
+          />
         )}
       </div>
       <div

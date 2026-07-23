@@ -21,7 +21,10 @@ import * as stylex from '@stylexjs/stylex';
 import {sharedEditorTheme} from './editorTheme';
 import type {BaseProps} from '@astryxdesign/core';
 
-import {LexicalComposer, type InitialConfigType} from '@lexical/react/LexicalComposer';
+import {
+  LexicalComposer,
+  type InitialConfigType,
+} from '@lexical/react/LexicalComposer';
 import {RichTextPlugin} from '@lexical/react/LexicalRichTextPlugin';
 import {ContentEditable} from '@lexical/react/LexicalContentEditable';
 import {LexicalErrorBoundary} from '@lexical/react/LexicalErrorBoundary';
@@ -29,11 +32,7 @@ import {ListNode, ListItemNode} from '@lexical/list';
 import {HeadingNode, QuoteNode} from '@lexical/rich-text';
 import {LinkNode, AutoLinkNode} from '@lexical/link';
 import {CodeNode, CodeHighlightNode} from '@lexical/code';
-import type {
-  Klass,
-  LexicalNode,
-  EditorThemeClasses,
-} from 'lexical';
+import type {Klass, LexicalNode, EditorThemeClasses} from 'lexical';
 
 const styles = stylex.create({
   root: {

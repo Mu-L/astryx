@@ -1000,7 +1000,9 @@ export function DateTimeInput({
             disabled={isEffectivelyDisabled && !showsDisabledMessage}
             aria-disabled={showsDisabledMessage ? 'true' : undefined}
             readOnly={showsDisabledMessage || undefined}
-            aria-label={timeLabel ?? t('@astryx.dateTimeInput.timeSuffix', {label})}
+            aria-label={
+              timeLabel ?? t('@astryx.dateTimeInput.timeSuffix', {label})
+            }
             aria-describedby={ariaDescribedBy}
             aria-required={isRequired === true ? 'true' : undefined}
             aria-invalid={

@@ -807,7 +807,9 @@ export function CodeBlock({
         e.stopPropagation();
         void handleCopy();
       }}
-      aria-label={copied ? t('@astryx.codeBlock.copied') : t('@astryx.codeBlock.copyCode')}
+      aria-label={
+        copied ? t('@astryx.codeBlock.copied') : t('@astryx.codeBlock.copyCode')
+      }
       {...stylex.props(
         styles.copyButton,
         !showHeader && styles.copyButtonAbsolute,

@@ -2,10 +2,7 @@
 
 import {useState} from 'react';
 import type {Meta, StoryObj} from '@storybook/react';
-import {
-  RichTextEditor,
-  RichTextView,
-} from '@astryxdesign/lab';
+import {RichTextEditor, RichTextView} from '@astryxdesign/lab';
 import type {EditorState} from 'lexical';
 
 const meta: Meta<typeof RichTextEditor> = {

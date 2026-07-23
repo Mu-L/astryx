@@ -14,11 +14,7 @@ import {render, screen, waitFor} from '@testing-library/react';
 import {useEffect} from 'react';
 import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
 import type {LexicalEditor} from 'lexical';
-import {
-  $getRoot,
-  $createParagraphNode,
-  $createTextNode,
-} from 'lexical';
+import {$getRoot, $createParagraphNode, $createTextNode} from 'lexical';
 import {HeadingNode} from '@lexical/rich-text';
 import {RichTextEditor} from './RichTextEditor';
 import {RichTextView} from './RichTextView';
@@ -218,9 +214,7 @@ describe('RichTextView', () => {
   });
 
   it('renders nothing (no crash) on malformed JSON with no fallback', () => {
-    expect(() =>
-      render(<RichTextView value={'garbage'} />),
-    ).not.toThrow();
+    expect(() => render(<RichTextView value={'garbage'} />)).not.toThrow();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

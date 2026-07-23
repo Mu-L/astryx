@@ -474,8 +474,16 @@ export function Banner({
               <Button
                 variant="ghost"
                 size="sm"
-                label={isExpanded ? t('@astryx.banner.collapse') : t('@astryx.banner.expand')}
-                tooltip={isExpanded ? t('@astryx.banner.collapse') : t('@astryx.banner.expand')}
+                label={
+                  isExpanded
+                    ? t('@astryx.banner.collapse')
+                    : t('@astryx.banner.expand')
+                }
+                tooltip={
+                  isExpanded
+                    ? t('@astryx.banner.collapse')
+                    : t('@astryx.banner.expand')
+                }
                 icon={
                   <span
                     {...stylex.props(

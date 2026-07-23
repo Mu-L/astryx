@@ -45,7 +45,10 @@ import type {SizeValue} from '@astryxdesign/core/utils';
 import {useSize} from '@astryxdesign/core/SizeContext';
 import {themeProps} from '@astryxdesign/core/utils';
 
-import {LexicalComposer, type InitialConfigType} from '@lexical/react/LexicalComposer';
+import {
+  LexicalComposer,
+  type InitialConfigType,
+} from '@lexical/react/LexicalComposer';
 import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
 import {RichTextPlugin} from '@lexical/react/LexicalRichTextPlugin';
 import {ContentEditable} from '@lexical/react/LexicalContentEditable';
@@ -143,8 +146,10 @@ export interface RichTextEditorStatus {
   message?: string;
 }
 
-export interface RichTextEditorProps
-  extends Omit<BaseProps, 'onChange' | 'defaultValue'> {
+export interface RichTextEditorProps extends Omit<
+  BaseProps,
+  'onChange' | 'defaultValue'
+> {
   /** Label text for the editor (always rendered for accessibility). */
   label: string;
   /**
@@ -313,7 +318,6 @@ export function RichTextEditor({
       .filter(Boolean)
       .join(' ') || undefined;
 
-
   return (
     <Field
       label={label}
@@ -407,7 +411,6 @@ function AutoFocusOnMount(): null {
   }, [editor]);
   return null;
 }
-
 
 /**
  * Renders the Lexical ContentEditable. Split out so the placeholder
